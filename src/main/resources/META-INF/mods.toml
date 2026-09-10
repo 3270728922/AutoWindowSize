@@ -1,0 +1,30 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="autowindowsize"
+version="${mod_version}"
+displayName="Auto Window Size"
+authors="你的名字"
+credits="AI assisted generation"
+logoFile="logo.png"
+logoBlur=false
+description='''
+Auto resize Minecraft game window with configurable size.
+
+Features:
+- Auto set window size and center on startup
+- Lock minimum window size, can enlarge but not shrink
+- Auto fullscreen when config equals screen resolution
+- Restore config window size when exiting fullscreen
+- Multi-monitor support (detects current monitor)
+- Press O to toggle window lock (default on)
+- Warning and exit when screen resolution is too low
+- Config values auto-clamped, no crash
+
+Config: config/autowindowsize-client.toml
+
+This is the author's first mod, generated with AI assistance.
+Feedback and suggestions are welcome.
+'''
