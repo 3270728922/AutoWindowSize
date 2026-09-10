@@ -2,7 +2,7 @@
 
 > Minecraft Forge 1.20.1 Client Mod | Auto window sizing, centering & minimum size lock
 
-[中文版本](README_ZH-CN.md) | [Bilingual Version](README_BILINGUAL.md)
+[中文版本](README_ZH-CN.md)
 
 ---
 
@@ -340,4 +340,3 @@ A: This mod only modifies the game window's size and minimum size limit, and doe
 
 Thanks to all players and modpack creators who use this mod.
 Feedback and suggestions are welcome via Issues.
-#（注：内容由AI生成）
