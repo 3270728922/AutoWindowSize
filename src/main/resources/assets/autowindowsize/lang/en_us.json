@@ -1,4 +1,15 @@
 {
   "key.categories.autowindowsize": "Auto Window Size",
-  "key.autowindowsize.toggle_lock": "Toggle Window Size Lock"
+  "key.autowindowsize.toggle_lock": "Toggle Window Size Lock",
+
+  "gui.autowindowsize.config.title": "Auto Window Size Settings",
+  "gui.autowindowsize.menu.button": "Window Settings",
+  "gui.autowindowsize.lock.button.disabled": "Lock Disabled (Resolution Too Low)",
+  "gui.autowindowsize.lock.button.on": "Window Lock: ON (Click to Disable)",
+  "gui.autowindowsize.lock.button.off": "Window Lock: OFF (Click to Enable)",
+
+  "message.autowindowsize.lock_disabled": "§b[AutoWindowSize]§r §cLock unavailable: screen resolution too low",
+  "message.autowindowsize.lock_disabled_reason": "§b[AutoWindowSize]§r §cWindow lock auto-disabled — config resolution exceeds screen resolution, window size unchanged",
+  "message.autowindowsize.lock_on": "§b[AutoWindowSize]§r §aWindow lock enabled",
+  "message.autowindowsize.lock_off": "§b[AutoWindowSize]§r §7Window lock disabled, resize freely"
 }

@@ -1,4 +1,15 @@
 {
   "key.categories.autowindowsize": "自动窗口大小",
-  "key.autowindowsize.toggle_lock": "切换窗口大小锁定"
+  "key.autowindowsize.toggle_lock": "切换窗口大小锁定",
+
+  "gui.autowindowsize.config.title": "Auto Window Size 设置",
+  "gui.autowindowsize.menu.button": "窗口设置",
+  "gui.autowindowsize.lock.button.disabled": "锁定已禁用（分辨率过低）",
+  "gui.autowindowsize.lock.button.on": "窗口锁定：已开启（点击关闭）",
+  "gui.autowindowsize.lock.button.off": "窗口锁定：已关闭（点击开启）",
+
+  "message.autowindowsize.lock_disabled": "§b[AutoWindowSize]§r §c锁定功能不可用：当前屏幕分辨率过低",
+  "message.autowindowsize.lock_disabled_reason": "§b[AutoWindowSize]§r §c窗口锁定已自动禁用 — 配置分辨率高于屏幕分辨率，窗口大小保持不变",
+  "message.autowindowsize.lock_on": "§b[AutoWindowSize]§r §a窗口锁定已启用",
+  "message.autowindowsize.lock_off": "§b[AutoWindowSize]§r §7窗口锁定已关闭，可自由调整窗口大小"
 }
