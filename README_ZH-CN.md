@@ -2,7 +2,7 @@
 
 > Minecraft Forge 1.20.1 客户端模组 | 自动窗口大小、居中与最小尺寸锁定
 
-[English Version](README.md) | [Bilingual Version](README_BILINGUAL.md)
+[English Version](README.md)
 
 ---
 
@@ -340,4 +340,3 @@ A：本模组只修改游戏窗口的大小和最小尺寸限制，不修改游�
 
 感谢所有使用本模组的玩家和整合包制作者。
 反馈与建议欢迎提交 Issue。
-#（注：内容由AI生成）
