@@ -1,15 +1,28 @@
 {
   "key.categories.autowindowsize": "Auto Window Size",
-  "key.autowindowsize.toggle_lock": "Toggle Window Size Lock",
+  "key.autowindowsize.toggle_lock": "Open Window Settings",
 
   "gui.autowindowsize.config.title": "Auto Window Size Settings",
   "gui.autowindowsize.menu.button": "Window Settings",
+  "gui.autowindowsize.screen_resolution": "Screen Resolution: %s × %s",
+  "gui.autowindowsize.window_resolution": "Window Resolution: %s × %s",
+  "gui.autowindowsize.refreshing": "Window size changing, auto-refresh 1s after release…",
+  "gui.autowindowsize.disabled_reason": "Lock disabled: config resolution exceeds screen resolution",
+  "gui.autowindowsize.fullscreen_reason": "Lock disabled: fullscreen mode",
   "gui.autowindowsize.lock.button.disabled": "Lock Disabled (Resolution Too Low)",
+  "gui.autowindowsize.lock.button.fullscreen": "Lock Disabled (Fullscreen)",
   "gui.autowindowsize.lock.button.on": "Window Lock: ON (Click to Disable)",
   "gui.autowindowsize.lock.button.off": "Window Lock: OFF (Click to Enable)",
 
-  "message.autowindowsize.lock_disabled": "§b[AutoWindowSize]§r §cLock unavailable: screen resolution too low",
-  "message.autowindowsize.lock_disabled_reason": "§b[AutoWindowSize]§r §cWindow lock auto-disabled — config resolution exceeds screen resolution, window size unchanged",
-  "message.autowindowsize.lock_on": "§b[AutoWindowSize]§r §aWindow lock enabled",
-  "message.autowindowsize.lock_off": "§b[AutoWindowSize]§r §7Window lock disabled, resize freely"
+  "message.autowindowsize.lock_disabled": "§b[AutoWindowSize]§r §c✘ Lock unavailable: screen resolution too low",
+  "message.autowindowsize.lock_disabled_reason": "§b[AutoWindowSize]§r §c✘ Lock auto-disabled — config resolution exceeds screen, window size unchanged",
+  "message.autowindowsize.lock_on": "§b[AutoWindowSize]§r §a✔ Window lock enabled",
+  "message.autowindowsize.lock_off": "§b[AutoWindowSize]§r §7✔ Window lock disabled, resize freely",
+  "message.autowindowsize.lock_already_on": "§b[AutoWindowSize]§r §7ℹ Lock was already enabled",
+  "message.autowindowsize.lock_already_off": "§b[AutoWindowSize]§r §7ℹ Lock was already disabled",
+  "message.autowindowsize.lock_fullscreen_disabled": "§b[AutoWindowSize]§r §c✘ Lock unavailable in fullscreen, restored on exit",
+  "message.autowindowsize.status_on": "§b[AutoWindowSize]§r §a● Status: lock enabled §7| Screen: %s",
+  "message.autowindowsize.status_off": "§b[AutoWindowSize]§r §7● Status: lock disabled §7| Screen: %s",
+  "message.autowindowsize.status_disabled": "§b[AutoWindowSize]§r §c● Status: lock disabled (resolution too low) §7| Screen: %s",
+  "message.autowindowsize.status_fullscreen": "§b[AutoWindowSize]§r §c● Status: fullscreen, lock temporarily disabled §7| Screen: %s"
 }
