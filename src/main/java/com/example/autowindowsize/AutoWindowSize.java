@@ -72,7 +72,9 @@ public class AutoWindowSize {
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(this::initWindow);
+        // 延迟初始化：等游戏窗口完全创建后再设置大小
+        // 不检测特定界面，避免第一次启动引导界面时漏掉
+        MinecraftForge.EVENT_BUS.register(new DelayedInitHandler());
     }
 
     private void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
@@ -490,15 +492,19 @@ public class AutoWindowSize {
                 fullscreenTempDisabled = true;
                 lockEnabled = false;
                 if (mc.player != null) {
-                    mc.player.displayClientMessage(
-                            Component.translatable("message.autowindowsize.lock_fullscreen_disabled"), false);
+                    if (lockBeforeFullscreen) {
+                        mc.player.displayClientMessage(
+                                Component.translatable("message.autowindowsize.lock_fullscreen_disabled_on"), false);
+                    } else {
+                        mc.player.displayClientMessage(
+                                Component.translatable("message.autowindowsize.lock_fullscreen_disabled_off"), false);
+                    }
                 }
             }
 
             // 退出全屏
             if (!isFullscreen && wasFullscreen) {
                 fullscreenTempDisabled = false;
-                // 不干预窗口大小，让 Minecraft 自己恢复全屏前状态
                 if (!lockDisabled) {
                     if (lockBeforeFullscreen) {
                         lockEnabled = true;
@@ -547,6 +553,61 @@ public class AutoWindowSize {
                     mc.setScreen(new ConfigScreen(mc.screen));
                 }
             }
+        }
+    }
+
+    // 延迟初始化处理器：主菜单加载后延迟几帧再设置窗口大小
+    public static class DelayedInitHandler {
+        private int ticks = 0;
+
+        @SubscribeEvent
+        public void onTick(TickEvent.ClientTickEvent event) {
+            if (event.phase != TickEvent.Phase.END) return;
+            ticks++;
+            if (ticks >= 40) {
+                // 延迟40帧（约2秒），确保引导界面/主菜单完全加载，低配电脑也够用
+                MinecraftForge.EVENT_BUS.unregister(this);
+                initWindowStatic();
+            }
+        }
+    }
+
+    private static void initWindowStatic() {
+        Minecraft mc = Minecraft.getInstance();
+        long hwnd = mc.getWindow().getWindow();
+
+        int[] monitorRes = getCurrentMonitorResolutionStatic(hwnd);
+        int screenWidth = monitorRes[0];
+        int screenHeight = monitorRes[1];
+        int configWidth = Config.WINDOW_WIDTH.get();
+        int configHeight = Config.WINDOW_HEIGHT.get();
+
+        if (configWidth > screenWidth || configHeight > screenHeight
+                || HARD_MIN_WIDTH > screenWidth || HARD_MIN_HEIGHT > screenHeight) {
+            lockDisabled = true;
+            lockEnabled = false;
+            return;
+        }
+
+        lockDisabled = false;
+        int targetWidth = configWidth;
+        int targetHeight = configHeight;
+
+        GLFW.glfwSetWindowSize(hwnd, targetWidth, targetHeight);
+        long monitor = getCurrentMonitorStatic(hwnd);
+        int[] monX = new int[1], monY = new int[1];
+        GLFW.glfwGetMonitorPos(monitor, monX, monY);
+        GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+        int posX = monX[0] + (mode.width() - targetWidth) / 2;
+        int posY = monY[0] + (mode.height() - targetHeight) / 2;
+        GLFW.glfwSetWindowPos(hwnd, posX, posY);
+
+        if (lockEnabled) {
+            GLFW.glfwSetWindowSizeLimits(hwnd, targetWidth, targetHeight,
+                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
+        } else {
+            GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
+                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
         }
     }
 }

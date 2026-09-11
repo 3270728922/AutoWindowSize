@@ -21,6 +21,8 @@
   "message.autowindowsize.lock_already_on": "§b[AutoWindowSize]§r §7ℹ 锁定本来就是开启状态",
   "message.autowindowsize.lock_already_off": "§b[AutoWindowSize]§r §7ℹ 锁定本来就是关闭状态",
   "message.autowindowsize.lock_fullscreen_disabled": "§b[AutoWindowSize]§r §c✘ 全屏模式下锁定不可用，退出全屏后自动恢复",
+  "message.autowindowsize.lock_fullscreen_disabled_on": "§b[AutoWindowSize]§r §c✘ 全屏模式下锁定临时禁用，退出全屏后恢复开启",
+  "message.autowindowsize.lock_fullscreen_disabled_off": "§b[AutoWindowSize]§r §c✘ 全屏模式下锁定临时禁用，退出全屏后保持关闭",
   "message.autowindowsize.status_on": "§b[AutoWindowSize]§r §a● 状态：锁定已开启 §7| 屏幕：%s",
   "message.autowindowsize.status_off": "§b[AutoWindowSize]§r §7● 状态：锁定已关闭 §7| 屏幕：%s",
   "message.autowindowsize.status_disabled": "§b[AutoWindowSize]§r §c● 状态：锁定已禁用（分辨率过低） §7| 屏幕：%s",

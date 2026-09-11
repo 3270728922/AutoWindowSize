@@ -21,6 +21,8 @@
   "message.autowindowsize.lock_already_on": "§b[AutoWindowSize]§r §7ℹ Lock was already enabled",
   "message.autowindowsize.lock_already_off": "§b[AutoWindowSize]§r §7ℹ Lock was already disabled",
   "message.autowindowsize.lock_fullscreen_disabled": "§b[AutoWindowSize]§r §c✘ Lock unavailable in fullscreen, restored on exit",
+  "message.autowindowsize.lock_fullscreen_disabled_on": "§b[AutoWindowSize]§r §c✘ Lock temporarily disabled in fullscreen, will re-enable on exit",
+  "message.autowindowsize.lock_fullscreen_disabled_off": "§b[AutoWindowSize]§r §c✘ Lock temporarily disabled in fullscreen, will stay disabled on exit",
   "message.autowindowsize.status_on": "§b[AutoWindowSize]§r §a● Status: lock enabled §7| Screen: %s",
   "message.autowindowsize.status_off": "§b[AutoWindowSize]§r §7● Status: lock disabled §7| Screen: %s",
   "message.autowindowsize.status_disabled": "§b[AutoWindowSize]§r §c● Status: lock disabled (resolution too low) §7| Screen: %s",

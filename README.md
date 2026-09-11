@@ -8,7 +8,7 @@
 
 ## Downloads
 
-- **GitHub**: [3270728922/AutoWindowSize](https://github.com/3270728922/AutoWindowSize)
+- **GitHub Releases**: [v1.0.3](https://github.com/3270728922/AutoWindowSize/releases)
 - **CurseForge**: [auto-window-size](https://www.curseforge.com/minecraft/mc-mods/auto-window-size)
 - **Modrinth**: [autowindowsize](https://modrinth.com/mod/autowindowsize)
 - **Issues / Feedback**: [GitHub Issues](https://github.com/3270728922/AutoWindowSize/issues)
@@ -47,7 +47,7 @@ To solve this, I created this mod: it automatically sets the window to a specifi
 
 ## Features
 
-- **Auto window size on launch**: Automatically resizes the game window to the configured resolution and centers it on the current monitor
+- **Auto window size on launch**: Automatically resizes the game window to the configured resolution and centers it on the current monitor, with a 2-second delay to ensure smooth startup
 - **Minimum size lock**: When locked, the window can only be enlarged, not shrunk below the configured size — protecting UI layouts
 - **Native Video Settings entry**: A "Window Settings" button is natively inserted into `Options → Video Settings`, right below "Fullscreen Resolution", scrolling and scaling properly with the list
 - **Window Settings screen**: A dedicated settings screen with lock toggle, live screen/window resolution display, and real-time button state sync
@@ -329,6 +329,19 @@ A: This mod only modifies the game window's size and minimum size limit, and doe
 ---
 
 ## Changelog
+
+<details>
+<summary><strong>v1.0.3</strong> — Delayed init & improved fullscreen messages</summary>
+
+### Added
+- Window size is now set 2 seconds after game launch, avoiding stretch during loading screen and onboarding
+- Fullscreen disable messages now show whether lock will be re-enabled or stay disabled on exit, based on pre-fullscreen state
+- Bilingual (Chinese + English) config file comments
+
+### Fixed
+- First-launch onboarding screen (AccessibilityOnboarding) no longer skips window initialization
+
+</details>
 
 <details>
 <summary><strong>v1.0.2</strong> — Commands, fullscreen support & UI improvements</summary>

@@ -8,7 +8,7 @@
 
 ## 下载
 
-- **GitHub Releases**: [v1.0.2](https://github.com/3270728922/AutoWindowSize/releases)
+- **GitHub Releases**: [v1.0.3](https://github.com/3270728922/AutoWindowSize/releases)
 - **CurseForge**: [auto-window-size](https://www.curseforge.com/minecraft/mc-mods/auto-window-size)
 - **Modrinth**: [autowindowsize](https://modrinth.com/mod/autowindowsize)
 - **问题反馈**: [GitHub Issues](https://github.com/3270728922/AutoWindowSize/issues)
@@ -47,7 +47,7 @@
 
 ## 功能特性
 
-- **启动自动设置窗口大小**：启动游戏时自动将窗口设置为配置的分辨率，并在当前显示器上居中
+- **启动自动设置窗口大小**：启动游戏后延迟2秒自动将窗口设置为配置的分辨率并居中，避免加载界面拉伸
 - **锁定最小窗口尺寸**：锁定后窗口只能放大，不能缩小到配置尺寸以下，保证 UI 布局不被破坏
 - **视频设置原生入口**：在「选项 → 视频设置」中原生插入「窗口设置」按钮，位于「全屏分辨率」下方，随列表滚动和 GUI 缩放正常布局
 - **窗口设置界面**：独立的设置界面，可手动开关锁定，实时显示屏幕分辨率和窗口分辨率，按钮状态实时同步
@@ -329,6 +329,19 @@ A：本模组只修改游戏窗口的大小和最小尺寸限制，不修改游�
 ---
 
 ## 更新日志
+
+<details>
+<summary><strong>v1.0.3</strong> — 延迟初始化 & 全屏提示优化</summary>
+
+### 新增
+- 窗口大小在游戏启动2秒后设置，避免加载界面拉伸，低配电脑也够用
+- 全屏禁用提示现在会根据全屏前状态显示不同文字（退出后恢复开启 / 保持关闭）
+- 配置文件注释中英双语
+
+### 修复
+- 第一次启动的无障碍引导界面不再跳过窗口初始化
+
+</details>
 
 <details>
 <summary><strong>v1.0.2</strong> — 指令系统、全屏支持与界面优化</summary>
