@@ -8,9 +8,10 @@
 
 ## Downloads
 
-- **GitHub Releases**: [v1.0.3](https://github.com/3270728922/AutoWindowSize/releases)
+- **GitHub Releases**: [v1.0.4](https://github.com/3270728922/AutoWindowSize/releases)
 - **CurseForge**: [auto-window-size](https://www.curseforge.com/minecraft/mc-mods/auto-window-size)
 - **Modrinth**: [autowindowsize](https://modrinth.com/mod/autowindowsize)
+- **MC百科 (bbsmc)**: [autowindowsize](https://bbsmc.net/mod/autowindowsize)
 - **Issues / Feedback**: [GitHub Issues](https://github.com/3270728922/AutoWindowSize/issues)
 
 ---
@@ -39,9 +40,20 @@
 
 ## Purpose
 
+### Core Positioning
+
+This mod focuses **exclusively on window size management**. It does not touch GUI scaling, UI element layout, or in-game rendering — it only controls the game window's outer size and position. The goal is simple: give modpack creators a reliable way to ensure every player's game window starts at a consistent, known size, so UI layouts tuned by the pack author don't break on different monitors.
+
+### The Problem
+
 When creating modpacks, I often ran into this problem: after carefully tuning the UI layout of various mods, players would launch the game at a different resolution, the window size would change, and all the UI layouts would break.
 
 To solve this, I created this mod: it automatically sets the window to a specified size and centers it on launch, while locking the minimum window size — ensuring that modpack UI layouts stay consistent across different players' computers.
+
+### Future Plans
+
+- **Short-term**: Maintain and stabilize the Minecraft 1.20.1 Forge version. Focus on fixing bugs and refining existing features based on player feedback.
+- **Long-term**: Once the 1.20.1 Forge version is mature and stable, consider adapting to other Minecraft versions and mod loaders (Fabric, NeoForge, newer MC versions).
 
 ---
 
@@ -329,6 +341,21 @@ A: This mod only modifies the game window's size and minimum size limit, and doe
 ---
 
 ## Changelog
+
+<details>
+<summary><strong>v1.0.4</strong> — Loading screen respect & hardcoded minimum guarantee</summary>
+
+### Added
+- New config option `forceMinOnLoad` (default false): when false, keeps whatever window size the user set during loading; when true, forces window back to configured size if any edge is smaller
+- Window size is now never below the hardcoded minimum (856x482), regardless of config value
+- 1.5s delayed init (reduced from 2s) for faster startup
+
+### Changed
+- Fullscreen and maximized windows during loading are now respected and not modified
+- Lock minimum size always uses max(config value, 856x482)
+- Improved mod description in Mods list
+
+</details>
 
 <details>
 <summary><strong>v1.0.3</strong> — Delayed init & improved fullscreen messages</summary>

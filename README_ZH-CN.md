@@ -8,9 +8,10 @@
 
 ## 下载
 
-- **GitHub Releases**: [v1.0.3](https://github.com/3270728922/AutoWindowSize/releases)
+- **GitHub Releases**: [v1.0.4](https://github.com/3270728922/AutoWindowSize/releases)
 - **CurseForge**: [auto-window-size](https://www.curseforge.com/minecraft/mc-mods/auto-window-size)
 - **Modrinth**: [autowindowsize](https://modrinth.com/mod/autowindowsize)
+- **MC百科**: [autowindowsize](https://bbsmc.net/mod/autowindowsize)
 - **问题反馈**: [GitHub Issues](https://github.com/3270728922/AutoWindowSize/issues)
 
 ---
@@ -39,9 +40,20 @@
 
 ## 制作目的
 
+### 核心定位
+
+本模组**专注于窗口尺寸管理**，不涉及 GUI 缩放、UI 元素布局或游戏内渲染——只控制游戏窗口的外部大小和位置。目标很简单：给整合包作者一个可靠的方式，确保每个玩家的游戏窗口都以一致的、已知的大小启动，这样整合包作者调试好的 UI 布局就不会在不同分辨率的显示器上错乱。
+
+### 问题背景
+
 在制作整合包时，我经常遇到这样的问题：好不容易把各个模组的 UI 界面布局调试好了，结果玩家换了一个分辨率启动游戏，窗口大小变了，所有 UI 布局全乱了。
 
 为了解决这个问题，我做了这个模组：启动时自动把窗口设置为指定大小并居中，同时锁定最小窗口尺寸，确保整合包的 UI 布局在不同玩家的电脑上都能保持一致。
+
+### 未来计划
+
+- **短期**：维护和稳定 Minecraft 1.20.1 Forge 版本，根据玩家反馈修复 bug、优化现有功能。
+- **长期**：等 1.20.1 Forge 版本成熟稳定后，再考虑适配其他 Minecraft 版本和模组加载器（Fabric、NeoForge、更新的 MC 版本）。
 
 ---
 
@@ -329,6 +341,21 @@ A：本模组只修改游戏窗口的大小和最小尺寸限制，不修改游�
 ---
 
 ## 更新日志
+
+<details>
+<summary><strong>v1.0.4</strong> — 尊重加载界面调整 & 硬编码最小值保底</summary>
+
+### 新增
+- 新配置项 `forceMinOnLoad`（默认 false）：false 时保持用户在加载界面调整的大小；true 时如果任意一边小于配置值则强制拉回
+- 窗口大小永远不会低于硬编码最小值 856×482，无论配置值设成多少
+- 延迟初始化从 2 秒缩短到 1.5 秒
+
+### 调整
+- 加载界面已全屏或最大化的窗口不再被修改
+- 锁定最小尺寸始终取 max(配置值, 856×482)
+- 优化 Mods 界面中的模组描述格式
+
+</details>
 
 <details>
 <summary><strong>v1.0.3</strong> — 延迟初始化 & 全屏提示优化</summary>

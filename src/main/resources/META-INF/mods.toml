@@ -13,18 +13,37 @@ logoBlur=false
 displayURL="https://github.com/3270728922/AutoWindowSize"
 issueTrackerURL="https://github.com/3270728922/AutoWindowSize/issues"
 description='''
-Auto resize Minecraft game window with configurable size.
-Features:
-- Auto set window size and center on startup
-- Lock minimum window size, can enlarge but not shrink
-- Window settings button in video settings screen (native list entry)
-- /aws command system: toggle, lock, unlock, status, gui
-- Fullscreen auto-disable lock, restored on exit
-- Config resolution >= screen resolution: lock disabled, window size unchanged
-- Multi-monitor support (detects current monitor)
-- Customizable hotkey to open window settings (default unbound)
-- Lock status chat message on entering world
-- Live resolution display in window settings screen
-Config: config/autowindowsize-client.toml
-Feedback and suggestions are welcome on GitHub Issues.
+Automatically resizes the game window to a configured resolution and locks the minimum window size, keeping modpack UI layouts consistent across different players and screen sizes.
+
+Startup & Centering
+- Automatically sets window size to configured resolution (default 1280x720)
+- Centers window on the currently active monitor
+- Delayed init (1.5s) to avoid stretching during loading
+- Respects user adjustments made during loading screen
+
+Window Lock
+- Locks minimum window size (hardcoded floor 856x482)
+- Window can be enlarged freely but not shrunk below the limit
+- Toggle via button, hotkey, or /aws commands
+- Auto-disables when screen resolution is too low
+- Temporarily disables in fullscreen mode, restores on exit
+
+Commands & Hotkeys
+- /aws toggle, lock, unlock, status, gui
+- Custom keybind to open Window Settings (default unbound)
+- Chat notifications on world entry showing lock status
+
+Settings UI
+- Native "Window Settings" button in Video Settings menu
+- Dedicated settings screen with live resolution display
+- Shows current screen resolution and window resolution
+- 1s delayed refresh after window dragging stops
+
+Compatibility
+- Multi-monitor support (detects active monitor)
+- Client-side only, no server required
+- Works alongside OptiFine, Embeddium (button may not show in Embeddium's video screen)
+
+Config file: config/autowindowsize-client.toml
+Feedback & issues: https://github.com/3270728922/AutoWindowSize/issues
 '''

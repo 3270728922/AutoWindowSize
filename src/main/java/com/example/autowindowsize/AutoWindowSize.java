@@ -45,6 +45,14 @@ public class AutoWindowSize {
     private static final int HARD_MIN_WIDTH = 856;
     private static final int HARD_MIN_HEIGHT = 482;
 
+    // 实际生效的最小窗口尺寸（配置值与硬编码值取较大者）
+    private static int effectiveMinWidth() {
+        return Math.max(Config.WINDOW_WIDTH.get(), HARD_MIN_WIDTH);
+    }
+    private static int effectiveMinHeight() {
+        return Math.max(Config.WINDOW_HEIGHT.get(), HARD_MIN_HEIGHT);
+    }
+
     // 锁定最小窗口的开关（默认开启，运行时状态，不写入配置文件）
     private static boolean lockEnabled = true;
     // 锁定功能是否被永久禁用（当配置分辨率 >= 系统分辨率时为 true）
@@ -79,45 +87,6 @@ public class AutoWindowSize {
 
     private void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(TOGGLE_LOCK_KEY);
-    }
-
-    private void initWindow() {
-        Minecraft mc = Minecraft.getInstance();
-        long hwnd = mc.getWindow().getWindow();
-
-        int[] monitorRes = getCurrentMonitorResolution(hwnd);
-        int screenWidth = monitorRes[0];
-        int screenHeight = monitorRes[1];
-        int configWidth = Config.WINDOW_WIDTH.get();
-        int configHeight = Config.WINDOW_HEIGHT.get();
-
-        if (configWidth > screenWidth || configHeight > screenHeight
-                || HARD_MIN_WIDTH > screenWidth || HARD_MIN_HEIGHT > screenHeight) {
-            lockDisabled = true;
-            lockEnabled = false;
-            return;
-        }
-
-        lockDisabled = false;
-        int targetWidth = configWidth;
-        int targetHeight = configHeight;
-
-        GLFW.glfwSetWindowSize(hwnd, targetWidth, targetHeight);
-        long monitor = getCurrentMonitor(hwnd);
-        int[] monX = new int[1], monY = new int[1];
-        GLFW.glfwGetMonitorPos(monitor, monX, monY);
-        GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
-        int posX = monX[0] + (mode.width() - targetWidth) / 2;
-        int posY = monY[0] + (mode.height() - targetHeight) / 2;
-        GLFW.glfwSetWindowPos(hwnd, posX, posY);
-
-        if (lockEnabled) {
-            GLFW.glfwSetWindowSizeLimits(hwnd, targetWidth, targetHeight,
-                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
-        } else {
-            GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
-                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
-        }
     }
 
     // ========== 供外部调用的静态方法 ==========
@@ -170,22 +139,12 @@ public class AutoWindowSize {
         return new int[]{mode.width(), mode.height()};
     }
 
-    private static long getCurrentMonitor(long window) {
-        return getCurrentMonitorStatic(window);
-    }
-
-    private static int[] getCurrentMonitorResolution(long window) {
-        return getCurrentMonitorResolutionStatic(window);
-    }
-
     public static boolean toggleLock() {
         if (!canLock()) return false;
         lockEnabled = !lockEnabled;
         long hwnd = Minecraft.getInstance().getWindow().getWindow();
         if (lockEnabled) {
-            int w = Config.WINDOW_WIDTH.get();
-            int h = Config.WINDOW_HEIGHT.get();
-            GLFW.glfwSetWindowSizeLimits(hwnd, w, h,
+            GLFW.glfwSetWindowSizeLimits(hwnd, effectiveMinWidth(), effectiveMinHeight(),
                     GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
         } else {
             GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
@@ -199,9 +158,7 @@ public class AutoWindowSize {
         if (lockEnabled) return true;
         lockEnabled = true;
         long hwnd = Minecraft.getInstance().getWindow().getWindow();
-        int w = Config.WINDOW_WIDTH.get();
-        int h = Config.WINDOW_HEIGHT.get();
-        GLFW.glfwSetWindowSizeLimits(hwnd, w, h,
+        GLFW.glfwSetWindowSizeLimits(hwnd, effectiveMinWidth(), effectiveMinHeight(),
                 GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
         return true;
     }
@@ -508,9 +465,7 @@ public class AutoWindowSize {
                 if (!lockDisabled) {
                     if (lockBeforeFullscreen) {
                         lockEnabled = true;
-                        int w = Config.WINDOW_WIDTH.get();
-                        int h = Config.WINDOW_HEIGHT.get();
-                        GLFW.glfwSetWindowSizeLimits(hwnd, w, h,
+                        GLFW.glfwSetWindowSizeLimits(hwnd, effectiveMinWidth(), effectiveMinHeight(),
                                 GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
                     } else {
                         lockEnabled = false;
@@ -564,8 +519,7 @@ public class AutoWindowSize {
         public void onTick(TickEvent.ClientTickEvent event) {
             if (event.phase != TickEvent.Phase.END) return;
             ticks++;
-            if (ticks >= 40) {
-                // 延迟40帧（约2秒），确保引导界面/主菜单完全加载，低配电脑也够用
+            if (ticks >= 30) {
                 MinecraftForge.EVENT_BUS.unregister(this);
                 initWindowStatic();
             }
@@ -590,20 +544,57 @@ public class AutoWindowSize {
         }
 
         lockDisabled = false;
-        int targetWidth = configWidth;
-        int targetHeight = configHeight;
 
-        GLFW.glfwSetWindowSize(hwnd, targetWidth, targetHeight);
-        long monitor = getCurrentMonitorStatic(hwnd);
-        int[] monX = new int[1], monY = new int[1];
-        GLFW.glfwGetMonitorPos(monitor, monX, monY);
-        GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
-        int posX = monX[0] + (mode.width() - targetWidth) / 2;
-        int posY = monY[0] + (mode.height() - targetHeight) / 2;
-        GLFW.glfwSetWindowPos(hwnd, posX, posY);
+        // 全屏或最大化时不修改窗口大小，但仍设置 sizeLimits
+        boolean isFullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+        boolean isMaximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) != GLFW.GLFW_FALSE;
 
+        if (!isFullscreen && !isMaximized) {
+            // 获取当前窗口大小
+            int[] curW = new int[1], curH = new int[1];
+            GLFW.glfwGetWindowSize(hwnd, curW, curH);
+            int currentWidth = curW[0];
+            int currentHeight = curH[0];
+
+            int targetWidth = currentWidth;
+            int targetHeight = currentHeight;
+            boolean needResize = false;
+
+            int effW = effectiveMinWidth();
+            int effH = effectiveMinHeight();
+
+            if (Config.FORCE_MIN_ON_LOAD.get()) {
+                if (currentWidth < effW || currentHeight < effH) {
+                    targetWidth = effW;
+                    targetHeight = effH;
+                    needResize = true;
+                }
+            } else {
+                if (currentWidth < HARD_MIN_WIDTH) {
+                    targetWidth = HARD_MIN_WIDTH;
+                    needResize = true;
+                }
+                if (currentHeight < HARD_MIN_HEIGHT) {
+                    targetHeight = HARD_MIN_HEIGHT;
+                    needResize = true;
+                }
+            }
+
+            if (needResize) {
+                GLFW.glfwSetWindowSize(hwnd, targetWidth, targetHeight);
+                long monitor = getCurrentMonitorStatic(hwnd);
+                int[] monX = new int[1], monY = new int[1];
+                GLFW.glfwGetMonitorPos(monitor, monX, monY);
+                GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+                int posX = monX[0] + (mode.width() - targetWidth) / 2;
+                int posY = monY[0] + (mode.height() - targetHeight) / 2;
+                GLFW.glfwSetWindowPos(hwnd, posX, posY);
+            }
+        }
+
+        // 无论是否全屏/最大化，都设置 sizeLimits
         if (lockEnabled) {
-            GLFW.glfwSetWindowSizeLimits(hwnd, targetWidth, targetHeight,
+            GLFW.glfwSetWindowSizeLimits(hwnd, effectiveMinWidth(), effectiveMinHeight(),
                     GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
         } else {
             GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
