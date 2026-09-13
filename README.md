@@ -4,6 +4,8 @@
 
 > **⚠ Platform note: This mod only supports the desktop edition of Minecraft (Windows / macOS / Linux) and is NOT compatible with mobile / Bedrock / phone editions.**
 
+> **📮 Note on the v1.0.4 source: As the author is new to GitHub / Git, a few mistakes were made while updating 1.0.4, which briefly left the repository files in a messy state. If the source you downloaded does not match the released jar, please contact the author at **3270728922@qq.com** to obtain the correct source.**
+
 [中文版本](README_ZH-CN.md)
 
 ---
