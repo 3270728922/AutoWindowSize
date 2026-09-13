@@ -12,7 +12,7 @@
 
 ## Downloads
 
-- **GitHub Releases**: [v1.0.4](https://github.com/3270728922/AutoWindowSize/releases)
+- **GitHub Releases**: [latest](https://github.com/3270728922/AutoWindowSize/releases)
 - **CurseForge**: [auto-window-size](https://www.curseforge.com/minecraft/mc-mods/auto-window-size)
 - **Modrinth**: [autowindowsize](https://modrinth.com/mod/autowindowsize)
 - **MC百科 (MC百科)**: [Auto Window Size](https://www.mcmod.cn/class/30769.html)
@@ -376,6 +376,17 @@ A: This mod only modifies the game window's size and minimum size limit, and doe
 ---
 
 ## Changelog
+
+<details open>
+<summary><strong>v1.0.5</strong> — Fix: forced resize after fullscreen/maximized during loading</summary>
+
+### Fixed
+- Fixed the bug where, if the player manually went fullscreen or maximized the window while the game was still on the loading screen, the mod would still force the window back to the configured resolution once the main menu loaded. The startup init now checks the window state first.
+- Further fixes: after maximizing on the loading screen and then un-maximizing, the window would land at the OS default size instead of the configured one; and after entering fullscreen on the loading screen and then exiting, the window was not centered. Now, when you exit fullscreen or un-maximize after that loading-phase state, the window is automatically resized back to the configured resolution and centered.
+- Also fixed: maximizing first on the loading screen and then going fullscreen used to leave a "fake maximized" state after exiting fullscreen (the restore button still showed, but the actual size was the configured one). It now truly restores the maximized state in that case.
+- And another fix in the same flow: after that restored maximized state, un-maximizing left the window at the right size but off-center. The full chain now ends with a recenter; normal in-game un-maximize is unaffected and still restores the previous position.
+
+</details>
 
 <details open>
 <summary><strong>v1.0.4</strong> — Config UX, release-page links & earlier startup</summary>

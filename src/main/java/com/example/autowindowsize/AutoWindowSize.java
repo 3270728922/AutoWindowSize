@@ -54,6 +54,12 @@ public class AutoWindowSize {
     private static boolean fullscreenTempDisabled = false;
     // 记录进入全屏前的锁定状态
     private static boolean lockBeforeFullscreen = true;
+    // 加载期间用户已全屏/最大化，导致初始化被跳过：等他退出该状态后补设配置大小并居中
+    private static boolean deferredInitPending = false;
+    // 进入全屏前窗口是否处于最大化（用于退出全屏后决定是恢复最大化还是补设配置值）
+    private static boolean wasMaximizedAtFullscreen = false;
+    // 加载期间"最大化→全屏→退出全屏恢复最大化"后，等用户再取消最大化时补设配置大小并居中
+    private static boolean pendingCenterAfterUnmaximize = false;
 
     // 按键绑定：默认未设置，玩家自行在控制设置中绑定
     public static final KeyMapping TOGGLE_LOCK_KEY = new KeyMapping(
@@ -543,6 +549,7 @@ public class AutoWindowSize {
 
     public static class WindowHandler {
         private boolean wasFullscreen = false;
+        private boolean wasMaximized = false;
         private boolean enteredGameMessageShown = false;
 
         @SubscribeEvent
@@ -556,6 +563,8 @@ public class AutoWindowSize {
 
             // 进入全屏
             if (isFullscreen && !wasFullscreen) {
+                // 记录进入全屏前是否最大化：若加载期间先最大化再全屏，退出全屏后应恢复最大化
+                wasMaximizedAtFullscreen = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
                 lockBeforeFullscreen = lockEnabled;
                 fullscreenTempDisabled = true;
                 lockEnabled = false;
@@ -586,9 +595,37 @@ public class AutoWindowSize {
                                 GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
                     }
                 }
+                // 若这次全屏发生在加载期间、初始化被跳过：
+                //  - 进全屏前是最大化的（先最大化再全屏），退出后恢复最大化，
+                //    不能再 setSize，否则会变成"假最大化"（还原按钮还在、实际尺寸却是配置值）；
+                //  - 否则按配置值设大小并居中。
+                if (deferredInitPending) {
+                    deferredInitPending = false;
+                    if (wasMaximizedAtFullscreen) {
+                        GLFW.glfwMaximizeWindow(hwnd);
+                        // 恢复了最大化；等用户之后取消最大化时，再补一次配置大小与居中
+                        pendingCenterAfterUnmaximize = true;
+                    } else {
+                        applyConfigWindow();
+                    }
+                }
+            }
+
+            // 取消最大化（且非全屏）：若最大化发生在加载期间，取消后补上配置大小与居中
+            boolean isMaximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
+            if (deferredInitPending && wasMaximized && !isMaximized && !isFullscreen) {
+                deferredInitPending = false;
+                applyConfigWindow();
+            }
+            // 仅在"加载期间最大化→全屏→退出全屏恢复最大化→再取消最大化"这条链上补居中；
+            // 游戏中正常的取消最大化不受影响，仍恢复最大化前的位置。
+            if (pendingCenterAfterUnmaximize && wasMaximized && !isMaximized && !isFullscreen) {
+                pendingCenterAfterUnmaximize = false;
+                applyConfigWindow();
             }
 
             wasFullscreen = isFullscreen;
+            wasMaximized = isMaximized;
 
             if (mc.player == null) {
                 enteredGameMessageShown = false;
@@ -658,8 +695,26 @@ public class AutoWindowSize {
         }
 
         lockDisabled = false;
-        int targetWidth = configWidth;
-        int targetHeight = configHeight;
+
+        // 如果玩家在加载界面期间已经手动全屏或最大化了窗口，就先尊重其操作，
+        // 不立刻强制改窗口大小/位置；记一个标记，等他退出全屏或取消最大化后
+        // 再补上"按配置值设大小 + 居中"。否则取消最大化后窗口会停在系统默认大小，
+        // 退出全屏后窗口也不会居中。
+        boolean userFullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+        boolean userMaximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
+        if (userFullscreen || userMaximized) {
+            deferredInitPending = true;
+            return;
+        }
+
+        applyConfigWindow();
+    }
+
+    /** 把窗口设为配置分辨率、在所在显示器居中，并按当前锁定状态设置尺寸限制。 */
+    private static void applyConfigWindow() {
+        long hwnd = Minecraft.getInstance().getWindow().getWindow();
+        int targetWidth = Config.WINDOW_WIDTH.get();
+        int targetHeight = Config.WINDOW_HEIGHT.get();
 
         GLFW.glfwSetWindowSize(hwnd, targetWidth, targetHeight);
         long monitor = getCurrentMonitorStatic(hwnd);

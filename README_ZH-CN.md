@@ -12,7 +12,7 @@
 
 ## 下载
 
-- **GitHub Releases**: [v1.0.4](https://github.com/3270728922/AutoWindowSize/releases)
+- **GitHub Releases**: [最新版本](https://github.com/3270728922/AutoWindowSize/releases)
 - **CurseForge**: [auto-window-size](https://www.curseforge.com/minecraft/mc-mods/auto-window-size)
 - **Modrinth**: [autowindowsize](https://modrinth.com/mod/autowindowsize)
 - **MC 百科**: [Auto Window Size](https://www.mcmod.cn/class/30769.html)
@@ -376,6 +376,17 @@ A：本模组只修改游戏窗口的大小和最小尺寸限制，不修改游�
 ---
 
 ## 更新日志
+
+<details open>
+<summary><strong>v1.0.5</strong> — 修复加载期间全屏/最大化被强制改分辨率</summary>
+
+### 修复
+- 修复在游戏加载界面期间手动全屏或最大化窗口，进入主菜单后仍被模组强制改回配置分辨率的问题：现在启动初始化会检测窗口状态，若玩家已主动全屏或最大化，则先不强制改动窗口，记为"待初始化"。
+- 进一步修复：加载期间最大化后取消最大化，窗口会停在系统默认大小而非配置分辨率；加载期间进入全屏、退出后窗口没有居中。现在退出全屏或取消最大化时，会自动把窗口设回配置分辨率并居中。
+- 再修复：加载期间先最大化、再进入全屏，退出全屏后会进入"假最大化"（标题栏还原按钮还在、实际尺寸却是配置值）。现在这种情况退出全屏后会真正恢复最大化状态。
+- 再修复：承接上一条，恢复最大化后再取消最大化，窗口大小正常但没有居中；现在这条完整链结束后会补一次居中，且不影响游戏中正常取消最大化（仍恢复原位）。
+
+</details>
 
 <details open>
 <summary><strong>v1.0.4</strong> — 配置体验优化、发布页信息补全与启动时机调整</summary>
