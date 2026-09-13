@@ -2,15 +2,19 @@
 
 > Minecraft Forge 1.20.1 Client Mod | Auto window sizing, centering & minimum size lock
 
+> **⚠ Platform note: This mod only supports the desktop edition of Minecraft (Windows / macOS / Linux) and is NOT compatible with mobile / Bedrock / phone editions.**
+
 [中文版本](README_ZH-CN.md)
 
 ---
 
 ## Downloads
 
-- **GitHub Releases**: [v1.0.3](https://github.com/3270728922/AutoWindowSize/releases)
+- **GitHub Releases**: [v1.0.4](https://github.com/3270728922/AutoWindowSize/releases)
 - **CurseForge**: [auto-window-size](https://www.curseforge.com/minecraft/mc-mods/auto-window-size)
 - **Modrinth**: [autowindowsize](https://modrinth.com/mod/autowindowsize)
+- **MC百科 (MC百科)**: [Auto Window Size](https://www.mcmod.cn/class/30769.html)
+- **BBSMC**: [autowindowsize](https://bbsmc.net/mod/autowindowsize)
 - **Issues / Feedback**: [GitHub Issues](https://github.com/3270728922/AutoWindowSize/issues)
 
 ---
@@ -43,20 +47,55 @@ When creating modpacks, I often ran into this problem: after carefully tuning th
 
 To solve this, I created this mod: it automatically sets the window to a specified size and centers it on launch, while locking the minimum window size — ensuring that modpack UI layouts stay consistent across different players' computers.
 
+### Core goal of this mod
+
+The entire reason this mod exists is to turn the game window size from an **accident** into something **controlled, repeatable and constrained**:
+
+- **Stable modpack experience**: the window size becomes something a pack author can plan for in advance, rather than being left to each player's habits.
+- **Protect UI layouts**: the "minimum size lock" guarantees that any tuned interface never drifts out of place just because someone drags the window edge.
+- **Lightweight and non-intrusive**: it only touches the window's own size and position. It does not modify any in-game mechanic or gameplay logic, so it should stay clear of conflicts with other mods.
+- **Zero-config yet customizable**: it works out of the box (default 1280×720), and offers four ways to fine-tune it — config file, in-game button, hotkey, and commands.
+
+### Design trade-offs
+
+While building this mod I deliberately held a few lines:
+
+- **Window only, nothing in-game**: it never changes GUI scale, never touches any in-game UI, and never hooks gameplay logic. The window is an OS-level concern, so it stays out of the game's internals and almost never conflicts with other mods.
+- **Delayed, not instant**: it waits ~1.5s after launch before resizing, so the loading screen never stretches and low-end PCs get a little head start.
+- **Low hard floor**: the hard minimum is fixed at 856×482 (16:9) on purpose — better to support older displays than to raise the bar.
+- **Graceful fallback, not errors**: when the configured size exceeds the player's screen, it does not crash or pop errors; it just silently disables the lock and explains why in chat.
+- **No key by default**: no hotkey is bound out of the box, so it never fights with the player's existing controls; those who want one can bind it in Controls.
+
+### Who it is for
+
+- Modpack authors who need UI layouts to stay consistent across resolutions.
+- Players who like a small side window but are afraid of shrinking it by accident.
+- Multi-monitor users who want the window to land centered on the right screen.
+
+### Future plans
+
+This is my (the author's) **first ever Minecraft mod**, so for now I am keeping things deliberate and small, getting one thing right before expanding:
+
+- **Currently only Minecraft 1.20.1 / Forge is supported.** This is the only version actively maintained and tested.
+- As a first-time mod developer, the priority right now is to make the existing features stable, well documented and polished — not to spread across versions prematurely.
+- Once the current version has seen enough real use and is confirmed stable, I will consider porting to other Minecraft versions or loaders (e.g. NeoForge, Fabric, or other game versions).
+- Until then, no release timeline for other versions is promised; progress will be posted on GitHub and the release pages.
+
 ---
 
 ## Features
 
-- **Auto window size on launch**: Automatically resizes the game window to the configured resolution and centers it on the current monitor, with a 2-second delay to ensure smooth startup
+- **Auto window size on launch**: Automatically resizes the game window to the configured resolution and centers it on the current monitor, with a 1.5-second delay to ensure smooth startup
 - **Minimum size lock**: When locked, the window can only be enlarged, not shrunk below the configured size — protecting UI layouts
 - **Native Video Settings entry**: A "Window Settings" button is natively inserted into `Options → Video Settings`, right below "Fullscreen Resolution", scrolling and scaling properly with the list
-- **Window Settings screen**: A dedicated settings screen with lock toggle, live screen/window resolution display, and real-time button state sync
-- **Client commands**: `/aws toggle`, `/aws lock`, `/aws unlock`, `/aws status`, `/aws gui` — control the lock from chat
+- **Window Settings screen**: A dedicated settings screen with lock toggle, a one-click center button, live screen/window resolution display (yellow and labeled "Fullscreen" in fullscreen), and real-time button state sync
+- **Center Window button**: One-click centers the window on its current monitor while windowed; it is auto-disabled (with a reason) in fullscreen, maximized, minimized, or already-centered states
+- **Client commands**: `/aws toggle`, `/aws lock`, `/aws unlock`, `/aws status`, `/aws gui`, `/aws center` — control the lock from chat
 - **Fullscreen auto-disable**: Lock is temporarily disabled when entering fullscreen, and restored on exit based on pre-fullscreen state
 - **Custom hotkey**: Bind a key in Controls settings to open the Window Settings screen (default: unbound)
 - **Auto-disable on low resolution**: When the configured or hardcoded minimum resolution exceeds the player's screen resolution, lock is automatically disabled and the window is left unchanged
 - **Status notification on join**: Each time you enter a world, the chat displays the current lock status
-- **Live resolution display**: The Window Settings screen shows screen resolution and game window resolution in real time, auto-refreshing 1 second after window drag
+- **Live resolution display**: The Window Settings screen shows screen resolution and game window resolution, refreshing 0.5s after you stop dragging
 - **Multi-monitor support**: Automatically detects which monitor the game window is on and centers it accordingly
 
 ---
@@ -79,7 +118,7 @@ Player manual drag (only when lock is disabled)
 | 2 | Config file | 1280×720 | Modified in `config/autowindowsize-client.toml`, read on launch |
 | 3 (lowest) | Player drag | — | Only effective when lock is turned off; player can freely drag window edges |
 
-> **Note**: When lock is enabled, the window's minimum size = config value (but not below the hardcoded minimum). If the config value is below 856×482, 856×482 is used as the actual minimum size.
+> **Note**: When lock is enabled, the window's minimum size = config value. Since the config range is already bound to the hardcoded minimum (856×482), the config value can never drop below it, so the two can no longer conflict.
 
 ---
 
@@ -168,6 +207,7 @@ All commands start with `/aws` (client-side, only works in-game):
 | `/aws unlock` | Disable lock (no-op if already disabled) |
 | `/aws status` | Show current lock status and screen resolution |
 | `/aws gui` | Open the Window Settings screen |
+| `/aws center` | Center the window on its current monitor (warns when unavailable in fullscreen/maximized/minimized/already-centered) |
 
 When lock is disabled (low resolution or fullscreen), all lock-related commands show a red message explaining why.
 
@@ -210,8 +250,8 @@ Each time you enter a world, the chat shows the current lock status once:
 ### Live Refresh Mechanism
 
 - Button state syncs **in real time** — no need to reopen the screen
-- While dragging the window edge, an orange hint appears: "Window size changing, auto-refresh 1s after release…"
-- After stopping dragging for **1 second**, the window resolution value automatically updates
+- While dragging the window edge, the resolution stays put and an orange hint appears: "Window size changing, auto-refresh 0.5s after release…"
+- After stopping dragging for **0.5s**, the orange hint fades and the resolution updates to the current window size
 
 ---
 
@@ -237,21 +277,26 @@ Each time you enter a world, the chat shows the current lock status once:
 
 ```toml
 [window]
-    # Startup window width, also the minimum width when locked
-    # Range: 1 ~ 7680
-    # Default: 1280
-    width = 1280
-
-    # Startup window height, also the minimum height when locked
-    # Range: 1 ~ 4320
-    # Default: 720
-    height = 720
+# ==== Window Size ====
+# Startup window width. This is also the minimum width the window
+# is allowed to shrink to when the size lock is enabled.
+# 启动时的窗口宽度。开启尺寸锁定后，窗口也不能缩小到该值以下。
+#Range: 856 ~ 7680
+width = 1280
+# ==== Window Height ====
+# Startup window height. This is also the minimum height the window
+# is allowed to shrink to when the size lock is enabled.
+# 启动时的窗口高度。开启尺寸锁定后，窗口也不能缩小到该值以下。
+#Range: 482 ~ 4320
+height = 720
 ```
+
+> Comments are laid out as English above, Chinese below, with a single `====` heading. `Range` is generated automatically by Forge and not repeated.
 
 ### Notes
 
 - Config values are read at game **launch**; modifying the config file during runtime will not take effect until restart
-- If the config value is below the hardcoded minimum (856×482), the actual minimum lock size is still 856×482
+- The config range is bound to the hardcoded minimum (width 856, height 482): you **cannot** enter a value below that floor, so the config and the runtime lock can never drift out of sync
 - If the config value is higher than the screen resolution, lock is automatically disabled and the window size is not changed
 
 ---
@@ -309,13 +354,13 @@ A: If the configured resolution is higher than your screen resolution, the mod a
 A: Yes. Locking only restricts the minimum size, not the maximum — you can freely enlarge the window.
 
 **Q: What do the `/aws` commands do?**
-A: `/aws toggle` toggles lock, `/aws lock` enables it, `/aws unlock` disables it, `/aws status` shows the current state and screen resolution, `/aws gui` opens the settings screen.
+A: `/aws toggle` toggles lock, `/aws lock` enables it, `/aws unlock` disables it, `/aws status` shows the current state and screen resolution, `/aws gui` opens the settings screen, `/aws center` centers the window.
 
 **Q: Does it support multi-monitor setups?**
 A: Yes. The mod automatically detects which monitor the game window is on and centers it accordingly.
 
-**Q: Why doesn't the window resolution update instantly when I drag the window?**
-A: To avoid lag during dragging, the value updates 1 second after you release the window edge. An orange hint is shown while dragging.
+**Q: Why doesn't the resolution update instantly while I drag?**
+A: The value stays put with an orange hint while dragging, so the numbers don't jump constantly; 0.5s after you release, the hint fades and the resolution updates to the current window size.
 
 **Q: Lock is disabled, how do I recover it?**
 A: Change the resolution in the config file to be less than or equal to the screen resolution, then restart the game.
@@ -329,6 +374,27 @@ A: This mod only modifies the game window's size and minimum size limit, and doe
 ---
 
 ## Changelog
+
+<details open>
+<summary><strong>v1.0.4</strong> — Config UX, release-page links & earlier startup</summary>
+
+### Added / Changed
+- Config comments now use a clean EN-above / CN-below layout with a single `====` heading; `Range` is generated by Forge and not repeated
+- Config range now starts from the hardcoded minimum (width 856, height 482) instead of 1
+- The mods list (mods.toml) description is rewritten into a structured, detailed layout and now links to the CurseForge / Modrinth / MC百科 / BBSMC pages
+- Better ModList support: clickable blue links and a "client" badge show in the mod details; links are clickable in the vanilla mod list too
+- In the Window Settings screen, the resolution turns yellow and is labeled "(Fullscreen)" so windowed vs fullscreen is obvious at a glance
+- Added a "Center Window" button: centers the window on its current monitor while windowed; auto-disabled (with a reason) in fullscreen, maximized, minimized, or already-centered states; added the `/aws center` command
+- Docs now include a "not compatible with mobile" note, the mod's core goal, and future plans
+
+### Changed
+- The window now applies ~1.5 s (30 ticks) after launch instead of ~2 s
+
+### Fixed
+- Fixed the bug where the config could be set below the hardcoded resolution: the hardcoded minimum constants now live in Config, and both the config floor and the runtime lock point to the same constants, so they can no longer drift apart
+- Fixed the "resizing…" hint staying on screen and freezing the UI when entering fullscreen right after changing the window size: in fullscreen the current size is aligned immediately without entering the drag hint; in windowed mode the value stays frozen while dragging and refreshes once 0.5s after release
+
+</details>
 
 <details>
 <summary><strong>v1.0.3</strong> — Delayed init & improved fullscreen messages</summary>

@@ -41,9 +41,10 @@ public class AutoWindowSize {
     private static final org.apache.logging.log4j.Logger LOGGER =
             org.apache.logging.log4j.LogManager.getLogger("AutoWindowSize");
 
-    // 写死的最小分辨率（16:9），配置文件不能低于这个
-    private static final int HARD_MIN_WIDTH = 856;
-    private static final int HARD_MIN_HEIGHT = 482;
+    // 写死的最小分辨率（16:9），统一定义在 Config 中；配置文件的取值下限也指向同一常量，
+    // 这样配置层和运行时层不会脱节，杜绝"配置能填到比硬写死分辨率更小"的 bug。
+    private static final int HARD_MIN_WIDTH = Config.HARD_MIN_WIDTH;
+    private static final int HARD_MIN_HEIGHT = Config.HARD_MIN_HEIGHT;
 
     // 锁定最小窗口的开关（默认开启，运行时状态，不写入配置文件）
     private static boolean lockEnabled = true;
@@ -136,6 +137,58 @@ public class AutoWindowSize {
 
     public static boolean canLock() {
         return !lockDisabled && !fullscreenTempDisabled;
+    }
+
+    /** 把当前窗口在其所在显示器上居中。仅在窗口化、未最大化、未最小化时有意义。 */
+    public static void centerWindow() {
+        long hwnd = getWindowHandle();
+        long monitor = getCurrentMonitorStatic(hwnd);
+        int[] monX = new int[1], monY = new int[1];
+        GLFW.glfwGetMonitorPos(monitor, monX, monY);
+        GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+        int[] winW = new int[1], winH = new int[1];
+        GLFW.glfwGetWindowSize(hwnd, winW, winH);
+        int posX = monX[0] + (mode.width() - winW[0]) / 2;
+        int posY = monY[0] + (mode.height() - winH[0]) / 2;
+        GLFW.glfwSetWindowPos(hwnd, posX, posY);
+    }
+
+    /** 窗口是否已经在其所在显示器居中（允许 2px 误差，避免 DPI/边框取整导致的抖动）。 */
+    public static boolean isWindowCentered() {
+        long hwnd = getWindowHandle();
+        long monitor = getCurrentMonitorStatic(hwnd);
+        int[] monX = new int[1], monY = new int[1];
+        GLFW.glfwGetMonitorPos(monitor, monX, monY);
+        GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+        int[] winX = new int[1], winY = new int[1], winW = new int[1], winH = new int[1];
+        GLFW.glfwGetWindowPos(hwnd, winX, winY);
+        GLFW.glfwGetWindowSize(hwnd, winW, winH);
+        int targetX = monX[0] + (mode.width() - winW[0]) / 2;
+        int targetY = monY[0] + (mode.height() - winH[0]) / 2;
+        return Math.abs(winX[0] - targetX) <= 2 && Math.abs(winY[0] - targetY) <= 2;
+    }
+
+    /** 居中按钮不可用的原因；null 表示可用。按优先级返回全屏/最大化/最小化/已居中。 */
+    public static Component getCenterDisabledReason() {
+        long hwnd = getWindowHandle();
+        if (GLFW.glfwGetWindowMonitor(hwnd) != 0) {
+            return Component.translatable("gui.autowindowsize.center.disabled_fullscreen");
+        }
+        if (GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE) {
+            return Component.translatable("gui.autowindowsize.center.disabled_maximized");
+        }
+        if (GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_ICONIFIED) != GLFW.GLFW_FALSE) {
+            return Component.translatable("gui.autowindowsize.center.disabled_minimized");
+        }
+        if (isWindowCentered()) {
+            return Component.translatable("gui.autowindowsize.center.already_centered");
+        }
+        return null;
+    }
+
+    /** 居中按钮何时可用：非全屏、非最大化、非最小化、且尚未居中。 */
+    public static boolean canCenter() {
+        return getCenterDisabledReason() == null;
     }
 
     public static long getWindowHandle() {
@@ -381,6 +434,7 @@ public class AutoWindowSize {
             aws.then(Commands.literal("unlock").executes(ctx -> cmdUnlock(ctx)));
             aws.then(Commands.literal("status").executes(ctx -> cmdStatus(ctx)));
             aws.then(Commands.literal("gui").executes(ctx -> cmdGui(ctx)));
+            aws.then(Commands.literal("center").executes(ctx -> cmdCenter(ctx)));
 
             event.getDispatcher().register(aws);
         }
@@ -467,6 +521,20 @@ public class AutoWindowSize {
         private static int cmdGui(CommandContext<CommandSourceStack> context) {
             Minecraft mc = Minecraft.getInstance();
             mc.setScreen(new ConfigScreen(mc.screen));
+            return 1;
+        }
+
+        private static int cmdCenter(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            if (!canCenter()) {
+                Component reason = getCenterDisabledReason();
+                player.displayClientMessage(Component.translatable("message.autowindowsize.center_unavailable",
+                        reason != null ? reason : Component.empty()), false);
+                return 0;
+            }
+            centerWindow();
+            player.displayClientMessage(Component.translatable("message.autowindowsize.center_done"), false);
             return 1;
         }
     }
@@ -564,8 +632,8 @@ public class AutoWindowSize {
         public void onTick(TickEvent.ClientTickEvent event) {
             if (event.phase != TickEvent.Phase.END) return;
             ticks++;
-            if (ticks >= 40) {
-                // 延迟40帧（约2秒），确保引导界面/主菜单完全加载，低配电脑也够用
+            if (ticks >= 30) {
+                // 延迟30帧（约1.5秒，20 TPS），确保引导界面/主菜单完全加载，低配电脑也够用
                 MinecraftForge.EVENT_BUS.unregister(this);
                 initWindowStatic();
             }

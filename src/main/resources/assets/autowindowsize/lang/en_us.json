@@ -6,13 +6,19 @@
   "gui.autowindowsize.menu.button": "Window Settings",
   "gui.autowindowsize.screen_resolution": "Screen Resolution: %s × %s",
   "gui.autowindowsize.window_resolution": "Window Resolution: %s × %s",
-  "gui.autowindowsize.refreshing": "Window size changing, auto-refresh 1s after release…",
+  "gui.autowindowsize.window_resolution_fullscreen": "Window Resolution: %s × %s (Fullscreen)",
+  "gui.autowindowsize.refreshing": "Window size changing, auto-refresh 0.5s after release…",
   "gui.autowindowsize.disabled_reason": "Lock disabled: config resolution exceeds screen resolution",
   "gui.autowindowsize.fullscreen_reason": "Lock disabled: fullscreen mode",
   "gui.autowindowsize.lock.button.disabled": "Lock Disabled (Resolution Too Low)",
   "gui.autowindowsize.lock.button.fullscreen": "Lock Disabled (Fullscreen)",
   "gui.autowindowsize.lock.button.on": "Window Lock: ON (Click to Disable)",
   "gui.autowindowsize.lock.button.off": "Window Lock: OFF (Click to Enable)",
+  "gui.autowindowsize.center.button": "Center Window",
+  "gui.autowindowsize.center.disabled_fullscreen": "Center unavailable: fullscreen",
+  "gui.autowindowsize.center.disabled_maximized": "Center unavailable: window maximized",
+  "gui.autowindowsize.center.disabled_minimized": "Center unavailable: window minimized",
+  "gui.autowindowsize.center.already_centered": "Window already centered",
 
   "message.autowindowsize.lock_disabled": "§b[AutoWindowSize]§r §c✘ Lock unavailable: screen resolution too low",
   "message.autowindowsize.lock_disabled_reason": "§b[AutoWindowSize]§r §c✘ Lock auto-disabled — config resolution exceeds screen, window size unchanged",
@@ -26,5 +32,10 @@
   "message.autowindowsize.status_on": "§b[AutoWindowSize]§r §a● Status: lock enabled §7| Screen: %s",
   "message.autowindowsize.status_off": "§b[AutoWindowSize]§r §7● Status: lock disabled §7| Screen: %s",
   "message.autowindowsize.status_disabled": "§b[AutoWindowSize]§r §c● Status: lock disabled (resolution too low) §7| Screen: %s",
-  "message.autowindowsize.status_fullscreen": "§b[AutoWindowSize]§r §c● Status: fullscreen, lock temporarily disabled §7| Screen: %s"
+  "message.autowindowsize.status_fullscreen": "§b[AutoWindowSize]§r §c● Status: fullscreen, lock temporarily disabled §7| Screen: %s",
+  "message.autowindowsize.center_done": "§b[AutoWindowSize]§r §a✔ Window centered on its monitor",
+  "message.autowindowsize.center_unavailable": "§b[AutoWindowSize]§r §c✘ Cannot center: %s",
+
+  "mod_menu.mcbaike": "MC Baike",
+  "mod_menu.bbsmc": "BBSMC"
 }

@@ -6,13 +6,19 @@
   "gui.autowindowsize.menu.button": "窗口设置",
   "gui.autowindowsize.screen_resolution": "屏幕分辨率：%s × %s",
   "gui.autowindowsize.window_resolution": "当前游戏窗口分辨率：%s × %s",
-  "gui.autowindowsize.refreshing": "窗口尺寸变化中，松开后 1 秒自动刷新…",
+  "gui.autowindowsize.window_resolution_fullscreen": "当前游戏窗口分辨率：%s × %s（全屏）",
+  "gui.autowindowsize.refreshing": "窗口尺寸变化中，松开后 0.5 秒自动刷新…",
   "gui.autowindowsize.disabled_reason": "锁定已禁用：配置分辨率高于屏幕分辨率",
   "gui.autowindowsize.fullscreen_reason": "锁定已禁用：全屏模式",
   "gui.autowindowsize.lock.button.disabled": "锁定已禁用（分辨率过低）",
   "gui.autowindowsize.lock.button.fullscreen": "锁定已禁用（全屏模式）",
   "gui.autowindowsize.lock.button.on": "窗口锁定：已开启（点击关闭）",
   "gui.autowindowsize.lock.button.off": "窗口锁定：已关闭（点击开启）",
+  "gui.autowindowsize.center.button": "居中窗口",
+  "gui.autowindowsize.center.disabled_fullscreen": "居中不可用：全屏模式",
+  "gui.autowindowsize.center.disabled_maximized": "居中不可用：窗口已最大化",
+  "gui.autowindowsize.center.disabled_minimized": "居中不可用：窗口已最小化",
+  "gui.autowindowsize.center.already_centered": "窗口已居中",
 
   "message.autowindowsize.lock_disabled": "§b[AutoWindowSize]§r §c✘ 锁定不可用：屏幕分辨率过低",
   "message.autowindowsize.lock_disabled_reason": "§b[AutoWindowSize]§r §c✘ 锁定已自动禁用 — 配置分辨率超过屏幕分辨率，窗口大小保持不变",
@@ -26,5 +32,10 @@
   "message.autowindowsize.status_on": "§b[AutoWindowSize]§r §a● 状态：锁定已开启 §7| 屏幕：%s",
   "message.autowindowsize.status_off": "§b[AutoWindowSize]§r §7● 状态：锁定已关闭 §7| 屏幕：%s",
   "message.autowindowsize.status_disabled": "§b[AutoWindowSize]§r §c● 状态：锁定已禁用（分辨率过低） §7| 屏幕：%s",
-  "message.autowindowsize.status_fullscreen": "§b[AutoWindowSize]§r §c● 状态：全屏模式，锁定临时禁用 §7| 屏幕：%s"
+  "message.autowindowsize.status_fullscreen": "§b[AutoWindowSize]§r §c● 状态：全屏模式，锁定临时禁用 §7| 屏幕：%s",
+  "message.autowindowsize.center_done": "§b[AutoWindowSize]§r §a✔ 窗口已在当前显示器居中",
+  "message.autowindowsize.center_unavailable": "§b[AutoWindowSize]§r §c✘ 居中不可用：%s",
+
+  "mod_menu.mcbaike": "MC百科",
+  "mod_menu.bbsmc": "BBSMC"
 }

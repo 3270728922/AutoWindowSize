@@ -10,21 +10,69 @@ authors="JujuMLQwQ, ML"
 credits="AI assisted generation"
 logoFile="logo.png"
 logoBlur=false
-displayURL="https://github.com/3270728922/AutoWindowSize"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/auto-window-size"
 issueTrackerURL="https://github.com/3270728922/AutoWindowSize/issues"
 description='''
-Auto resize Minecraft game window with configurable size.
-Features:
-- Auto set window size and center on startup
-- Lock minimum window size, can enlarge but not shrink
-- Window settings button in video settings screen (native list entry)
-- /aws command system: toggle, lock, unlock, status, gui
-- Fullscreen auto-disable lock, restored on exit
-- Config resolution >= screen resolution: lock disabled, window size unchanged
-- Multi-monitor support (detects current monitor)
-- Customizable hotkey to open window settings (default unbound)
-- Lock status chat message on entering world
-- Live resolution display in window settings screen
-Config: config/autowindowsize-client.toml
-Feedback and suggestions are welcome on GitHub Issues.
+Auto Window Size automatically sizes, centers and locks the game
+window so modpack UI layouts stay consistent on every PC.
+
+Why it exists
+When building a modpack, UI layouts are tuned carefully, but a
+player launching at a different resolution can resize the window
+and break them. This mod turns window size from a lucky accident
+into something controlled and repeatable. It is intentionally
+lightweight: it only touches the window itself, changes no gameplay
+or rendering, and should not conflict with other mods.
+
+How it works
+On launch it sets the window to your configured resolution and
+centers it on the monitor the window is actually on. A 1.5 second
+delay avoids stretching the loading screen. When the lock is on,
+the window can be enlarged freely but never shrinks below your
+chosen size.
+
+Features
+- Auto window size and centering on launch
+- Minimum size lock: grow freely, never shrink below config
+- Native Window Settings button in Video Settings
+- Dedicated screen with live screen/window resolution
+- /aws commands: toggle, lock, unlock, status, gui
+- Lock suspends in fullscreen, restored on exit
+- Multi-monitor aware centering
+- Optional hotkey (unbound by default)
+- Chat status message on entering a world
+- Graceful fallback if the display is too small
+
+Status and future plans
+This is the author's first mod. For now it targets only
+Minecraft 1.20.1 on Forge, with the focus on stability and polish.
+Once it is proven stable, ports to other versions or loaders such
+as NeoForge or Fabric may follow.
+
+Details
+- Client-side only, no server install required
+- Config: config/autowindowsize-client.toml (bilingual comments)
+- Default 1280x720, range bound to hard minimum 856x482
+
+Links
+https://github.com/3270728922/AutoWindowSize
+https://www.curseforge.com/minecraft/mc-mods/auto-window-size
+https://modrinth.com/mod/autowindowsize
+https://www.mcmod.cn/class/30769.html
+https://bbsmc.net/mod/autowindowsize
 '''
+
+# ===== Better ModList / Mod Menu (NeoForge) 增强信息 =====
+# 仅在玩家安装了 Better ModList 时生效：它会读取本 section，
+# 在模组详情右侧渲染蓝色可点击链接与"客户端"标签。
+# 未安装该模组时 Forge 会忽略此 section，不影响正常加载。
+[modproperties.modmenu]
+badges = ["client"]
+sources = "https://github.com/3270728922/AutoWindowSize"
+links = [
+    "mod_menu.github_releases=https://github.com/3270728922/AutoWindowSize/releases",
+    "mod_menu.curseforge=https://www.curseforge.com/minecraft/mc-mods/auto-window-size",
+    "mod_menu.modrinth=https://modrinth.com/mod/autowindowsize",
+    "mod_menu.mcbaike=https://www.mcmod.cn/class/30769.html",
+    "mod_menu.bbsmc=https://bbsmc.net/mod/autowindowsize"
+]
