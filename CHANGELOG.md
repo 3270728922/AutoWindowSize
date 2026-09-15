@@ -7,6 +7,21 @@ Full release history for this mod. The latest version is expanded by default; ol
 ---
 
 <details open>
+<summary><strong>v1.0.6</strong> — New: Fixed Window Size</summary>
+
+### Added
+- New "Fixed Window Size" toggle (button in the Window Settings screen + `/aws fixed` command): when on, the window is frozen at its **current** size (min = max = current size). It does **not** jump to the configured resolution and does **not** force a recenter — it simply cannot be resized anymore, and the title-bar maximize button is disabled at the OS level (GLFW_RESIZABLE=false removes WS_MAXIMIZEBOX on Windows), so a "fake maximized" state is impossible
+- The fixed-window-size toggle is itself disabled while the window is maximized or fullscreen (with an explanatory message), instead of trying to lock the full-screen-sized maximized dimensions
+- Fullscreen still works (GLFW fullscreen is not bound by window size limits) and returns to the fixed size on exit
+- Fixed window size is only blocked by fullscreen/maximized state (temporarily disabled, restored on exit). It is **not** affected by the "config resolution too low" state, which only disables the minimum size lock — fixed window size and centering keep working because they do not depend on the config value
+
+### Notes
+- Fixed window size is a runtime toggle (same as the min size lock), off by default, reset on game restart; when fixed is on, the lock button has no additional effect (fixed takes priority)
+- Inspiration: the fixed-window-size idea is inspired by the mod [Locked Window Size](https://modrinth.com/mod/locked-window-size) (LGPL-3.0). It is an independent implementation using only the public GLFW API; no source code was copied, so this mod remains MIT-licensed.
+
+</details>
+
+<details>
 <summary><strong>v1.0.5</strong> — Fix: loading-phase fullscreen / maximized window handling</summary>
 
 ### Fixed

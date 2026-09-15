@@ -48,12 +48,20 @@ public class AutoWindowSize {
 
     // 锁定最小窗口的开关（默认开启，运行时状态，不写入配置文件）
     private static boolean lockEnabled = true;
+    // 固定分辨率开关（默认关闭）：开启后把"当前窗口大小"完全锁死（min=max=当前值），
+    // 不跳变到配置分辨率、也不强制居中，只是不能再改大小
+    private static boolean fixedEnabled = false;
+    // 开启固定分辨率时记录的窗口尺寸（用于 min=max 锁定）
+    private static int fixedWidth = 0;
+    private static int fixedHeight = 0;
     // 锁定功能是否被永久禁用（当配置分辨率 >= 系统分辨率时为 true）
     private static boolean lockDisabled = false;
     // 全屏时临时禁用锁定
     private static boolean fullscreenTempDisabled = false;
     // 记录进入全屏前的锁定状态
     private static boolean lockBeforeFullscreen = true;
+    // 记录进入全屏前的固定分辨率状态
+    private static boolean fixedBeforeFullscreen = false;
     // 加载期间用户已全屏/最大化，导致初始化被跳过：等他退出该状态后补设配置大小并居中
     private static boolean deferredInitPending = false;
     // 进入全屏前窗口是否处于最大化（用于退出全屏后决定是恢复最大化还是补设配置值）
@@ -118,13 +126,7 @@ public class AutoWindowSize {
         int posY = monY[0] + (mode.height() - targetHeight) / 2;
         GLFW.glfwSetWindowPos(hwnd, posX, posY);
 
-        if (lockEnabled) {
-            GLFW.glfwSetWindowSizeLimits(hwnd, targetWidth, targetHeight,
-                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
-        } else {
-            GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
-                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
-        }
+        applyWindowLimits();
     }
 
     // ========== 供外部调用的静态方法 ==========
@@ -237,19 +239,76 @@ public class AutoWindowSize {
         return getCurrentMonitorResolutionStatic(window);
     }
 
-    public static boolean toggleLock() {
-        if (!canLock()) return false;
-        lockEnabled = !lockEnabled;
+    public static boolean isFixedEnabled() {
+        return fixedEnabled;
+    }
+
+    /**
+     * 固定分辨率是否可用：全屏时临时禁用；窗口最大化时禁用（最大化尺寸铺满屏幕，
+     * 锁它没有意义，请先取消最大化）；分辨率过低不影响固定（它锁当前窗口大小，与配置值无关）。
+     */
+    public static boolean canFixed() {
+        if (fullscreenTempDisabled) return false;
         long hwnd = Minecraft.getInstance().getWindow().getWindow();
-        if (lockEnabled) {
+        return GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) != GLFW.GLFW_TRUE;
+    }
+
+    /**
+     * 统一应用窗口尺寸限制：
+     *  - 固定分辨率开启：min = max = 开启固定时的窗口尺寸，大小完全不能变；
+     *    同时把 GLFW_RESIZABLE 置为 false —— 在 Windows 上这会一并移除标题栏的
+     *    最大化按钮（WS_MAXIMIZEBOX）并禁止拖边，从根上避免"假最大化"。
+     *  - 锁定最小开启：恢复 GLFW_RESIZABLE=true，min = 配置值，max 不限（只能放大不能缩小）
+     *  - 都未开启：恢复 GLFW_RESIZABLE=true，无尺寸限制
+     */
+    private static void applyWindowLimits() {
+        long hwnd = Minecraft.getInstance().getWindow().getWindow();
+        if (fixedEnabled && fixedWidth > 0 && fixedHeight > 0) {
+            GLFW.glfwSetWindowSizeLimits(hwnd, fixedWidth, fixedHeight,
+                    fixedWidth, fixedHeight);
+            GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_RESIZABLE, GLFW.GLFW_FALSE);
+        } else if (lockEnabled) {
+            GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
             int w = Config.WINDOW_WIDTH.get();
             int h = Config.WINDOW_HEIGHT.get();
             GLFW.glfwSetWindowSizeLimits(hwnd, w, h,
                     GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
         } else {
+            GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
             GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
                     GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
         }
+    }
+
+    /**
+     * 切换固定分辨率。开启时只把"当前窗口尺寸"锁死（min=max=当前值），
+     * 不跳变到配置分辨率、也不强制居中；关闭时按现有锁定状态恢复尺寸限制。
+     * 最大化状态由 canFixed() 拦截，不会走到这里。
+     */
+    public static boolean toggleFixed() {
+        if (!canFixed()) return false;
+        fixedEnabled = !fixedEnabled;
+        if (fixedEnabled) {
+            lockToCurrentSize(Minecraft.getInstance().getWindow().getWindow());
+        } else {
+            applyWindowLimits();
+        }
+        return fixedEnabled;
+    }
+
+    /** 读取当前窗口尺寸并以 min=max 锁死（固定分辨率），同时禁用调整大小与最大化按钮。 */
+    private static void lockToCurrentSize(long hwnd) {
+        int[] w = new int[1], h = new int[1];
+        GLFW.glfwGetWindowSize(hwnd, w, h);
+        fixedWidth = w[0];
+        fixedHeight = h[0];
+        applyWindowLimits();
+    }
+
+    public static boolean toggleLock() {
+        if (!canLock()) return false;
+        lockEnabled = !lockEnabled;
+        applyWindowLimits();
         return lockEnabled;
     }
 
@@ -257,11 +316,7 @@ public class AutoWindowSize {
         if (!canLock()) return false;
         if (lockEnabled) return true;
         lockEnabled = true;
-        long hwnd = Minecraft.getInstance().getWindow().getWindow();
-        int w = Config.WINDOW_WIDTH.get();
-        int h = Config.WINDOW_HEIGHT.get();
-        GLFW.glfwSetWindowSizeLimits(hwnd, w, h,
-                GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
+        applyWindowLimits();
         return true;
     }
 
@@ -269,9 +324,7 @@ public class AutoWindowSize {
         if (!canLock()) return false;
         if (!lockEnabled) return true;
         lockEnabled = false;
-        long hwnd = Minecraft.getInstance().getWindow().getWindow();
-        GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
-                GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
+        applyWindowLimits();
         return true;
     }
 
@@ -441,8 +494,31 @@ public class AutoWindowSize {
             aws.then(Commands.literal("status").executes(ctx -> cmdStatus(ctx)));
             aws.then(Commands.literal("gui").executes(ctx -> cmdGui(ctx)));
             aws.then(Commands.literal("center").executes(ctx -> cmdCenter(ctx)));
+            aws.then(Commands.literal("fixed").executes(ctx -> cmdFixed(ctx)));
 
             event.getDispatcher().register(aws);
+        }
+
+        private static int cmdFixed(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            // 固定分辨率不受"配置分辨率过低"影响（它锁当前窗口大小，与配置值无关）
+            if (fullscreenTempDisabled) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.fixed_fullscreen_disabled"), false);
+                return 0;
+            }
+            long hwnd = Minecraft.getInstance().getWindow().getWindow();
+            if (GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.fixed_maximized"), false);
+                return 0;
+            }
+            boolean nowFixed = toggleFixed();
+            if (nowFixed) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.fixed_on"), false);
+            } else {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.fixed_off"), false);
+            }
+            return 1;
         }
 
         private static int cmdToggle(CommandContext<CommandSourceStack> context) {
@@ -566,8 +642,12 @@ public class AutoWindowSize {
                 // 记录进入全屏前是否最大化：若加载期间先最大化再全屏，退出全屏后应恢复最大化
                 wasMaximizedAtFullscreen = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
                 lockBeforeFullscreen = lockEnabled;
+                fixedBeforeFullscreen = fixedEnabled;
                 fullscreenTempDisabled = true;
                 lockEnabled = false;
+                fixedEnabled = false;
+                // 全屏下窗口尺寸交给显示器模式：先恢复可调整属性，退出全屏时再按状态统一应用
+                GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
                 if (mc.player != null) {
                     if (lockBeforeFullscreen) {
                         mc.player.displayClientMessage(
@@ -585,15 +665,13 @@ public class AutoWindowSize {
                 if (!lockDisabled) {
                     if (lockBeforeFullscreen) {
                         lockEnabled = true;
-                        int w = Config.WINDOW_WIDTH.get();
-                        int h = Config.WINDOW_HEIGHT.get();
-                        GLFW.glfwSetWindowSizeLimits(hwnd, w, h,
-                                GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
                     } else {
                         lockEnabled = false;
-                        GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
-                                GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
                     }
+                    if (fixedBeforeFullscreen) {
+                        fixedEnabled = true;
+                    }
+                    applyWindowLimits();
                 }
                 // 若这次全屏发生在加载期间、初始化被跳过：
                 //  - 进全屏前是最大化的（先最大化再全屏），退出后恢复最大化，
@@ -725,12 +803,6 @@ public class AutoWindowSize {
         int posY = monY[0] + (mode.height() - targetHeight) / 2;
         GLFW.glfwSetWindowPos(hwnd, posX, posY);
 
-        if (lockEnabled) {
-            GLFW.glfwSetWindowSizeLimits(hwnd, targetWidth, targetHeight,
-                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
-        } else {
-            GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0,
-                    GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
-        }
+        applyWindowLimits();
     }
 }

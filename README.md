@@ -4,7 +4,7 @@
 
 > **⚠ Platform note: This mod only supports the desktop edition of Minecraft (Windows / macOS / Linux) and is NOT compatible with mobile / Bedrock / phone editions.**
 
-> **📮 Note on the v1.0.4 source: As the author is new to GitHub / Git, a few mistakes were made while updating 1.0.4, which briefly left the repository files in a messy state. If the source you downloaded does not match the released jar, please contact the author at **3270728922@qq.com** to obtain the correct source.**
+> **📮 Note on the source code: As the author is new to GitHub / Git, a few operational mistakes were made during early repository updates, which briefly left the repository files in a messy state. If the source you downloaded does not match the released jar, please contact the author at **3270728922@qq.com** to obtain the correct source.**
 
 [中文版本](README_ZH-CN.md)
 
@@ -17,6 +17,8 @@
 - **Modrinth**: [autowindowsize](https://modrinth.com/mod/autowindowsize)
 - **MC百科 (MC百科)**: [Auto Window Size](https://www.mcmod.cn/class/30769.html)
 - **BBSMC**: [autowindowsize](https://bbsmc.net/mod/autowindowsize)
+- **KLBBS (苦力怕论坛)**: [AutoWindowSize](https://klpbbs.com/forum.php?mod=viewthread&tid=173769&fromuid=1116571)
+- **HIMCBBS**: [AutoWindowSize](https://www.himcbbs.com/resources/1499/)
 - **Issues / Feedback**: [GitHub Issues](https://github.com/3270728922/AutoWindowSize/issues)
 
 ---
@@ -81,6 +83,10 @@ This is my (the author's) **first ever Minecraft mod**, so for now I am keeping 
 - **Currently only Minecraft 1.20.1 / Forge is supported.** This is the only version actively maintained and tested.
 - As a first-time mod developer, the priority right now is to make the existing features stable, well documented and polished — not to spread across versions prematurely.
 - Once the current version has seen enough real use and is confirmed stable, I will consider porting to other Minecraft versions or loaders (e.g. NeoForge, Fabric, or other game versions).
+- **Further ahead, I plan to follow the direction of two window-management mods, True Window and Window Control, and gradually build out more window control features.** Early ideas include:
+  - Following **True Window**: a proper borderless (windowed) fullscreen with no gaps or taskbar overlap, smoother screen sharing / recording detection, and a custom game window title and icon.
+  - Following **Window Control**: instant switching between windowed / borderless / exclusive fullscreen modes, changing resolution without a restart, choosing which monitor the window lives on, remembering and restoring the last window position, and common resolution presets.
+  - These are directions only; actual features are subject to the released changelog and no timeline is promised.
 - Until then, no release timeline for other versions is promised; progress will be posted on GitHub and the release pages.
 
 ---
@@ -89,14 +95,15 @@ This is my (the author's) **first ever Minecraft mod**, so for now I am keeping 
 
 - **Auto window size on launch**: Automatically resizes the game window to the configured resolution and centers it on the current monitor, with a 1.5-second delay to ensure smooth startup
 - **Minimum size lock**: When locked, the window can only be enlarged, not shrunk below the configured size — protecting UI layouts
+- **Fixed window size**: Freeze the window at its current size — no jump to the config value, no forced recenter; it simply cannot be resized anymore. The title-bar maximize button is disabled at the OS level (GLFW_RESIZABLE=false removes WS_MAXIMIZEBOX on Windows), so a "fake maximized" state is impossible; the fixed-window-size toggle is itself disabled while the window is maximized or fullscreen. Fullscreen still works and returns to the fixed size on exit
 - **Native Video Settings entry**: A "Window Settings" button is natively inserted into `Options → Video Settings`, right below "Fullscreen Resolution", scrolling and scaling properly with the list
-- **Window Settings screen**: A dedicated settings screen with lock toggle, a one-click center button, live screen/window resolution display (yellow and labeled "Fullscreen" in fullscreen), and real-time button state sync
+- **Window Settings screen**: A dedicated settings screen with minimum-size-lock toggle, fixed-window-size toggle, a one-click center button, live screen/window resolution display (yellow and labeled "Fullscreen" in fullscreen), and real-time button state sync
 - **Center Window button**: One-click centers the window on its current monitor while windowed; it is auto-disabled (with a reason) in fullscreen, maximized, minimized, or already-centered states
-- **Client commands**: `/aws toggle`, `/aws lock`, `/aws unlock`, `/aws status`, `/aws gui`, `/aws center` — control the lock from chat
-- **Fullscreen auto-disable**: Lock is temporarily disabled when entering fullscreen, and restored on exit based on pre-fullscreen state
+- **Client commands**: `/aws toggle`, `/aws lock`, `/aws unlock`, `/aws status`, `/aws gui`, `/aws center`, `/aws fixed` — control these features from chat
+- **Fullscreen auto-disable**: Minimum size lock and fixed window size are temporarily disabled when entering fullscreen, and restored on exit based on pre-fullscreen state
 - **Custom hotkey**: Bind a key in Controls settings to open the Window Settings screen (default: unbound)
-- **Auto-disable on low resolution**: When the configured or hardcoded minimum resolution exceeds the player's screen resolution, lock is automatically disabled and the window is left unchanged
-- **Status notification on join**: Each time you enter a world, the chat displays the current lock status
+- **Auto-disable on low resolution**: When the configured or hardcoded minimum resolution exceeds the player's screen resolution, only the minimum size lock is disabled and the window is left unchanged; fixed window size and centering keep working (they do not depend on the config value)
+- **Status notification on join**: Each time you enter a world, the chat displays the current minimum-size-lock status
 - **Live resolution display**: The Window Settings screen shows screen resolution and game window resolution, refreshing 0.5s after you stop dragging
 - **Multi-monitor support**: Automatically detects which monitor the game window is on and centers it accordingly
 
@@ -204,14 +211,15 @@ All commands start with `/aws` (client-side, only works in-game):
 
 | Command | Description |
 |---------|-------------|
-| `/aws toggle` | Toggle lock ON/OFF |
-| `/aws lock` | Enable lock (no-op if already enabled) |
-| `/aws unlock` | Disable lock (no-op if already disabled) |
+| `/aws toggle` | Toggle minimum size lock ON/OFF |
+| `/aws lock` | Enable minimum size lock (no-op if already enabled) |
+| `/aws unlock` | Disable minimum size lock (no-op if already disabled) |
 | `/aws status` | Show current lock status and screen resolution |
 | `/aws gui` | Open the Window Settings screen |
 | `/aws center` | Center the window on its current monitor (warns when unavailable in fullscreen/maximized/minimized/already-centered) |
+| `/aws fixed` | Toggle fixed window size: freezes the window at its current size (no resize, maximize disabled) |
 
-When lock is disabled (low resolution or fullscreen), all lock-related commands show a red message explaining why.
+When the minimum size lock is disabled (low resolution or fullscreen), related commands show a red message explaining why. Fixed window size is only blocked by fullscreen or maximized state, not by low resolution.
 
 ---
 
@@ -221,10 +229,10 @@ Each time you enter a world, the chat shows the current lock status once:
 
 | Status | Message | Color |
 |--------|---------|-------|
-| Lock ON | `[AutoWindowSize] ✔ Window lock enabled` | Green |
-| Lock OFF | `[AutoWindowSize] ✔ Window lock disabled, resize freely` | Gray |
-| Low Resolution | `[AutoWindowSize] ✘ Lock auto-disabled — config resolution exceeds screen` | Red |
-| Fullscreen | `[AutoWindowSize] ✘ Lock unavailable in fullscreen, restored on exit` | Red |
+| Lock ON | `[AutoWindowSize] ✔ Min size lock enabled (window can only grow, not shrink)` | Green |
+| Lock OFF | `[AutoWindowSize] ✔ Min size lock disabled, resize freely` | Gray |
+| Low Resolution | `[AutoWindowSize] ✘ Min size lock auto-disabled — config resolution exceeds screen` | Red |
+| Fullscreen | `[AutoWindowSize] ✘ Min size lock unavailable in fullscreen, restored on exit` | Red |
 
 - Shows only **once** per world entry
 - Notifications appear in the chat, not as a title/subtitle
@@ -246,7 +254,9 @@ Each time you enter a world, the chat shows the current lock status once:
 |---------|-------------|
 | Screen Resolution | Current monitor resolution (e.g. 1920 × 1080), white text |
 | Window Resolution | Current game window size (e.g. 1280 × 720), light green text |
-| Lock Button | Toggle lock ON/OFF; greyed out with red reason when disabled |
+| Min Size Lock Button | Toggle ON/OFF; greyed out with a reason when disabled |
+| Fixed Window Size Button | Fully lock the current window size; greyed out when maximized/fullscreen |
+| Center Window Button | Center the window on its current monitor in one click |
 | Done Button | Return to Video Settings screen |
 
 ### Live Refresh Mechanism
@@ -281,14 +291,14 @@ Each time you enter a world, the chat shows the current lock status once:
 [window]
 # ==== Window Size ====
 # Startup window width. This is also the minimum width the window
-# is allowed to shrink to when the size lock is enabled.
-# 启动时的窗口宽度。开启尺寸锁定后，窗口也不能缩小到该值以下。
+# is allowed to shrink to when the minimum size lock is enabled.
+# 启动时的窗口宽度。开启最小尺寸锁定后，窗口也不能缩小到该值以下。
 #Range: 856 ~ 7680
 width = 1280
 # ==== Window Height ====
 # Startup window height. This is also the minimum height the window
-# is allowed to shrink to when the size lock is enabled.
-# 启动时的窗口高度。开启尺寸锁定后，窗口也不能缩小到该值以下。
+# is allowed to shrink to when the minimum size lock is enabled.
+# 启动时的窗口高度。开启最小尺寸锁定后，窗口也不能缩小到该值以下。
 #Range: 482 ~ 4320
 height = 720
 ```
@@ -299,7 +309,7 @@ height = 720
 
 - Config values are read at game **launch**; modifying the config file during runtime will not take effect until restart
 - The config range is bound to the hardcoded minimum (width 856, height 482): you **cannot** enter a value below that floor, so the config and the runtime lock can never drift out of sync
-- If the config value is higher than the screen resolution, lock is automatically disabled and the window size is not changed
+- If the config value is higher than the screen resolution, the minimum size lock is automatically disabled and the window size is not changed
 
 ---
 
@@ -350,13 +360,16 @@ height = 720
 ## FAQ
 
 **Q: Why didn't the window change after I edited the config resolution?**
-A: If the configured resolution is higher than your screen resolution, the mod automatically disables the lock and leaves the window unchanged. Set the config value to be less than or equal to your screen resolution, then restart the game.
+A: If the configured resolution is higher than your screen resolution, the mod automatically disables the minimum size lock and leaves the window unchanged. Set the config value to be less than or equal to your screen resolution, then restart the game.
 
-**Q: Can I still enlarge the window when locked?**
-A: Yes. Locking only restricts the minimum size, not the maximum — you can freely enlarge the window.
+**Q: Can I still enlarge the window with the min size lock on?**
+A: Yes. The minimum size lock only restricts the minimum size, not the maximum — you can freely enlarge the window.
+
+**Q: What is the difference between Fixed Window Size and the Min Size Lock?**
+A: The min size lock is a lower-bound guard (you can enlarge, just not shrink below the configured size). Fixed Window Size freezes the window at its **current** size — you can neither enlarge nor shrink, and the maximize button is disabled. When both are on, fixed takes priority.
 
 **Q: What do the `/aws` commands do?**
-A: `/aws toggle` toggles lock, `/aws lock` enables it, `/aws unlock` disables it, `/aws status` shows the current state and screen resolution, `/aws gui` opens the settings screen, `/aws center` centers the window.
+A: `/aws toggle` toggles the min size lock, `/aws lock` enables it, `/aws unlock` disables it, `/aws status` shows the current state and screen resolution, `/aws gui` opens the settings screen, `/aws center` centers the window, `/aws fixed` toggles fixed window size.
 
 **Q: Does it support multi-monitor setups?**
 A: Yes. The mod automatically detects which monitor the game window is on and centers it accordingly.
@@ -364,7 +377,7 @@ A: Yes. The mod automatically detects which monitor the game window is on and ce
 **Q: Why doesn't the resolution update instantly while I drag?**
 A: The value stays put with an orange hint while dragging, so the numbers don't jump constantly; 0.5s after you release, the hint fades and the resolution updates to the current window size.
 
-**Q: Lock is disabled, how do I recover it?**
+**Q: The min size lock is disabled, how do I recover it?**
 A: Change the resolution in the config file to be less than or equal to the screen resolution, then restart the game.
 
 **Q: Does this mod need to be installed on the server?**
@@ -386,6 +399,11 @@ See the standalone changelog (full release history, latest expanded by default):
 
 - **JujuMLQwQ** — Developer
 - **ML** — Contributor
+
+### Inspiration
+
+- The **Fixed Window Size** feature is inspired by [Locked Window Size](https://modrinth.com/mod/locked-window-size) (licensed under LGPL-3.0). This mod is an **independent implementation** that does not copy any of its source code; it only uses the official public GLFW API (`GLFW_RESIZABLE`) to make the window non-resizable, so this mod remains MIT-licensed. All rights to the original work belong to its author, with thanks.
+- The future borderless-fullscreen and window-mode directions take design inspiration from [True Window](https://www.curseforge.com/minecraft/mc-mods/true-window) and [Window Control](https://www.curseforge.com/minecraft/mc-mods/window-control) (again independently implemented, with no code from them included).
 
 Thanks to all players and modpack creators who use this mod.
 Feedback and suggestions are welcome via [Issues](https://github.com/3270728922/AutoWindowSize/issues).

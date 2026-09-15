@@ -13,6 +13,7 @@ public class ConfigScreen extends Screen {
     private static final int BUTTON_WIDTH = 200;
     private static final int BUTTON_HEIGHT = 20;
     private Button lockButton;
+    private Button fixedButton;
     private Button centerButton;
     private int screenWidth;
     private int screenHeight;
@@ -65,7 +66,7 @@ public class ConfigScreen extends Screen {
         this.dragging = false;
         this.fullscreen = false;
 
-        int lockY = this.height / 2 - 60;
+        int lockY = this.height / 2 - 82;
         this.lockButton = Button.builder(
                 getLockButtonText(),
                 btn -> {
@@ -76,6 +77,18 @@ public class ConfigScreen extends Screen {
                 }
         ).bounds(centerX - BUTTON_WIDTH / 2, lockY, BUTTON_WIDTH, BUTTON_HEIGHT).build();
         this.addRenderableWidget(this.lockButton);
+
+        int fixedY = this.height / 2 - 60;
+        this.fixedButton = Button.builder(
+                getFixedButtonText(),
+                btn -> {
+                    if (AutoWindowSize.canFixed()) {
+                        AutoWindowSize.toggleFixed();
+                        btn.setMessage(getFixedButtonText());
+                    }
+                }
+        ).bounds(centerX - BUTTON_WIDTH / 2, fixedY, BUTTON_WIDTH, BUTTON_HEIGHT).build();
+        this.addRenderableWidget(this.fixedButton);
 
         int centerY = this.height / 2 - 38;
         this.centerButton = Button.builder(
@@ -106,6 +119,20 @@ public class ConfigScreen extends Screen {
             return Component.translatable("gui.autowindowsize.lock.button.on");
         }
         return Component.translatable("gui.autowindowsize.lock.button.off");
+    }
+
+    private Component getFixedButtonText() {
+        if (AutoWindowSize.isFullscreenTempDisabled()) {
+            return Component.translatable("gui.autowindowsize.fixed.button.fullscreen");
+        }
+        long hwnd = AutoWindowSize.getWindowHandle();
+        if (GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE) {
+            return Component.translatable("gui.autowindowsize.fixed.button.maximized");
+        }
+        if (AutoWindowSize.isFixedEnabled()) {
+            return Component.translatable("gui.autowindowsize.fixed.button.on");
+        }
+        return Component.translatable("gui.autowindowsize.fixed.button.off");
     }
 
     /**
@@ -177,6 +204,8 @@ public class ConfigScreen extends Screen {
         // 每帧实时同步按钮状态
         this.lockButton.active = AutoWindowSize.canLock();
         this.lockButton.setMessage(getLockButtonText());
+        this.fixedButton.active = AutoWindowSize.canFixed();
+        this.fixedButton.setMessage(getFixedButtonText());
         this.centerButton.active = AutoWindowSize.canCenter();
 
         this.renderBackground(guiGraphics);

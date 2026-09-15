@@ -35,15 +35,24 @@ HOW IT WORKS
 On launch it waits about 1.5 seconds (30 ticks) so the loading
 screen never gets stretched, then resizes the window to your
 configured resolution and centers it on the monitor the window is
-actually sitting on. When the size lock is enabled the window can
-be made larger freely, but can never be shrunk below the configured
-size, keeping every tuned UI from being dragged out of place.
+actually sitting on. When the minimum size lock is enabled the
+window can be made larger freely, but can never be shrunk below the
+configured size, keeping every tuned UI from being dragged out of
+place.
 
 FEATURES
 - Auto window sizing on launch, with a 1.5s delay to avoid
   stretching the loading screen.
 - Minimum size lock: grow as big as you like, never shrink below
   the configured resolution.
+- Fixed window size: freeze the window at its current size (min =
+  max = size at toggle time). No jump to the config value, no forced
+  recenter, no resizing at all. The title-bar maximize button is
+  disabled at the OS level (GLFW_RESIZABLE=false, which removes
+  WS_MAXIMIZEBOX on Windows), so a "fake maximized" state is
+  impossible; the fixed-window-size toggle itself is disabled while
+  the window is maximized or fullscreen. Fullscreen still works and
+  returns to the fixed size on exit.
 - A native "Window Settings" button injected right below the
   Fullscreen Resolution row in Video Settings.
 - A dedicated Window Settings screen showing live screen resolution
@@ -53,17 +62,19 @@ FEATURES
   monitor in one click; it is automatically disabled, with a reason
   shown, while fullscreen, maximized, minimized, or already centered.
 - Client commands under /aws: toggle, lock, unlock, status, gui,
-  and center.
-- Fullscreen support: the lock is suspended in fullscreen and
-  restored to its previous state when you leave.
+  center, and fixed.
+- Fullscreen support: the minimum size lock and fixed window size
+  are suspended in fullscreen and restored to their previous state
+  when you leave.
 - Multi-monitor aware: centering follows whichever monitor the
   window is currently on.
 - An optional hotkey to open the Window Settings screen (unbound
   by default so it never fights your existing keybinds).
 - A short chat status message every time you enter a world.
 - Graceful fallback: if the configured resolution is larger than
-  your screen, the lock is silently disabled and explained in chat
-  instead of crashing.
+  your screen, only the minimum size lock is disabled and explained
+  in chat; fixed window size and centering keep working (they do not
+  depend on the config value).
 
 STATUS AND FUTURE PLANS
 This is the author's first Minecraft mod. It is currently maintained
@@ -88,6 +99,8 @@ CurseForge:    https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 Modrinth:      https://modrinth.com/mod/autowindowsize
 MC百科:        https://www.mcmod.cn/class/30769.html
 BBSMC:         https://bbsmc.net/mod/autowindowsize
+KLBBS:         https://klpbbs.com/forum.php?mod=viewthread&tid=173769&fromuid=1116571
+HIMCBBS:       https://www.himcbbs.com/resources/1499/
 '''
 
 # ===== Better ModList / Mod Menu (NeoForge) 增强信息 =====
@@ -102,5 +115,7 @@ links = [
     "mod_menu.curseforge=https://www.curseforge.com/minecraft/mc-mods/auto-window-size",
     "mod_menu.modrinth=https://modrinth.com/mod/autowindowsize",
     "mod_menu.mcbaike=https://www.mcmod.cn/class/30769.html",
-    "mod_menu.bbsmc=https://bbsmc.net/mod/autowindowsize"
+    "mod_menu.bbsmc=https://bbsmc.net/mod/autowindowsize",
+    "mod_menu.klbbs=https://klpbbs.com/forum.php?mod=viewthread&tid=173769&fromuid=1116571",
+    "mod_menu.himcbbs=https://www.himcbbs.com/resources/1499/"
 ]

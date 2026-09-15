@@ -28,16 +28,16 @@ public class Config {
                 .comment(
                         "==== Window Size ====",
                         "Startup window width. This is also the minimum width the window",
-                        "is allowed to shrink to when the size lock is enabled.",
-                        "启动时的窗口宽度。开启尺寸锁定后，窗口也不能缩小到该值以下。")
+                        "is allowed to shrink to when the minimum size lock is enabled.",
+                        "启动时的窗口宽度。开启最小尺寸锁定后，窗口也不能缩小到该值以下。")
                 .defineInRange("width", 1280, HARD_MIN_WIDTH, MAX_WIDTH);
 
         WINDOW_HEIGHT = builder
                 .comment(
                         "==== Window Height ====",
                         "Startup window height. This is also the minimum height the window",
-                        "is allowed to shrink to when the size lock is enabled.",
-                        "启动时的窗口高度。开启尺寸锁定后，窗口也不能缩小到该值以下。")
+                        "is allowed to shrink to when the minimum size lock is enabled.",
+                        "启动时的窗口高度。开启最小尺寸锁定后，窗口也不能缩小到该值以下。")
                 .defineInRange("height", 720, HARD_MIN_HEIGHT, MAX_HEIGHT);
 
         builder.pop();
