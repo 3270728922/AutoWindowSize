@@ -3,6 +3,7 @@ package com.example.autowindowsize;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
@@ -14,11 +15,15 @@ public class ConfigScreen extends Screen {
     private static final int BUTTON_HEIGHT = 20;
     private Button lockButton;
     private Button fixedButton;
+    private Button autoFsButton;
+    private Button autoMaxButton;
     private Button centerButton;
     private int screenWidth;
     private int screenHeight;
     private int gameWidth;
     private int gameHeight;
+    /** 信息区（分辨率文字 + 提示）起始 Y，init 时按按钮列结束位置计算 */
+    private int infoY;
 
     // 实时尺寸跟踪：window 模式下拖动窗口会连续上报 resize；
     // 拖动时数字冻结、黄色提示亮，停止 0.5 秒后刷新数字并提示灭；
@@ -66,7 +71,14 @@ public class ConfigScreen extends Screen {
         this.dragging = false;
         this.fullscreen = false;
 
-        int lockY = this.height / 2 - 82;
+        // ---- 布局：按钮列垂直居中，用游标顺次往下排，以后加按钮只改这里 ----
+        // 按钮列 5 个：5*20 + 4*4(间距) = 116；信息区预留 3 行 *12 = 36，共约 160
+        final int rowStep = BUTTON_HEIGHT + 4;          // 24
+        final int buttonsBlockH = rowStep * 4 + BUTTON_HEIGHT; // 116
+        final int infoBlockH = 3 * 12;                  // 屏幕/窗口分辨率 + 第三行提示
+        final int totalBlockH = buttonsBlockH + 8 + infoBlockH;
+        int y = this.height / 2 - totalBlockH / 2;      // 按钮列起点
+
         this.lockButton = Button.builder(
                 getLockButtonText(),
                 btn -> {
@@ -75,10 +87,11 @@ public class ConfigScreen extends Screen {
                         btn.setMessage(getLockButtonText());
                     }
                 }
-        ).bounds(centerX - BUTTON_WIDTH / 2, lockY, BUTTON_WIDTH, BUTTON_HEIGHT).build();
+        ).bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT)
+                .tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.lock.tooltip"))).build();
         this.addRenderableWidget(this.lockButton);
 
-        int fixedY = this.height / 2 - 60;
+        y += rowStep;
         this.fixedButton = Button.builder(
                 getFixedButtonText(),
                 btn -> {
@@ -87,10 +100,37 @@ public class ConfigScreen extends Screen {
                         btn.setMessage(getFixedButtonText());
                     }
                 }
-        ).bounds(centerX - BUTTON_WIDTH / 2, fixedY, BUTTON_WIDTH, BUTTON_HEIGHT).build();
+        ).bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT)
+                .tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.fixed.tooltip"))).build();
         this.addRenderableWidget(this.fixedButton);
 
-        int centerY = this.height / 2 - 38;
+        y += rowStep;
+        this.autoFsButton = Button.builder(
+                getAutoFsButtonText(),
+                btn -> {
+                    if (AutoWindowSize.canAutoFullscreen()) {
+                        AutoWindowSize.toggleAutoFullscreenPref();
+                    }
+                    btn.setMessage(getAutoFsButtonText());
+                }
+        ).bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT)
+                .tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.autofs.tooltip"))).build();
+        this.addRenderableWidget(this.autoFsButton);
+
+        y += rowStep;
+        this.autoMaxButton = Button.builder(
+                getAutoMaxButtonText(),
+                btn -> {
+                    if (AutoWindowSize.canAutoMaximized()) {
+                        AutoWindowSize.toggleAutoMaximizedPref();
+                    }
+                    btn.setMessage(getAutoMaxButtonText());
+                }
+        ).bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT)
+                .tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.automax.tooltip"))).build();
+        this.addRenderableWidget(this.autoMaxButton);
+
+        y += rowStep;
         this.centerButton = Button.builder(
                 Component.translatable("gui.autowindowsize.center.button"),
                 btn -> {
@@ -98,14 +138,18 @@ public class ConfigScreen extends Screen {
                         AutoWindowSize.centerWindow();
                     }
                 }
-        ).bounds(centerX - BUTTON_WIDTH / 2, centerY, BUTTON_WIDTH, BUTTON_HEIGHT).build();
+        ).bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT)
+                .tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.center.tooltip"))).build();
         this.addRenderableWidget(this.centerButton);
 
-        int doneY = this.height / 2 + 40;
+        // 信息区紧跟按钮列，不在 render 里写死坐标
+        this.infoY = y + BUTTON_HEIGHT + 8;
+
+        // 完成按钮钉在底部，和按钮列脱钩，永远不会重叠
         this.addRenderableWidget(Button.builder(
                 Component.translatable("gui.done"),
                 btn -> this.minecraft.setScreen(this.parent)
-        ).bounds(centerX - BUTTON_WIDTH / 2, doneY, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        ).bounds(centerX - BUTTON_WIDTH / 2, this.height - 30, BUTTON_WIDTH, BUTTON_HEIGHT).build());
     }
 
     private Component getLockButtonText() {
@@ -133,6 +177,28 @@ public class ConfigScreen extends Screen {
             return Component.translatable("gui.autowindowsize.fixed.button.on");
         }
         return Component.translatable("gui.autowindowsize.fixed.button.off");
+    }
+
+    /** "下次启动自动全屏"按钮文案：与自动最大化互斥。 */
+    private Component getAutoFsButtonText() {
+        if (!AutoWindowSize.canAutoFullscreen()) {
+            return Component.translatable("gui.autowindowsize.autofs.button.mutual");
+        }
+        if (AutoWindowSize.isAutoFullscreenPref()) {
+            return Component.translatable("gui.autowindowsize.autofs.button.on");
+        }
+        return Component.translatable("gui.autowindowsize.autofs.button.off");
+    }
+
+    /** "下次启动自动最大化"按钮文案：与自动全屏互斥。 */
+    private Component getAutoMaxButtonText() {
+        if (!AutoWindowSize.canAutoMaximized()) {
+            return Component.translatable("gui.autowindowsize.automax.button.mutual");
+        }
+        if (AutoWindowSize.isAutoMaximizedPref()) {
+            return Component.translatable("gui.autowindowsize.automax.button.on");
+        }
+        return Component.translatable("gui.autowindowsize.automax.button.off");
     }
 
     /**
@@ -206,6 +272,10 @@ public class ConfigScreen extends Screen {
         this.lockButton.setMessage(getLockButtonText());
         this.fixedButton.active = AutoWindowSize.canFixed();
         this.fixedButton.setMessage(getFixedButtonText());
+        this.autoFsButton.active = AutoWindowSize.canAutoFullscreen();
+        this.autoFsButton.setMessage(getAutoFsButtonText());
+        this.autoMaxButton.active = AutoWindowSize.canAutoMaximized();
+        this.autoMaxButton.setMessage(getAutoMaxButtonText());
         this.centerButton.active = AutoWindowSize.canCenter();
 
         this.renderBackground(guiGraphics);
@@ -213,12 +283,12 @@ public class ConfigScreen extends Screen {
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xFFFFFF);
 
         int centerX = this.width / 2;
-        int baseY = this.height / 2 - 12;
+        int info = this.infoY;
 
         // 屏幕分辨率
         String screenResText = Component.translatable("gui.autowindowsize.screen_resolution",
                 screenWidth, screenHeight).getString();
-        guiGraphics.drawCenteredString(this.font, screenResText, centerX, baseY, 0xFFFFFF);
+        guiGraphics.drawCenteredString(this.font, screenResText, centerX, info, 0xFFFFFF);
 
         // 当前游戏窗口分辨率：全屏时单独标注，一眼看出当前处于全屏
         String windowResKey = this.fullscreen
@@ -226,23 +296,21 @@ public class ConfigScreen extends Screen {
                 : "gui.autowindowsize.window_resolution";
         String gameResText = Component.translatable(windowResKey, gameWidth, gameHeight).getString();
         int resColor = this.fullscreen ? 0xFFFFAA : 0x55FF55;
-        guiGraphics.drawCenteredString(this.font, gameResText, centerX, baseY + 14, resColor);
+        guiGraphics.drawCenteredString(this.font, gameResText, centerX, info + 12, resColor);
 
-        // 拖动中提示（仅窗口模式下显示）
+        // 第三行：拖动中提示优先；否则显示禁用原因
+        int thirdLineY = info + 24;
         if (this.dragging) {
             String updatingText = Component.translatable("gui.autowindowsize.refreshing").getString();
-            guiGraphics.drawCenteredString(this.font, updatingText, centerX, baseY + 28, 0xFFAA00);
-        }
-
-        // 禁用原因：优先显示锁定禁用原因，其次居中按钮的禁用原因
-        if (AutoWindowSize.isLockDisabled()) {
+            guiGraphics.drawCenteredString(this.font, updatingText, centerX, thirdLineY, 0xFFAA00);
+        } else if (AutoWindowSize.isLockDisabled()) {
             String disabledText = Component.translatable("gui.autowindowsize.disabled_reason").getString();
-            guiGraphics.drawCenteredString(this.font, disabledText, centerX, this.height / 2 + 28, 0xFF5555);
+            guiGraphics.drawCenteredString(this.font, disabledText, centerX, thirdLineY, 0xFF5555);
         } else if (AutoWindowSize.isFullscreenTempDisabled()) {
             String fsText = Component.translatable("gui.autowindowsize.fullscreen_reason").getString();
-            guiGraphics.drawCenteredString(this.font, fsText, centerX, this.height / 2 + 28, 0xFF5555);
+            guiGraphics.drawCenteredString(this.font, fsText, centerX, thirdLineY, 0xFF5555);
         } else if (AutoWindowSize.getCenterDisabledReason() != null) {
-            guiGraphics.drawCenteredString(this.font, AutoWindowSize.getCenterDisabledReason(), centerX, this.height / 2 + 28, 0xFFAA00);
+            guiGraphics.drawCenteredString(this.font, AutoWindowSize.getCenterDisabledReason(), centerX, thirdLineY, 0xFFAA00);
         }
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);

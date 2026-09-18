@@ -64,6 +64,9 @@ public class AutoWindowSize {
     private static boolean fixedBeforeFullscreen = false;
     // 加载期间用户已全屏/最大化，导致初始化被跳过：等他退出该状态后补设配置大小并居中
     private static boolean deferredInitPending = false;
+    // 本次是靠"启动自动全屏"直接进的全屏：退出全屏后需要补一次配置尺寸+居中
+    // （因为自动全屏分支跳过了 applyConfigWindow，窗口从未被居中过）。
+    private static boolean pendingCenterAfterAutoFullscreen = false;
     // 进入全屏前窗口是否处于最大化（用于退出全屏后决定是恢复最大化还是补设配置值）
     private static boolean wasMaximizedAtFullscreen = false;
     // 加载期间"最大化→全屏→退出全屏恢复最大化"后，等用户再取消最大化时补设配置大小并居中
@@ -241,6 +244,68 @@ public class AutoWindowSize {
 
     public static boolean isFixedEnabled() {
         return fixedEnabled;
+    }
+
+    /** 玩家持久化偏好：下次启动是否自动全屏（不影响当前这次启动）。 */
+    public static boolean isAutoFullscreenPref() {
+        return Config.AUTO_FULLSCREEN.get();
+    }
+
+    /** 玩家持久化偏好：下次启动是否自动最大化（不影响当前这次启动）。 */
+    public static boolean isAutoMaximizedPref() {
+        return Config.AUTO_MAXIMIZED.get();
+    }
+
+    /**
+     * "下次启动自动全屏"按钮是否可点。与自动最大化互斥：
+     * 玩家偏好选了最大化时，全屏按钮禁用并提示。
+     */
+    public static boolean canAutoFullscreen() {
+        return !Config.AUTO_MAXIMIZED.get();
+    }
+
+    /**
+     * "下次启动自动最大化"按钮是否可点。与自动全屏互斥：
+     * 玩家偏好选了全屏时，最大化按钮禁用并提示。
+     */
+    public static boolean canAutoMaximized() {
+        return !Config.AUTO_FULLSCREEN.get();
+    }
+
+    /**
+     * 切换"下次启动自动全屏"偏好。开启时自动关掉自动最大化（互斥单选）；
+     * 关闭时不动另一个。只改持久化设置，不影响当前窗口。
+     */
+    public static boolean toggleAutoFullscreenPref() {
+        boolean now = !Config.AUTO_FULLSCREEN.get();
+        Config.AUTO_FULLSCREEN.set(now);
+        if (now) {
+            Config.AUTO_MAXIMIZED.set(false);
+        }
+        saveConfig();
+        return now;
+    }
+
+    /**
+     * 切换"下次启动自动最大化"偏好。开启时自动关掉自动全屏（互斥单选）；
+     * 关闭时不动另一个。只改持久化设置，不影响当前窗口。
+     */
+    public static boolean toggleAutoMaximizedPref() {
+        boolean now = !Config.AUTO_MAXIMIZED.get();
+        Config.AUTO_MAXIMIZED.set(now);
+        if (now) {
+            Config.AUTO_FULLSCREEN.set(false);
+        }
+        saveConfig();
+        return now;
+    }
+
+    /**
+     * 配置已通过 BooleanValue.set() 更新到内存；Forge 会在游戏正常退出时把
+     * CLIENT 配置写回磁盘，这里无需手动保存（本版 registerConfig 返回 void）。
+     */
+    private static void saveConfig() {
+        // no-op: rely on Forge's automatic config save on shutdown
     }
 
     /**
@@ -679,11 +744,18 @@ public class AutoWindowSize {
                 //  - 否则按配置值设大小并居中。
                 if (deferredInitPending) {
                     deferredInitPending = false;
+                    pendingCenterAfterAutoFullscreen = false;
                     if (wasMaximizedAtFullscreen) {
                         GLFW.glfwMaximizeWindow(hwnd);
                         // 恢复了最大化；等用户之后取消最大化时，再补一次配置大小与居中
                         pendingCenterAfterUnmaximize = true;
                     } else {
+                        applyConfigWindow();
+                    }
+                } else if (pendingCenterAfterAutoFullscreen) {
+                    // 本次是"启动自动全屏"直接进的全屏：退出后回到配置尺寸并居中
+                    pendingCenterAfterAutoFullscreen = false;
+                    if (!lockDisabled) {
                         applyConfigWindow();
                     }
                 }
@@ -759,6 +831,62 @@ public class AutoWindowSize {
         Minecraft mc = Minecraft.getInstance();
         long hwnd = mc.getWindow().getWindow();
 
+        // ===== 1. 决定本次是否自动全屏 / 自动最大化（一次性引导 优先于 玩家持久化偏好）=====
+        // 全屏与最大化互斥：两者同时为 true 时本次都不生效。
+        boolean wantFullscreen;
+        boolean wantMaximized;
+        if (Config.APPLY_STARTUP_GUIDE.get()) {
+            boolean guideFs = Config.START_FULLSCREEN.get();
+            boolean guideMax = Config.START_MAXIMIZED.get();
+            // 玩家已有持久化偏好（任一为 true）：说明他已经被引导过/自己设置过，
+            // 一次性引导不再插手，把一次性相关开关全部归零，改走玩家自己的偏好。
+            boolean playerHasPref = Config.AUTO_FULLSCREEN.get() || Config.AUTO_MAXIMIZED.get();
+            if (playerHasPref) {
+                Config.APPLY_STARTUP_GUIDE.set(false);
+                Config.START_FULLSCREEN.set(false);
+                Config.START_MAXIMIZED.set(false);
+                saveConfig();
+                wantFullscreen = Config.AUTO_FULLSCREEN.get();
+                wantMaximized = Config.AUTO_MAXIMIZED.get();
+                if (wantFullscreen && wantMaximized) {
+                    wantFullscreen = false;
+                    wantMaximized = false;
+                    Config.AUTO_FULLSCREEN.set(false);
+                    Config.AUTO_MAXIMIZED.set(false);
+                    saveConfig();
+                }
+            } else {
+                // 全新玩家：本次按引导目标决定；同步玩家偏好；值1消费后写回 false。
+                if (guideFs && guideMax) {
+                    // 互斥冲突：本次都不生效，并把两个引导目标自动写回 false。
+                    guideFs = false;
+                    guideMax = false;
+                    Config.START_FULLSCREEN.set(false);
+                    Config.START_MAXIMIZED.set(false);
+                }
+                Config.AUTO_FULLSCREEN.set(guideFs);
+                Config.AUTO_MAXIMIZED.set(guideMax);
+                Config.APPLY_STARTUP_GUIDE.set(false);
+                saveConfig();
+                wantFullscreen = guideFs;
+                wantMaximized = guideMax;
+            }
+        } else {
+            // 值1已消费（常规情况）：只看玩家在游戏内设置里的持久化偏好。
+            wantFullscreen = Config.AUTO_FULLSCREEN.get();
+            wantMaximized = Config.AUTO_MAXIMIZED.get();
+            if (wantFullscreen && wantMaximized) {
+                // 保险：理论上界面层已保证单选，手动改配置仍可能都 true。
+                // 本次都不生效，并把两个都写回 false，否则下次启动还是冲突、局内按钮互相禁用。
+                wantFullscreen = false;
+                wantMaximized = false;
+                Config.AUTO_FULLSCREEN.set(false);
+                Config.AUTO_MAXIMIZED.set(false);
+                saveConfig();
+            }
+        }
+
+        // ===== 2. 分辨率过低检测：只影响"最小尺寸锁定"，不影响自动全屏/最大化 =====
         int[] monitorRes = getCurrentMonitorResolutionStatic(hwnd);
         int screenWidth = monitorRes[0];
         int screenHeight = monitorRes[1];
@@ -769,10 +897,37 @@ public class AutoWindowSize {
                 || HARD_MIN_WIDTH > screenWidth || HARD_MIN_HEIGHT > screenHeight) {
             lockDisabled = true;
             lockEnabled = false;
+        } else {
+            lockDisabled = false;
+        }
+
+        // ===== 3. 本次要自动全屏：直接进入全屏，不设窗口尺寸、不居中 =====
+        if (wantFullscreen) {
+            // 玩家若在加载界面已经手动全屏了，就不重复切换；否则切到全屏。
+            // 进/退全屏后的锁定状态由 WindowHandler 统一处理。
+            boolean alreadyFullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+            if (!alreadyFullscreen) {
+                mc.getWindow().toggleFullScreen();
+            }
+            // 记标志：退出全屏后补一次配置尺寸+居中（本次从未被 applyConfigWindow 过）。
+            pendingCenterAfterAutoFullscreen = true;
             return;
         }
 
-        lockDisabled = false;
+        // ===== 4. 本次要自动最大化：直接最大化，复用"加载期最大化"的后续恢复链 =====
+        if (wantMaximized) {
+            boolean alreadyMaximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
+            if (!alreadyMaximized) {
+                GLFW.glfwMaximizeWindow(hwnd);
+            }
+            // 记 deferredInitPending：等用户之后取消最大化时，由 WindowHandler 自动
+            // 补设配置尺寸+居中（与加载期用户手动最大化的处理链完全一致）。
+            deferredInitPending = true;
+            return;
+        }
+
+        // ===== 5. 既不全屏也不最大化：分辨率过低则到此为止；否则走原"设配置尺寸+居中"逻辑 =====
+        if (lockDisabled) return;
 
         // 如果玩家在加载界面期间已经手动全屏或最大化了窗口，就先尊重其操作，
         // 不立刻强制改窗口大小/位置；记一个标记，等他退出全屏或取消最大化后

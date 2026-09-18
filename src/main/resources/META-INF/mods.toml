@@ -75,6 +75,15 @@ FEATURES
   your screen, only the minimum size lock is disabled and explained
   in chat; fixed window size and centering keep working (they do not
   depend on the config value).
+- Auto fullscreen / maximize on launch: players can toggle persisted
+  "start fullscreen" and "start maximized" preferences from the Window
+  Settings screen. They are mutually exclusive (enabling one disables
+  the other). Modpack authors can also set a one-time onboarding flag in
+  the config so that the first launch enters fullscreen or maximized
+  once, after which the flag clears itself and control hands over to the
+  player's own preference; if both guide targets are set, neither applies
+  and both reset to false. The guide also yields to an existing player
+  preference, resetting all one-time flags automatically.
 
 STATUS AND FUTURE PLANS
 This is the author's first Minecraft mod. It is currently maintained
@@ -98,8 +107,9 @@ GitHub:        https://github.com/3270728922/AutoWindowSize
 CurseForge:    https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 Modrinth:      https://modrinth.com/mod/autowindowsize
 MC百科:        https://www.mcmod.cn/class/30769.html
+MCBBS:         https://www.mcbbs.co/thread-6322-1-1.html
 BBSMC:         https://bbsmc.net/mod/autowindowsize
-KLBBS:         https://klpbbs.com/forum.php?mod=viewthread&tid=173769&fromuid=1116571
+KLBBS:         https://klpbbs.com/thread-173769-1-1.html
 HIMCBBS:       https://www.himcbbs.com/resources/1499/
 '''
 
@@ -115,7 +125,8 @@ links = [
     "mod_menu.curseforge=https://www.curseforge.com/minecraft/mc-mods/auto-window-size",
     "mod_menu.modrinth=https://modrinth.com/mod/autowindowsize",
     "mod_menu.mcbaike=https://www.mcmod.cn/class/30769.html",
+    "mod_menu.mcbbs=https://www.mcbbs.co/thread-6322-1-1.html",
     "mod_menu.bbsmc=https://bbsmc.net/mod/autowindowsize",
-    "mod_menu.klbbs=https://klpbbs.com/forum.php?mod=viewthread&tid=173769&fromuid=1116571",
+    "mod_menu.klbbs=https://klpbbs.com/thread-173769-1-1.html",
     "mod_menu.himcbbs=https://www.himcbbs.com/resources/1499/"
 ]

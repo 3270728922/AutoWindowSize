@@ -7,6 +7,32 @@ Full release history for this mod. The latest version is expanded by default; ol
 ---
 
 <details open>
+<summary><strong>v1.0.7</strong> — New: auto-fullscreen / auto-maximize on launch</summary>
+
+### Added
+- New "Auto-fullscreen on next launch" preference: a persistent toggle in the Window Settings screen. When on, the **next** launch starts in fullscreen. It does not change the current window; the choice is written back to the config file.
+- New "Auto-maximized on next launch" preference: the matching persistent toggle to start maximized. The two are **mutually exclusive** — enabling one in the UI disables and greys out the other; in the config, if both guide targets are true, neither applies and both reset to false.
+- New one-time onboarding for modpack authors: the `[startup]` config section now has `applyStartupGuide` (default `false`), `startFullscreen` and `startMaximized`. When an author sets `applyStartupGuide = true` and ships the pack, the player's first launch follows the guide target to start fullscreen or maximized once, syncs the matching in-game preference, and then `applyStartupGuide` is automatically written back to `false`. Afterwards only the player's own in-game setting is used.
+- When auto-fullscreen triggers, the "set config resolution + center" step is skipped and the game goes straight to fullscreen. When auto-maximize triggers, the window is maximized and reuses the loading-phase-maximize recovery chain, so restoring later resizes to the config resolution and centers it. Entering/exiting fullscreen still goes through the existing lock/fixed state logic.
+
+### Changed / Fixed
+- Corrected the KLBBS download link to https://klpbbs.com/thread-173769-1-1.html.
+- Documentation restructure: the README is now a one-screen intro; the detailed content moved to a Wiki (new English/Chinese Wiki files).
+- Fixed overlapping of buttons, resolution text and disabled-reason messages in the Window Settings screen; reworked the layout with a uniform button column, resolution info that follows the button column automatically, and a bottom-pinned Done button, so future options won't crowd the screen.
+- Simplified button labels to "feature: ON/OFF" (dropped the redundant "(click to enable/disable)") and added a hover tooltip explaining each feature.
+- Rewrote the config comments: removed the `====` banners, kept a clean bilingual (English above, Chinese below) note per option, and added a `##` separator line between options.
+- Fixed "no centering after exiting auto-fullscreen on launch": when the game was started by auto-fullscreen, exiting fullscreen now returns to the config resolution and centers; manual F11 toggles mid-game still restore the pre-fullscreen position.
+- Fixed `autoFullscreen` and `autoMaximized` staying true when set both true by hand: on launch both are now reset to false, so the two buttons no longer stay mutually blocked.
+- The one-time guide now yields to an existing player preference: if the player already enabled either startup preference, the pack's onboarding no longer overrides it and automatically resets `applyStartupGuide`, `startFullscreen` and `startMaximized` to false.
+
+### Notes
+- Safe by default: `applyStartupGuide` defaults to `false`, so a player installing the mod alone is never forced into fullscreen (same behaviour as before).
+- Author workflow: after testing on your dev machine `applyStartupGuide` becomes `false`; set it back to `true` before packaging the modpack.
+- The auto-fullscreen-on-launch idea draws on launching into a chosen window mode in [Window Control](https://www.curseforge.com/minecraft/mc-mods/window-control) (independent implementation, no copied code).
+
+</details>
+
+<details>
 <summary><strong>v1.0.6</strong> — New: Fixed Window Size</summary>
 
 ### Added
