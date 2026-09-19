@@ -15,6 +15,7 @@
 When building a modpack you spend ages arranging mod GUIs exactly right — then a player launches on a different resolution, the window resizes, and every layout breaks. Auto Window Size turns "game window size" from a lucky accident into a deliberate choice: on launch it sizes the window to your resolution and centers it, can lock a minimum size, fully freeze the window size, center it in one click, and even start fullscreen. It only touches the OS-level window and almost never conflicts with other mods.
 
 - **Auto window sizing on launch**: after a ~1.5 s delay it sets the window to your configured resolution (default 1280×720) and centers it, without stretching the loading screen.
+- **Resolution presets**: grouped by aspect ratio (16:9 / 16:10 / 4:3 / 5:4 / 21:9) with one-click common resolutions, plus a custom resolution input; presets larger than your screen are auto-disabled.
 - **Minimum size lock**: the window can grow freely but cannot shrink below the configured size, keeping tuned UI layouts intact.
 - **Fixed window size**: freezes the window at its current size; the maximize button is disabled at the OS level, so a "fake maximized" state is impossible.
 - **Center window**: one-click centering on whichever monitor the window is on.
@@ -22,7 +23,8 @@ When building a modpack you spend ages arranging mod GUIs exactly right — then
 - **Native entry point**: a "Window Settings" button injected into Options → Video Settings.
 - **Client-side only**, no server install; works out of the box at 1280×720.
 
-![Window Settings screen](docs/screenshot-settings-en.png)
+![Window Settings button in Video Settings](docs/en-video-settings.png)
+![Window Settings screen — resolution presets](docs/en-settings-presets.png)
 
 Full details, command list, config options and FAQ live in the **Wiki**.
 
@@ -30,7 +32,9 @@ Full details, command list, config options and FAQ live in the **Wiki**.
 
 ## Downloads
 
-- **GitHub Releases**: https://github.com/3270728922/AutoWindowSize/releases
+> **Prefer GitHub Releases.** Other platforms (CurseForge / Modrinth / MC Baike / MCBBS / BBSMC / KLBBS / HIMCBBS) may lag behind by a few days due to review or sync delays.
+
+- **GitHub Releases (always latest, recommended)**: https://github.com/3270728922/AutoWindowSize/releases
 - **CurseForge**: https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - **Modrinth**: https://modrinth.com/mod/autowindowsize
 - **MC Baike**: https://www.mcmod.cn/class/30769.html
@@ -55,10 +59,12 @@ Full details, command list, config options and FAQ live in the **Wiki**.
 
 ---
 
-## Latest: v1.0.7
+## Latest: v1.0.8
 
-- Added "Auto-fullscreen / auto-maximized on next launch": persistent toggles in the Window Settings screen (mutually exclusive) that make the game start in fullscreen or maximized next launch (they do not affect the current session).
-- Modpack authors can set a one-time onboarding flag `applyStartupGuide` in the config so the player's first launch auto-enters fullscreen or maximized per `startFullscreen` / `startMaximized`, after which the flag clears itself and control hands over to the player's own preference; if both guide targets are true, neither applies and both reset to false.
-- Corrected the KLBBS download link.
+- Added resolution presets in the Window Settings screen, grouped by aspect ratio (16:9 / 16:10 / 4:3 / 5:4 / 21:9). Click a preset to apply it immediately, center the window and save to config.
+- Aspect ratio switches via a cycle button showing "current → next".
+- Presets larger than the current screen are auto-disabled.
+- The settings screen now uses the vanilla scrolling list (AbstractSelectionList) with a scrollbar and top/bottom fade, matching the vanilla video options screen.
+- Screen resolution is polled live, so changing the OS display resolution updates the settings screen automatically.
 
 Full changelog: [CHANGELOG.md](CHANGELOG.md) · [CHANGELOG_ZH-CN.md](CHANGELOG_ZH-CN.md)

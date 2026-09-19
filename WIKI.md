@@ -6,7 +6,10 @@
 
 > **📮 About the source: the author is new to GitHub / Git and once caused some messy repository state during an update. If the source you downloaded does not match the released jar, email 3270728922@qq.com for the correct source.**
 
-![Window Settings screen](docs/screenshot-settings-en.png)
+![Window Settings button in Video Settings](docs/en-video-settings.png)
+![Window Settings screen — resolution presets](docs/en-settings-presets.png)
+![Custom resolution input](docs/en-settings-custom.png)
+![Fixed window size enabled (preset buttons auto-disabled)](docs/en-settings-fixed.png)
 
 [中文 Wiki](WIKI_ZH-CN.md) · [Back to README](README.md)
 
@@ -169,7 +172,6 @@ The config lower bound is bound to the hardcoded minimum, so you can never confi
 - It never jumps to the config value and never forces a recenter.
 - Fullscreen (F11) still works and returns to the fixed size on exit.
 
-![Fixed window size enabled (the OS maximize button is disabled)](docs/screenshot-fixed-en.png)
 
 ### When features are disabled
 
@@ -308,7 +310,16 @@ Each time you enter a world, the chat shows one message about the current lock s
 | Auto-fullscreen next launch button | Toggle the persistent preference; mutually exclusive with auto-maximize |
 | Auto-maximized next launch button | Toggle the persistent preference; mutually exclusive with auto-fullscreen |
 | Center Window button | Center on the current monitor |
+| Aspect ratio button | Cycles through 16:9 / 16:10 / 4:3 / 5:4 / 21:9; shows "current → next" |
+| Resolution preset buttons | 4 per row, grouped by aspect; click to apply instantly and center; presets larger than the screen are disabled |
 | Done button | Back to Video Settings |
+
+### Resolution presets
+
+- Groups: 16:9 (856×482 / 1280×720 / 1366×768 / 1600×900 / 1920×1080 / 2560×1440), 16:10 (1280×800 / 1440×900 / 1680×1050 / 1920×1200), 4:3 (800×600 / 1024×768 / 1280×960 / 1600×1200), 5:4 (1280×1024 / 1600×1280), 21:9 (2560×1080 / 3440×1440).
+- Click a preset to switch window resolution, center it, and write it back to the config.
+- Presets larger than the current screen are auto-disabled.
+- The screen resolution is re-checked live; changing the system resolution updates the enabled state automatically.
 
 While dragging the window edge the numbers stay frozen with an orange hint; 0.5 s after release they refresh.
 

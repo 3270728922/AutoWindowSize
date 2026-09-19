@@ -84,6 +84,16 @@ FEATURES
   player's own preference; if both guide targets are set, neither applies
   and both reset to false. The guide also yields to an existing player
   preference, resetting all one-time flags automatically.
+- Resolution presets: a set of common resolutions grouped by aspect
+  ratio (16:9, 16:10, 4:3, 5:4, 21:9, plus Custom). Click a preset to
+  apply it immediately and center the window. The aspect ratio switches
+  via a cycle button showing the current ratio and live window resolution.
+  Presets matching the current resolution are auto-disabled; presets
+  larger than the current screen are also disabled. Custom mode lets you
+  type in any width/height and apply it instantly. If you drag the window
+  to a non-preset size, the view switches to Custom automatically. The
+  settings screen uses the vanilla scrolling list with a scrollbar and
+  fade, and polls the screen resolution live.
 
 STATUS AND FUTURE PLANS
 This is the author's first Minecraft mod. It is currently maintained
@@ -101,9 +111,15 @@ DETAILS
   window smaller than the mod actually supports.
 - Does not work on mobile / Bedrock editions; desktop Java edition
   only (Windows / macOS / Linux).
+- Supports 15 languages: Simplified Chinese, Traditional Chinese,
+  English, Russian, French, Japanese, Korean, German, Spanish,
+  Portuguese (BR), Italian, Turkish, Dutch, Polish, Vietnamese.
 
 LINKS
+Prefer GitHub Releases for the always-latest build; other platforms may
+lag behind by a few days due to review or sync delays.
 GitHub:        https://github.com/3270728922/AutoWindowSize
+GitHub Releases: https://github.com/3270728922/AutoWindowSize/releases
 CurseForge:    https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 Modrinth:      https://modrinth.com/mod/autowindowsize
 MC百科:        https://www.mcmod.cn/class/30769.html

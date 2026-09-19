@@ -7,6 +7,25 @@ Full release history for this mod. The latest version is expanded by default; ol
 ---
 
 <details open>
+<summary><strong>v1.0.8</strong> — Resolution presets + settings screen rework</summary>
+
+### Added
+- Resolution presets in the window settings screen, grouped by aspect ratio (16:9 / 16:10 / 4:3 / 5:4 / 21:9). Click a preset to apply it instantly, center the window, and save it to the config so it persists across launches.
+- The aspect ratio cycles on click; the button shows "current → next".
+- Presets larger than the current screen are auto-disabled (visible but not clickable).
+- The screen resolution is re-checked at runtime, so changing the system resolution updates the UI live.
+
+### Changed
+- The settings screen was rebuilt on top of the vanilla scroll list (AbstractSelectionList), with scrollbar, top/bottom fade and mouse-wheel scrolling, matching the vanilla video settings look.
+- Preset buttons wrap automatically, 4 per row, aligned with the single-column buttons above.
+- Title moved to the vanilla-standard position.
+
+### Fixed
+- Fixed a startup crash on 1.20.1 caused by `InputConstants.UNKNOWN` (replaced with `-1` for unbound keys).
+
+</details>
+
+<details>
 <summary><strong>v1.0.7</strong> — New: auto-fullscreen / auto-maximize on launch</summary>
 
 ### Added

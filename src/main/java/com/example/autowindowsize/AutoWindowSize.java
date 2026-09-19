@@ -76,7 +76,7 @@ public class AutoWindowSize {
     public static final KeyMapping TOGGLE_LOCK_KEY = new KeyMapping(
             "key.autowindowsize.toggle_lock",
             InputConstants.Type.KEYSYM,
-            InputConstants.UNKNOWN.getValue(),
+            -1,
             "key.categories.autowindowsize"
     );
 
@@ -204,6 +204,60 @@ public class AutoWindowSize {
 
     public static long getWindowHandle() {
         return Minecraft.getInstance().getWindow().getWindow();
+    }
+
+    /** 常用分辨率预设：按宽高比分组。比例按钮选组，分辨率按钮在组内选具体值。 */
+    public static final String[] ASPECT_NAMES = {"16:9", "16:10", "4:3", "5:4", "21:9", "自定义"};
+    public static final int[][][] PRESETS = {
+            {{856, 482}, {1024, 576}, {1152, 648}, {1280, 720}, {1366, 768}, {1600, 900}, {1920, 1080}, {2560, 1440}, {3840, 2160}},
+            {{1024, 640}, {1280, 800}, {1440, 900}, {1680, 1050}, {1920, 1200}, {2560, 1600}},
+            {{640, 480}, {800, 600}, {1024, 768}, {1152, 864}, {1280, 960}, {1400, 1050}, {1600, 1200}, {1920, 1440}},
+            {{1280, 1024}, {1600, 1280}, {1920, 1536}},
+            {{2560, 1080}, {3440, 1440}, {3840, 1600}},
+    };
+
+    /** 预设按钮是否可用：全屏或最大化时不可用。 */
+    public static boolean canApplyPreset() {
+        long hwnd = getWindowHandle();
+        if (GLFW.glfwGetWindowMonitor(hwnd) != 0) return false;
+        if (GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE) return false;
+        return true;
+    }
+
+    /** 在所有分组里查找 (w,h)，返回 {组, 索引}；找不到返回 {-1,-1}。 */
+    public static int[] findPreset(int w, int h) {
+        for (int g = 0; g < PRESETS.length; g++) {
+            for (int i = 0; i < PRESETS[g].length; i++) {
+                if (PRESETS[g][i][0] == w && PRESETS[g][i][1] == h) return new int[]{g, i};
+            }
+        }
+        return new int[]{-1, -1};
+    }
+
+    /** 应用指定分辨率预设：先写回配置并更新尺寸限制，再设窗口大小、居中。 */
+    public static void applyResolutionPreset(int w, int h) {
+        long hwnd = getWindowHandle();
+        // 先写回配置并更新 GLFW 最小尺寸限制，否则锁定开着时窗口不能变小，
+        // glfwSetWindowSize 会被旧的最小尺寸拦截、窗口纹丝不动。
+        Config.WINDOW_WIDTH.set(w);
+        Config.WINDOW_HEIGHT.set(h);
+        saveConfig();
+        applyWindowLimits();
+
+        GLFW.glfwSetWindowSize(hwnd, w, h);
+        long monitor = getCurrentMonitorStatic(hwnd);
+        int[] monX = new int[1], monY = new int[1];
+        GLFW.glfwGetMonitorPos(monitor, monX, monY);
+        GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+        int posX = monX[0] + (mode.width() - w) / 2;
+        int posY = monY[0] + (mode.height() - h) / 2;
+        GLFW.glfwSetWindowPos(hwnd, posX, posY);
+
+        // 分辨率超过当前屏幕：不阻止切换，只给一条提示。
+        if (w > mode.width() || h > mode.height()) {
+            Minecraft.getInstance().gui.getChat().addMessage(
+                Component.translatable("message.autowindowsize.preset_oversize", w, h, mode.width(), mode.height()));
+        }
     }
 
     public static long getCurrentMonitorStatic(long window) {
@@ -480,58 +534,42 @@ public class AutoWindowSize {
     public static class WindowSettingsEntry extends ContainerObjectSelectionList.Entry<WindowSettingsEntry> {
         private final Button button;
         private final OptionsList optionsList;
-        private int buttonX = -1;
-        private int buttonWidth = -1;
+        private int refX = -1;
+        private int refW = -1;
 
         public WindowSettingsEntry(Screen parent, OptionsList optionsList) {
             this.optionsList = optionsList;
             this.button = Button.builder(
                     Component.translatable("gui.autowindowsize.menu.button"),
                     btn -> Minecraft.getInstance().setScreen(new ConfigScreen(parent))
-            ).bounds(0, 0, 200, 20).build();
+            ).bounds(0, 0, 310, 20).build();
         }
 
         @SuppressWarnings("unchecked")
-        private void copyResolutionButtonBounds() {
-            int rowWidth = optionsList.getRowWidth();
-            List<?> children = optionsList.children();
-            for (int i = 0; i < children.size(); i++) {
-                Object entry = children.get(i);
-                if (entry == this) continue;
-                if (!(entry instanceof ContainerObjectSelectionList.Entry<?> listEntry)) continue;
+        private void findRef() {
+            for (Object obj : optionsList.children()) {
+                if (obj == this) continue;
+                if (!(obj instanceof ContainerObjectSelectionList.Entry<?> e)) continue;
                 try {
-                    List<? extends GuiEventListener> entryChildren = listEntry.children();
-                    for (GuiEventListener child : entryChildren) {
-                        if (child instanceof AbstractWidget widget) {
-                            String text = widget.getMessage().getString();
-                            int w = widget.getWidth();
-                            int wx = widget.getX();
-                            if ((text.contains("分辨率") || text.toLowerCase().contains("resolution"))
-                                    && w > 0 && w < rowWidth) {
-                                this.buttonX = wx;
-                                this.buttonWidth = w;
-                                return;
-                            }
+                    for (var c : e.children()) {
+                        if (c instanceof AbstractWidget w && w.getWidth() > 100) {
+                            refX = w.getX();
+                            refW = w.getWidth();
+                            return;
                         }
                     }
                 } catch (Exception ignored) {}
             }
-            this.buttonX = -1;
-            this.buttonWidth = rowWidth - 64;
         }
 
         @Override
         public void render(GuiGraphics guiGraphics, int index, int y, int x,
                            int entryWidth, int entryHeight, int mouseX, int mouseY,
                            boolean hovered, float partialTick) {
-            if (buttonWidth == -1) copyResolutionButtonBounds();
-            if (buttonX >= 0) {
-                this.button.setX(buttonX);
-            } else {
-                this.button.setX(x + (entryWidth - buttonWidth) / 2);
-            }
+            if (refW <= 0) findRef();
+            this.button.setX(refX >= 0 ? refX : x);
             this.button.setY(y);
-            this.button.setWidth(buttonWidth);
+            this.button.setWidth(refW > 0 ? refW : 310);
             this.button.render(guiGraphics, mouseX, mouseY, partialTick);
         }
 
