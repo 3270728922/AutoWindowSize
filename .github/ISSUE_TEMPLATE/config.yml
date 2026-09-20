@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 常见问题
+    url: https://github.com/3270728922/AutoWindowSize#常见问题
+    about: "先看看这里有没有你的问题"
+  - name: Wiki 详细文档
+    url: https://github.com/3270728922/AutoWindowSize/blob/main/WIKI_ZH-CN.md
+    about: "功能说明、指令列表、配置项详解"
+#（注：内容由AI生成）

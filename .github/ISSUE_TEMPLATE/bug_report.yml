@@ -1,0 +1,83 @@
+name: "Bug 报告"
+description: "报告一个 bug 或异常行为"
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢报告 Bug！请尽量填写完整，方便我复现和修复。
+
+  - type: input
+    id: mod-version
+    attributes:
+      label: Mod 版本
+      description: "例如 1.0.8"
+      placeholder: "1.0.8"
+    validations:
+      required: true
+
+  - type: input
+    id: mc-version
+    attributes:
+      label: Minecraft 版本
+      description: "例如 1.20.1"
+      placeholder: "1.20.1"
+    validations:
+      required: true
+
+  - type: input
+    id: forge-version
+    attributes:
+      label: Forge 版本
+      description: "例如 47.2.0"
+      placeholder: "47.2.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 操作系统
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug 描述
+      description: "发生了什么？预期应该怎样？"
+      placeholder: "简要描述问题现象和预期行为…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: "按顺序描述如何复现这个 Bug"
+      placeholder: |
+        1. 打开窗口设置
+        2. 开启固定窗口大小
+        3. 点击预设按钮
+        4. 看到…
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 崩溃报告
+      description: "如有崩溃日志或 latest.log，请粘贴在这里（可选）"
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 截图
+      description: "如有截图，可拖拽上传到这里（可选）"
+#（注：内容由AI生成）
