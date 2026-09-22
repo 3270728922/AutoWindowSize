@@ -95,20 +95,24 @@ This is the author's first Minecraft mod, so it stays focused for now:
 
 ## Features
 
-- **Auto window sizing on launch**: after a ~1.5 s delay it sets the window to the configured resolution and centers it.
+- **Auto window sizing on launch**: after a configurable delay (default 1.5s) it sets the window to the configured resolution and centers it.
+- **Resolution presets**: 5 aspect ratios (16:9 / 16:10 / 4:3 / 5:4 / 21:9) with 12 one-click presets each, plus a custom width/height input with live boundary validation.
 - **Minimum size lock**: grow as big as you like, never shrink below the configured resolution.
 - **Fixed window size**: freezes the window at its current size (min = max = size at toggle time). No jump to the config value, no forced recenter. The maximize button is disabled at the OS level (GLFW_RESIZABLE=false), so a "fake maximized" state is impossible; the toggle itself is disabled while maximized or fullscreen. Fullscreen still works and returns to the fixed size on exit.
 - **Center window button**: centers the window on its current monitor in one click; disabled with a reason while fullscreen, maximized, minimized or already centered.
 - **Auto-fullscreen / auto-maximize on launch**: players can persistently toggle "start fullscreen" or "start maximized" on next launch (mutually exclusive); modpack authors can set a one-time onboarding flag for the first launch.
-- **Native entry point**: a "Window Settings" button injected right below the Fullscreen Resolution row in Video Settings.
-- **Window Settings screen**: toggles for minimum-size lock / fixed window size / auto-fullscreen-on-next-launch, a center button, and live screen/window resolution (yellow and labeled when fullscreen).
-- **Client commands**: `/aws toggle`, `lock`, `unlock`, `status`, `gui`, `center`, `fixed`.
+- **Window position memory**: optionally save and restore the window position and size across launches instead of forcing center; compatible with auto-fullscreen / auto-maximize.
+- **Native entry point**: a "Window Settings" button in Options → Accessibility Settings (moved from Video Settings for Embeddium compatibility).
+- **Window Settings screen**: toggles for minimum-size lock / fixed window size / auto-fullscreen / auto-maximize, a center button, resolution presets, custom resolution input, and a four-line live info area (screen resolution / window state + config status / detailed status / input bounds).
+- **Client commands**: `/aws help`, `gui`, `status`, `toggle`, `lock`, `unlock`, `fixed`, `center`, `fullscreen`, `maximize`, `remember`, `resolution`.
 - **Fullscreen support**: the lock and fixed size are suspended in fullscreen and restored on exit.
 - **Custom keybind**: opens the Window Settings screen (unbound by default).
 - **Too-low resolution fallback**: only the minimum-size lock is disabled; fixed size, centering and auto-fullscreen keep working.
 - **A short chat status message every time you enter a world.**
-- **Live resolution readout**: updates 0.5 s after you stop dragging.
+- **Live resolution readout**: updates 0.2 s after you stop dragging.
 - **Multi-monitor aware**.
+- **Config screen translations**: option names and descriptions follow the game language when opened via a config-screen mod.
+- **20 languages supported**.
 
 ---
 
@@ -265,15 +269,21 @@ All commands start with `/aws` (client-side, in-game only):
 
 | Command | Description |
 |---------|-------------|
+| `/aws help` | Show the full command list |
+| `/aws gui` | Open the Window Settings screen |
+| `/aws status` | Show current lock state and screen resolution |
 | `/aws toggle` | Toggle the minimum-size lock |
 | `/aws lock` | Enable the minimum-size lock |
 | `/aws unlock` | Disable the minimum-size lock |
-| `/aws status` | Show current lock state and screen resolution |
-| `/aws gui` | Open the Window Settings screen |
-| `/aws center` | Center the window on its monitor (with reason if unavailable) |
 | `/aws fixed` | Toggle fixed window size |
+| `/aws center` | Center the window on its monitor (with reason if unavailable) |
+| `/aws fullscreen` | Toggle fullscreen |
+| `/aws maximize` | Toggle maximize |
+| `/aws remember` | Toggle window position memory |
+| `/aws resolution <ratio> <preset>` | Set resolution by ratio and preset (e.g. `/aws resolution 16:9 1920x1080`) |
+| `/aws resolution <width> <height>` | Set a custom resolution (e.g. `/aws resolution 1280 720`) |
 
-When the lock is disabled (too-low resolution or fullscreen), related commands show a red reason.
+When the lock is disabled (too-low resolution or fullscreen), related commands show a red reason. The `/aws resolution` command validates input against the screen resolution and clamps out-of-range values.
 
 ---
 
@@ -294,34 +304,42 @@ Each time you enter a world, the chat shows one message about the current lock s
 
 ### How to open
 
-1. Main menu: `Options…` → `Video Settings…` → `Window Settings`.
-2. In-game: `Esc` → `Options…` → `Video Settings…` → `Window Settings`.
+1. Main menu: `Options…` → `Accessibility Settings…` → `Window Settings`.
+2. In-game: `Esc` → `Options…` → `Accessibility Settings…` → `Window Settings`.
 3. Press your bound key (unbound by default).
 4. Chat: `/aws gui`.
+
+> The entry was moved from Video Settings to Accessibility Settings in v1.0.9 to stay compatible with mods like Embeddium that replace the video settings screen.
 
 ### Contents
 
 | Element | Description |
 |---------|-------------|
-| Screen resolution | Current monitor resolution (e.g. 1920 × 1080), white |
-| Window resolution | Current window size (e.g. 1280 × 720), light green; yellow + "(Fullscreen)" when fullscreen |
+| Info line 1 | Screen resolution (always visible) + "Window centered" indicator (shown when centered) |
+| Info line 2 | Window state (windowed / fullscreen / maximized / fixed / resizing) + config file status (OK / error), always visible |
+| Info line 3 | Detailed explanation of the current state (color-coded: green for normal, yellow for temporary disable, red for config error) |
 | Min Size Lock button | Toggle; greyed with a reason when disabled |
-| Fixed Window Size button | Freeze current size; greyed when maximized/fullscreen |
-| Auto-fullscreen next launch button | Toggle the persistent preference; mutually exclusive with auto-maximize |
-| Auto-maximized next launch button | Toggle the persistent preference; mutually exclusive with auto-fullscreen |
+| Fixed Window Size button | Freeze current size; greyed when maximized/fullscreen; disables presets when on |
+| Auto-fullscreen on launch button | Toggle the persistent preference; mutually exclusive with auto-maximize |
+| Auto-maximize on launch button | Toggle the persistent preference; mutually exclusive with auto-fullscreen |
+| Remember position button | Toggle window position memory (save/restore position across launches) |
 | Center Window button | Center on the current monitor |
-| Aspect ratio button | Cycles through 16:9 / 16:10 / 4:3 / 5:4 / 21:9; shows "current → next" |
-| Resolution preset buttons | 4 per row, grouped by aspect; click to apply instantly and center; presets larger than the screen are disabled |
-| Done button | Back to Video Settings |
+| Aspect ratio button | Cycles through 16:9 / 16:10 / 4:3 / 5:4 / 21:9 / Custom; shows current ratio + live window resolution |
+| Resolution preset buttons | 4 per row, 12 per ratio; click to apply instantly and center; presets larger than the screen or matching current size are disabled |
+| Custom input fields | Width + height + Apply button (shown when ratio is Custom); live boundary validation |
+| Info line 4 | Custom input boundary values + input requirement (always visible below input fields) |
+| Done button | Back to Accessibility Settings |
 
 ### Resolution presets
 
-- Groups: 16:9 (856×482 / 1280×720 / 1366×768 / 1600×900 / 1920×1080 / 2560×1440), 16:10 (1280×800 / 1440×900 / 1680×1050 / 1920×1200), 4:3 (800×600 / 1024×768 / 1280×960 / 1600×1200), 5:4 (1280×1024 / 1600×1280), 21:9 (2560×1080 / 3440×1440).
-- Click a preset to switch window resolution, center it, and write it back to the config.
+- Groups: 16:9 (12 presets from 856×482 to 3840×2160), 16:10 (12 presets from 1024×640 to 3840×2400), 4:3 (12 presets from 640×480 to 2048×1536), 5:4 (12 presets from 800×640 to 2560×2048), 21:9 (12 presets from 1920×800 to 5120×2160).
+- Click a preset to switch window resolution and center it.
 - Presets larger than the current screen are auto-disabled.
+- Presets matching the current window resolution are auto-disabled.
 - The screen resolution is re-checked live; changing the system resolution updates the enabled state automatically.
+- When the window is dragged to a non-preset size, the ratio automatically switches to "Custom".
 
-While dragging the window edge the numbers stay frozen with an orange hint; 0.5 s after release they refresh.
+While dragging the window edge the numbers stay frozen; 0.2 s after release they refresh.
 
 ---
 
@@ -338,15 +356,25 @@ While dragging the window edge the numbers stay frozen with an orange hint; 0.5 
 ## Config file
 
 ```
-.minecraft/config/autowindowsize-client.toml
+.minecraft/config/AutoWindowSize/config.toml
 ```
 
 ```toml
 [window]
-# width / height: startup window size, also the lower bound when the lock is on.
-# width range 856 ~ 7680, default 1280; height range 482 ~ 4320, default 720.
+# Startup window width, also the lower bound when the minimum-size lock is on.
+# Range 856 ~ 7680, default 1280.
+width = 1280
+# Startup window height, also the lower bound when the minimum-size lock is on.
+# Range 482 ~ 4320, default 720.
+height = 720
+# Whether to remember and restore the window position and size across launches.
+# When false, the window is always centered on launch. Default false.
+rememberPosition = false
 
 [startup]
+# Delay in seconds before applying the window size and position on launch.
+# Range 0.5 ~ 10.0, default 1.5.
+startupDelay = 1.5
 # One-time onboarding flag (modpack authors). When true, this launch follows
 # startFullscreen / startMaximized, syncs the player preference, then writes this back to false.
 applyStartupGuide = false
@@ -356,17 +384,21 @@ startFullscreen = false
 # Only used when applyStartupGuide is true: whether this first launch starts maximized.
 # Mutually exclusive with startFullscreen.
 startMaximized = false
-# Player preference: start in fullscreen on next launch (toggle in the in-game UI). Mutually exclusive with autoMaximized.
+# Player preference: start in fullscreen on next launch (toggle in the in-game UI).
+# Mutually exclusive with autoMaximized.
 autoFullscreen = false
-# Player preference: start maximized on next launch (toggle in the in-game UI). Mutually exclusive with autoFullscreen.
+# Player preference: start maximized on next launch (toggle in the in-game UI).
+# Mutually exclusive with autoFullscreen.
 autoMaximized = false
 ```
 
-Comments are bilingual (English above, Chinese below), with a blank comment line above each option and an "author / player" split inside [startup]. Range is added by Forge.
+A second file `config/AutoWindowSize/window.json` stores the saved window position and size when `rememberPosition` is enabled.
 
-- **When upgrading this mod, delete the old config file** `.minecraft/config/autowindowsize-client.toml` first. Due to changes in config comments and entries, Forge won't rewrite an existing file; deleting it and launching generates a fresh one.
+Config option names and descriptions are translated: when opened via a config-screen mod, they follow the game language (20 languages supported).
+
+- **When upgrading this mod, delete the old config folder** `.minecraft/config/AutoWindowSize/` (and the old `.minecraft/config/autowindowsize-client.toml` if upgrading from pre-1.0.9) first. Due to changes in config entries and file layout, Forge won't rewrite an existing file; deleting it and launching generates a fresh one.
 - The config is read at launch; editing it while running requires a restart. (The in-game toggles persist immediately.)
-- The lower bounds are bound to the hardcoded minimum, so you can never configure a smaller value.
+- The lower bounds are bound to the hardcoded minimum (856×482), so you can never configure a smaller value.
 - If the config resolution exceeds the screen, the lock is auto-disabled.
 
 ---

@@ -9,8 +9,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.AccessibilityOptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.VideoSettingsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -21,8 +21,17 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.event.GameShuttingDownEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
@@ -34,6 +43,15 @@ import org.lwjgl.glfw.GLFWVidMode;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 @Mod("autowindowsize")
 public class AutoWindowSize {
@@ -64,6 +82,9 @@ public class AutoWindowSize {
     private static boolean fixedBeforeFullscreen = false;
     // 加载期间用户已全屏/最大化，导致初始化被跳过：等他退出该状态后补设配置大小并居中
     private static boolean deferredInitPending = false;
+
+    /** 最后一次正常（非全屏非最大化非最小化）窗口状态 {x,y,w,h}，退出游戏保存时用 */
+    private static int[] lastNormalState = null;
     // 本次是靠"启动自动全屏"直接进的全屏：退出全屏后需要补一次配置尺寸+居中
     // （因为自动全屏分支跳过了 applyConfigWindow，窗口从未被居中过）。
     private static boolean pendingCenterAfterAutoFullscreen = false;
@@ -81,12 +102,23 @@ public class AutoWindowSize {
     );
 
     public AutoWindowSize() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.SPEC, "AutoWindowSize/config.toml");
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onRegisterKeyMappings);
         MinecraftForge.EVENT_BUS.register(new WindowHandler());
         MinecraftForge.EVENT_BUS.register(new ScreenEventHandler());
         MinecraftForge.EVENT_BUS.register(new CommandHandler());
+        MinecraftForge.EVENT_BUS.register(new ShutdownHandler());
+    }
+
+    /** 游戏关闭时保存窗口位置（仅当记住位置功能开启时） */
+    public static class ShutdownHandler {
+        @SubscribeEvent
+        public void onGameShutdown(GameShuttingDownEvent event) {
+            if (Config.REMEMBER_POSITION.get()) {
+                saveWindowState();
+            }
+        }
     }
 
     private void onClientSetup(FMLClientSetupEvent event) {
@@ -209,12 +241,27 @@ public class AutoWindowSize {
     /** 常用分辨率预设：按宽高比分组。比例按钮选组，分辨率按钮在组内选具体值。 */
     public static final String[] ASPECT_NAMES = {"16:9", "16:10", "4:3", "5:4", "21:9", "自定义"};
     public static final int[][][] PRESETS = {
-            {{856, 482}, {1024, 576}, {1152, 648}, {1280, 720}, {1366, 768}, {1600, 900}, {1920, 1080}, {2560, 1440}, {3840, 2160}},
-            {{1024, 640}, {1280, 800}, {1440, 900}, {1680, 1050}, {1920, 1200}, {2560, 1600}},
-            {{640, 480}, {800, 600}, {1024, 768}, {1152, 864}, {1280, 960}, {1400, 1050}, {1600, 1200}, {1920, 1440}},
-            {{1280, 1024}, {1600, 1280}, {1920, 1536}},
-            {{2560, 1080}, {3440, 1440}, {3840, 1600}},
+            {{856, 482}, {960, 540}, {1024, 576}, {1152, 648}, {1280, 720}, {1366, 768}, {1440, 810}, {1600, 900}, {1760, 990}, {1920, 1080}, {2560, 1440}, {3840, 2160}},
+            {{1024, 640}, {1152, 720}, {1200, 750}, {1280, 800}, {1344, 840}, {1440, 900}, {1600, 1000}, {1680, 1050}, {1920, 1200}, {2048, 1280}, {2560, 1600}, {3840, 2400}},
+            {{640, 480}, {720, 540}, {800, 600}, {960, 720}, {1024, 768}, {1152, 864}, {1280, 960}, {1400, 1050}, {1440, 1080}, {1600, 1200}, {1920, 1440}, {2048, 1536}},
+            {{800, 640}, {1000, 800}, {1100, 880}, {1200, 960}, {1280, 1024}, {1400, 1120}, {1440, 1152}, {1600, 1280}, {1680, 1344}, {1800, 1440}, {1920, 1536}, {2560, 2048}},
+            {{1920, 800}, {2048, 858}, {2280, 960}, {2400, 1000}, {2560, 1080}, {2880, 1200}, {3000, 1260}, {3200, 1350}, {3440, 1440}, {3840, 1600}, {4320, 1800}, {5120, 2160}},
     };
+
+    /** 所有预设的扁平化列表（去重），用于指令补全时建议常用宽度/高度 */
+    public static final int[][] ALL_PRESETS_FLAT = flattenPresets();
+
+    private static int[][] flattenPresets() {
+        java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+        java.util.List<int[]> list = new java.util.ArrayList<>();
+        for (int[][] group : PRESETS) {
+            for (int[] p : group) {
+                String key = p[0] + "x" + p[1];
+                if (seen.add(key)) list.add(p);
+            }
+        }
+        return list.toArray(new int[0][]);
+    }
 
     /** 预设按钮是否可用：全屏或最大化时不可用。 */
     public static boolean canApplyPreset() {
@@ -222,6 +269,13 @@ public class AutoWindowSize {
         if (GLFW.glfwGetWindowMonitor(hwnd) != 0) return false;
         if (GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE) return false;
         return true;
+    }
+
+    /** 窗口当前是否处于最大化状态（独占全屏不算最大化）。 */
+    public static boolean isMaximized() {
+        long hwnd = getWindowHandle();
+        if (GLFW.glfwGetWindowMonitor(hwnd) != 0) return false;
+        return GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
     }
 
     /** 在所有分组里查找 (w,h)，返回 {组, 索引}；找不到返回 {-1,-1}。 */
@@ -354,6 +408,19 @@ public class AutoWindowSize {
         return now;
     }
 
+    /** "记住窗口位置"是否开启 */
+    public static boolean isRememberPosition() {
+        return Config.REMEMBER_POSITION.get();
+    }
+
+    /** 切换"记住窗口位置"开关。开启后下次启动恢复上次退出时的窗口位置与大小。 */
+    public static boolean toggleRememberPosition() {
+        boolean now = !Config.REMEMBER_POSITION.get();
+        Config.REMEMBER_POSITION.set(now);
+        saveConfig();
+        return now;
+    }
+
     /**
      * 配置已通过 BooleanValue.set() 更新到内存；Forge 会在游戏正常退出时把
      * CLIENT 配置写回磁盘，这里无需手动保存（本版 registerConfig 返回 void）。
@@ -447,37 +514,25 @@ public class AutoWindowSize {
         return true;
     }
 
-    // ========== 屏幕事件：在视频设置界面原生插入"窗口设置"按钮 ==========
+    // ========== 屏幕事件：在"辅助功能设置"列表第一排插入"窗口设置"全宽按钮 ==========
+    // 沿用原"视频设置"按钮的列表插入方式（同一个 WindowSettingsEntry），
+    // 只是把目标界面换成辅助功能设置、位置固定在第一排。这样不占底部按钮位、
+    // 不与其他 mod 在选项主界面抢位置，也不受 Embeddium 替换视频设置界面影响。
 
     public static class ScreenEventHandler {
         @SubscribeEvent
         @SuppressWarnings({"unchecked", "rawtypes"})
         public void onScreenInit(ScreenEvent.Init.Post event) {
             Screen screen = event.getScreen();
-            if (!(screen instanceof VideoSettingsScreen)) return;
+            if (!(screen instanceof AccessibilityOptionsScreen)) return;
 
             try {
                 OptionsList optionsList = findOptionsList(screen);
                 if (optionsList == null) throw new RuntimeException("OptionsList not found");
                 List children = optionsList.children();
-                int insertIndex = findResolutionRowIndex(children);
-                WindowSettingsEntry entry = new WindowSettingsEntry(screen, optionsList);
-                if (insertIndex >= 0) {
-                    children.add(insertIndex + 1, entry);
-                } else {
-                    children.add(0, entry);
-                }
-                return;
+                // 固定插在列表最顶部（第一排）
+                children.add(0, new WindowSettingsEntry(screen, optionsList));
             } catch (Exception ignored) {}
-
-            int buttonWidth = 150;
-            int x = screen.width / 2 - 100 - buttonWidth - 5;
-            int y = screen.height - 28;
-            Button menuButton = Button.builder(
-                    Component.translatable("gui.autowindowsize.menu.button"),
-                    btn -> Minecraft.getInstance().setScreen(new ConfigScreen(screen))
-            ).bounds(x, y, buttonWidth, 20).build();
-            event.addListener(menuButton);
         }
 
         private static OptionsList findOptionsList(Screen screen) {
@@ -493,41 +548,6 @@ public class AutoWindowSize {
                 clazz = clazz.getSuperclass();
             }
             return null;
-        }
-
-        @SuppressWarnings("unchecked")
-        private static int findResolutionRowIndex(List children) {
-            for (int i = 0; i < children.size(); i++) {
-                Object entry = children.get(i);
-                try {
-                    java.lang.reflect.Method childrenMethod = entry.getClass().getMethod("children");
-                    List<? extends GuiEventListener> entryChildren =
-                            (List<? extends GuiEventListener>) childrenMethod.invoke(entry);
-                    for (GuiEventListener child : entryChildren) {
-                        if (child instanceof AbstractWidget widget) {
-                            String text = widget.getMessage().getString().toLowerCase();
-                            if (text.contains("分辨率") || text.contains("resolution")) return i;
-                        }
-                    }
-                } catch (Exception ignored) {}
-                try {
-                    Class<?> clazz = entry.getClass();
-                    while (clazz != null) {
-                        for (java.lang.reflect.Field field : clazz.getDeclaredFields()) {
-                            if (AbstractWidget.class.isAssignableFrom(field.getType())) {
-                                field.setAccessible(true);
-                                AbstractWidget widget = (AbstractWidget) field.get(entry);
-                                if (widget != null) {
-                                    String text = widget.getMessage().getString().toLowerCase();
-                                    if (text.contains("分辨率") || text.contains("resolution")) return i;
-                                }
-                            }
-                        }
-                        clazz = clazz.getSuperclass();
-                    }
-                } catch (Exception ignored) {}
-            }
-            return -1;
         }
     }
 
@@ -547,18 +567,26 @@ public class AutoWindowSize {
 
         @SuppressWarnings("unchecked")
         private void findRef() {
+            // 扫描列表里所有现成控件，取最左边缘到最右边缘作为全宽。
+            // 这样无论该界面是"单列全宽选项"（如视频设置）还是
+            // "一行两个半宽按钮"（如辅助功能设置），都能得到与内容区严格等宽的按钮。
+            int minX = Integer.MAX_VALUE;
+            int maxRight = Integer.MIN_VALUE;
             for (Object obj : optionsList.children()) {
                 if (obj == this) continue;
                 if (!(obj instanceof ContainerObjectSelectionList.Entry<?> e)) continue;
                 try {
                     for (var c : e.children()) {
-                        if (c instanceof AbstractWidget w && w.getWidth() > 100) {
-                            refX = w.getX();
-                            refW = w.getWidth();
-                            return;
+                        if (c instanceof AbstractWidget w && w.getWidth() > 50 && w.visible) {
+                            minX = Math.min(minX, w.getX());
+                            maxRight = Math.max(maxRight, w.getX() + w.getWidth());
                         }
                     }
                 } catch (Exception ignored) {}
+            }
+            if (maxRight > minX) {
+                refX = minX;
+                refW = maxRight - minX;
             }
         }
 
@@ -587,19 +615,265 @@ public class AutoWindowSize {
     // ========== 指令系统 ==========
 
     public static class CommandHandler {
+
+        /** 自定义参数类型：匹配从当前位置到下一个空格（或末尾）的任意字符，含冒号等特殊字符。
+         *  用于 /aws resolution 的比例参数（如 16:9），因为 StringArgumentType.word() 不匹配冒号。 */
+        public static class SingleTokenArgument implements ArgumentType<String> {
+            public static SingleTokenArgument token() { return new SingleTokenArgument(); }
+
+            @Override
+            public String parse(StringReader reader) throws CommandSyntaxException {
+                int start = reader.getCursor();
+                while (reader.canRead() && reader.peek() != ' ') {
+                    reader.skip();
+                }
+                return reader.getString().substring(start, reader.getCursor());
+            }
+        }
+
         @SubscribeEvent
         public void onRegisterCommands(RegisterClientCommandsEvent event) {
             LiteralArgumentBuilder<CommandSourceStack> aws = Commands.literal("aws");
 
-            aws.then(Commands.literal("toggle").executes(ctx -> cmdToggle(ctx)));
-            aws.then(Commands.literal("lock").executes(ctx -> cmdLock(ctx)));
-            aws.then(Commands.literal("unlock").executes(ctx -> cmdUnlock(ctx)));
-            aws.then(Commands.literal("status").executes(ctx -> cmdStatus(ctx)));
-            aws.then(Commands.literal("gui").executes(ctx -> cmdGui(ctx)));
-            aws.then(Commands.literal("center").executes(ctx -> cmdCenter(ctx)));
-            aws.then(Commands.literal("fixed").executes(ctx -> cmdFixed(ctx)));
+            // 顺序即游戏内 /aws 的补全/帮助顺序：help、gui 置顶，其余按功能近似度与添加时间排列
+            aws.then(Commands.literal("help").executes(CommandHandler::cmdHelp));
+            aws.then(Commands.literal("gui").executes(CommandHandler::cmdGui));
+            aws.then(Commands.literal("status").executes(CommandHandler::cmdStatus));
+            aws.then(Commands.literal("toggle").executes(CommandHandler::cmdToggle));
+            aws.then(Commands.literal("lock").executes(CommandHandler::cmdLock));
+            aws.then(Commands.literal("unlock").executes(CommandHandler::cmdUnlock));
+            aws.then(Commands.literal("fixed").executes(CommandHandler::cmdFixed));
+            aws.then(Commands.literal("center").executes(CommandHandler::cmdCenter));
+            aws.then(Commands.literal("fullscreen").executes(CommandHandler::cmdFullscreen));
+            aws.then(Commands.literal("maximize").executes(CommandHandler::cmdMaximize));
+            aws.then(Commands.literal("remember").executes(CommandHandler::cmdRemember));
+            // /aws resolution 支持两种格式：
+            //   比例模式：/aws resolution <比例> <预设>，如 /aws resolution 16:9 1920x1080
+            //   自定义模式：/aws resolution <宽> <高>，如 /aws resolution 1920 1080
+            // 第一个参数是比例名时走比例模式，否则走自定义模式。
+            aws.then(Commands.literal("resolution")
+                    .then(Commands.argument("a", SingleTokenArgument.token())
+                            .suggests(CommandHandler::suggestResolutionFirst)
+                            .executes(CommandHandler::cmdResolutionIncomplete)
+                            .then(Commands.argument("b", SingleTokenArgument.token())
+                                    .suggests(CommandHandler::suggestResolutionSecond)
+                                    .executes(CommandHandler::cmdResolutionTwo))));
 
             event.getDispatcher().register(aws);
+        }
+
+        private static int cmdHelp(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            String[] lines = {
+                    "message.autowindowsize.help.header",
+                    "message.autowindowsize.help.gui",
+                    "message.autowindowsize.help.status",
+                    "message.autowindowsize.help.toggle",
+                    "message.autowindowsize.help.lock",
+                    "message.autowindowsize.help.unlock",
+                    "message.autowindowsize.help.fixed",
+                    "message.autowindowsize.help.center",
+                    "message.autowindowsize.help.fullscreen",
+                    "message.autowindowsize.help.maximize",
+                    "message.autowindowsize.help.remember",
+                    "message.autowindowsize.help.resolution"
+            };
+            for (String key : lines) {
+                player.displayClientMessage(Component.translatable(key), false);
+            }
+            return 1;
+        }
+
+        private static int cmdFullscreen(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            if (!canAutoFullscreen()) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.autofs_unavailable"), false);
+                return 0;
+            }
+            boolean now = toggleAutoFullscreenPref();
+            player.displayClientMessage(Component.translatable(
+                    now ? "message.autowindowsize.autofs_on" : "message.autowindowsize.autofs_off"), false);
+            return 1;
+        }
+
+        private static int cmdMaximize(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            if (!canAutoMaximized()) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.automax_unavailable"), false);
+                return 0;
+            }
+            boolean now = toggleAutoMaximizedPref();
+            player.displayClientMessage(Component.translatable(
+                    now ? "message.autowindowsize.automax_on" : "message.autowindowsize.automax_off"), false);
+            return 1;
+        }
+
+        private static int cmdRemember(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            boolean now = toggleRememberPosition();
+            player.displayClientMessage(Component.translatable(
+                    now ? "message.autowindowsize.remember_on" : "message.autowindowsize.remember_off"), false);
+            return 1;
+        }
+
+        // ===== resolution 指令：兼容 /aws resolution <宽> <高> 和 /aws resolution <比例> <宽> <高> =====
+
+        /** 只输入了 /aws resolution <一个值>：提示用法 */
+        private static int cmdResolutionIncomplete(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player != null) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.resolution_usage"), false);
+            }
+            return 0;
+        }
+
+        /** 两参数格式：
+         *  - 比例模式：/aws resolution <比例> <预设>，如 /aws resolution 16:9 1920x1080
+         *  - 自定义模式：/aws resolution <宽> <高>，如 /aws resolution 1920 1080
+         * 第一个参数是预设比例名时走比例模式，否则走自定义模式。 */
+        private static int cmdResolutionTwo(CommandContext<CommandSourceStack> context) {
+            String a = context.getArgument("a", String.class);
+            String b = context.getArgument("b", String.class);
+            LocalPlayer player = Minecraft.getInstance().player;
+
+            // "自定义"不是命令行可用的比例，提示用两参数数字格式
+            if (a.equals("自定义") || a.equals("Custom")) {
+                if (player != null) {
+                    player.displayClientMessage(Component.translatable("message.autowindowsize.resolution_custom_hint"), false);
+                }
+                return 0;
+            }
+
+            if (isPresetAspect(a)) {
+                // ===== 比例模式：b 是预设，格式 "宽x高"（兼容 x/X/*/: ：分隔符） =====
+                String[] parts = b.split("[xX*:：]");
+                if (parts.length != 2) {
+                    if (player != null) {
+                        player.displayClientMessage(Component.translatable("message.autowindowsize.resolution_invalid_preset"), false);
+                    }
+                    return 0;
+                }
+                int w, h;
+                try {
+                    w = Integer.parseInt(parts[0].trim());
+                    h = Integer.parseInt(parts[1].trim());
+                } catch (NumberFormatException e) {
+                    if (player != null) {
+                        player.displayClientMessage(Component.translatable("message.autowindowsize.resolution_invalid_number"), false);
+                    }
+                    return 0;
+                }
+                // 验证是否是该比例的预设值
+                int idx = aspectIndex(a);
+                boolean valid = false;
+                if (idx >= 0 && idx < PRESETS.length) {
+                    for (int[] p : PRESETS[idx]) {
+                        if (p[0] == w && p[1] == h) { valid = true; break; }
+                    }
+                }
+                if (!valid) {
+                    if (player != null) {
+                        player.displayClientMessage(Component.translatable("message.autowindowsize.resolution_not_preset", a), false);
+                    }
+                    return 0;
+                }
+                return applyResolutionCommand(context, w, h);
+            }
+
+            // ===== 自定义模式：a=宽, b=高 =====
+            int w, h;
+            try {
+                w = Integer.parseInt(a);
+                h = Integer.parseInt(b);
+            } catch (NumberFormatException e) {
+                if (player != null) {
+                    player.displayClientMessage(Component.translatable("message.autowindowsize.resolution_invalid_number"), false);
+                }
+                return 0;
+            }
+            return applyResolutionCommand(context, w, h);
+        }
+
+        /** 实际应用分辨率：范围校验（上限为当前屏幕分辨率）+ 状态检查 + 应用 */
+        private static int applyResolutionCommand(CommandContext<CommandSourceStack> context, int w, int h) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            // 范围校验：下限为硬编码最小值，上限为当前屏幕分辨率
+            long hwnd = Minecraft.getInstance().getWindow().getWindow();
+            int[] screenRes = getCurrentMonitorResolutionStatic(hwnd);
+            if (w < HARD_MIN_WIDTH || w > screenRes[0] || h < HARD_MIN_HEIGHT || h > screenRes[1]) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.resolution_out_of_range",
+                        HARD_MIN_WIDTH, screenRes[0], HARD_MIN_HEIGHT, screenRes[1]), false);
+                return 0;
+            }
+            if (fullscreenTempDisabled) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.change_fullscreen"), false);
+                return 0;
+            }
+            if (isMaximized()) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.change_maximized"), false);
+                return 0;
+            }
+            if (isFixedEnabled()) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.change_fixed"), false);
+                return 0;
+            }
+            applyResolutionPreset(w, h);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.resolution_applied", w, h), false);
+            return 1;
+        }
+
+        // ===== resolution 指令补全 =====
+
+        /** 第一个参数补全：只建议有预设的比例名（不包含"自定义"和预设分辨率） */
+        private static CompletableFuture<Suggestions> suggestResolutionFirst(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
+            String remaining = builder.getRemainingLowerCase();
+            for (int i = 0; i < PRESETS.length; i++) {
+                String name = ASPECT_NAMES[i];
+                if (name.toLowerCase().contains(remaining)) builder.suggest(name);
+            }
+            return builder.buildFuture();
+        }
+
+        /** 第二个参数补全：若第一个是比例名→该比例的预设（格式"宽x高"，宽高均不超屏才显示，与设置界面一致）；否则（自定义模式）不补全 */
+        private static CompletableFuture<Suggestions> suggestResolutionSecond(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
+            String a = ctx.getArgument("a", String.class);
+            int idx = aspectIndex(a);
+            if (idx >= 0 && idx < PRESETS.length) {
+                int[] screenRes = getCurrentMonitorResolutionStatic(Minecraft.getInstance().getWindow().getWindow());
+                for (int[] p : PRESETS[idx]) {
+                    if (p[0] <= screenRes[0] && p[1] <= screenRes[1]) {
+                        builder.suggest(p[0] + "x" + p[1]);
+                    }
+                }
+            }
+            return builder.buildFuture();
+        }
+
+        /** 判断字符串是否是已知比例名（含"自定义"） */
+        private static boolean isAspectName(String s) {
+            for (String name : ASPECT_NAMES) if (name.equals(s)) return true;
+            return false;
+        }
+
+        /** 判断字符串是否是有预设的比例名（排除"自定义"），用于命令行比例模式 */
+        private static boolean isPresetAspect(String s) {
+            for (int i = 0; i < PRESETS.length; i++) {
+                if (ASPECT_NAMES[i].equals(s)) return true;
+            }
+            return false;
+        }
+
+        /** 比例名→组索引，找不到返回 -1 */
+        private static int aspectIndex(String s) {
+            for (int i = 0; i < ASPECT_NAMES.length; i++) {
+                if (ASPECT_NAMES[i].equals(s)) return i;
+            }
+            return -1;
         }
 
         private static int cmdFixed(CommandContext<CommandSourceStack> context) {
@@ -788,14 +1062,12 @@ public class AutoWindowSize {
                         // 恢复了最大化；等用户之后取消最大化时，再补一次配置大小与居中
                         pendingCenterAfterUnmaximize = true;
                     } else {
-                        applyConfigWindow();
+                        applyDeferredWindow();
                     }
                 } else if (pendingCenterAfterAutoFullscreen) {
-                    // 本次是"启动自动全屏"直接进的全屏：退出后回到配置尺寸并居中
+                    // 本次是"启动自动全屏"直接进的全屏：退出后恢复记忆位置或按配置值居中
                     pendingCenterAfterAutoFullscreen = false;
-                    if (!lockDisabled) {
-                        applyConfigWindow();
-                    }
+                    applyDeferredWindow();
                 }
             }
 
@@ -803,17 +1075,26 @@ public class AutoWindowSize {
             boolean isMaximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
             if (deferredInitPending && wasMaximized && !isMaximized && !isFullscreen) {
                 deferredInitPending = false;
-                applyConfigWindow();
+                applyDeferredWindow();
             }
             // 仅在"加载期间最大化→全屏→退出全屏恢复最大化→再取消最大化"这条链上补居中；
             // 游戏中正常的取消最大化不受影响，仍恢复最大化前的位置。
             if (pendingCenterAfterUnmaximize && wasMaximized && !isMaximized && !isFullscreen) {
                 pendingCenterAfterUnmaximize = false;
-                applyConfigWindow();
+                applyDeferredWindow();
             }
 
             wasFullscreen = isFullscreen;
             wasMaximized = isMaximized;
+
+            // 记录最后一次正常窗口状态（非全屏、非最大化、非最小化），供退出游戏时保存
+            boolean isIconified = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_ICONIFIED) == GLFW.GLFW_TRUE;
+            if (!isFullscreen && !isMaximized && !isIconified) {
+                int[] px = new int[1], py = new int[1];
+                GLFW.glfwGetWindowPos(hwnd, px, py);
+                lastNormalState = new int[]{px[0], py[0],
+                        mc.getWindow().getScreenWidth(), mc.getWindow().getScreenHeight()};
+            }
 
             if (mc.player == null) {
                 enteredGameMessageShown = false;
@@ -852,13 +1133,15 @@ public class AutoWindowSize {
     // 延迟初始化处理器：主菜单加载后延迟几帧再设置窗口大小
     public static class DelayedInitHandler {
         private int ticks = 0;
+        // 启动延迟帧数 = 配置秒数 × 20 TPS，范围 0.5~10.0 秒 → 10~200 帧
+        private final int targetTicks = Math.max(1, (int) Math.round(Config.STARTUP_DELAY.get() * 20));
 
         @SubscribeEvent
         public void onTick(TickEvent.ClientTickEvent event) {
             if (event.phase != TickEvent.Phase.END) return;
             ticks++;
-            if (ticks >= 30) {
-                // 延迟30帧（约1.5秒，20 TPS），确保引导界面/主菜单完全加载，低配电脑也够用
+            if (ticks >= targetTicks) {
+                // 延迟由配置 startupDelay 决定（默认 1.5 秒），确保引导界面/主菜单完全加载
                 MinecraftForge.EVENT_BUS.unregister(this);
                 initWindowStatic();
             }
@@ -964,7 +1247,7 @@ public class AutoWindowSize {
             return;
         }
 
-        // ===== 5. 既不全屏也不最大化：分辨率过低则到此为止；否则走原"设配置尺寸+居中"逻辑 =====
+        // ===== 5. 既不全屏也不最大化：分辨率过低则到此为止；否则走"设配置尺寸+居中"或"记住位置"逻辑 =====
         if (lockDisabled) return;
 
         // 如果玩家在加载界面期间已经手动全屏或最大化了窗口，就先尊重其操作，
@@ -978,7 +1261,21 @@ public class AutoWindowSize {
             return;
         }
 
-        applyConfigWindow();
+        // 记住窗口位置功能：开启且保存文件有效时，恢复到上次退出时的位置与大小；
+        // 保存文件不存在或无效（如显示器配置变化）时，回退到默认居中。
+        if (Config.REMEMBER_POSITION.get()) {
+            int[] saved = loadWindowState();
+            if (saved != null) {
+                restoreWindowState(saved);
+            } else {
+                applyConfigWindow();
+            }
+        } else {
+            applyConfigWindow();
+        }
+
+        // 确保 window.json 存在（首次启动时创建默认文件，方便用户调试）；已存在则不覆盖
+        ensureWindowStateFileExists();
     }
 
     /** 把窗口设为配置分辨率、在所在显示器居中，并按当前锁定状态设置尺寸限制。 */
@@ -997,5 +1294,145 @@ public class AutoWindowSize {
         GLFW.glfwSetWindowPos(hwnd, posX, posY);
 
         applyWindowLimits();
+    }
+
+    // ===== 窗口位置记忆 =====
+    /** 窗口状态保存目录：config/AutoWindowSize/（所有本模组自建文件统一放这里） */
+    private static final String WINDOW_STATE_DIR = "config/AutoWindowSize";
+    private static final String WINDOW_STATE_FILE = "window.json";
+
+    /** 如果窗口状态文件不存在，创建一个包含当前窗口状态的默认文件，方便用户调试。已存在则不覆盖。 */
+    private static void ensureWindowStateFileExists() {
+        try {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc == null || mc.getWindow() == null) return;
+            File dir = new File(mc.gameDirectory, WINDOW_STATE_DIR);
+            dir.mkdirs();
+            File file = new File(dir, WINDOW_STATE_FILE);
+            if (file.exists()) return;
+            long hwnd = mc.getWindow().getWindow();
+            if (GLFW.glfwGetWindowMonitor(hwnd) != 0) return;
+            if (GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE) return;
+            int[] x = new int[1], y = new int[1];
+            GLFW.glfwGetWindowPos(hwnd, x, y);
+            int w = mc.getWindow().getScreenWidth();
+            int h = mc.getWindow().getScreenHeight();
+            if (w < HARD_MIN_WIDTH || h < HARD_MIN_HEIGHT) return;
+            Map<String, Integer> data = new LinkedHashMap<>();
+            data.put("x", x[0]);
+            data.put("y", y[0]);
+            data.put("width", w);
+            data.put("height", h);
+            try (FileWriter writer = new FileWriter(file)) {
+                new GsonBuilder().setPrettyPrinting().create().toJson(data, writer);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Failed to create default window state file", e);
+        }
+    }
+
+    /** 退出游戏时保存窗口位置与大小。
+     *  当前是全屏/最大化时，保存最后一次正常状态（全屏/最大化前的状态）；
+     *  正常状态时直接保存当前状态。异常小尺寸不保存。 */
+    private static void saveWindowState() {
+        try {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc == null || mc.getWindow() == null) return;
+            long hwnd = mc.getWindow().getWindow();
+            boolean isFullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+            boolean isMaximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
+
+            int[] state;
+            if (isFullscreen || isMaximized) {
+                // 全屏/最大化中：保存最后一次正常状态（即进入全屏/最大化前的窗口状态）
+                if (lastNormalState == null) return;
+                state = lastNormalState;
+            } else {
+                int[] x = new int[1], y = new int[1];
+                GLFW.glfwGetWindowPos(hwnd, x, y);
+                int w = mc.getWindow().getScreenWidth();
+                int h = mc.getWindow().getScreenHeight();
+                if (w < HARD_MIN_WIDTH || h < HARD_MIN_HEIGHT) return;
+                state = new int[]{x[0], y[0], w, h};
+            }
+
+            Map<String, Integer> data = new LinkedHashMap<>();
+            data.put("x", state[0]);
+            data.put("y", state[1]);
+            data.put("width", state[2]);
+            data.put("height", state[3]);
+            File dir = new File(mc.gameDirectory, WINDOW_STATE_DIR);
+            dir.mkdirs();
+            File file = new File(dir, WINDOW_STATE_FILE);
+            try (FileWriter writer = new FileWriter(file)) {
+                new GsonBuilder().setPrettyPrinting().create().toJson(data, writer);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Failed to save window state", e);
+        }
+    }
+
+    /** 从文件读取窗口位置与大小，验证有效后返回 int[]{x,y,w,h}，无效返回 null。
+     *  验证项：尺寸 >= 硬编码最小值；窗口中心落在某台显示器范围内。 */
+    private static int[] loadWindowState() {
+        try {
+            Minecraft mc = Minecraft.getInstance();
+            File file = new File(mc.gameDirectory, WINDOW_STATE_DIR + "/" + WINDOW_STATE_FILE);
+            if (!file.exists()) return null;
+            JsonObject obj;
+            try (FileReader reader = new FileReader(file)) {
+                obj = JsonParser.parseReader(reader).getAsJsonObject();
+            }
+            int x = obj.get("x").getAsInt();
+            int y = obj.get("y").getAsInt();
+            int w = obj.get("width").getAsInt();
+            int h = obj.get("height").getAsInt();
+            if (w < HARD_MIN_WIDTH || h < HARD_MIN_HEIGHT) return null;
+            // 验证窗口中心在某台显示器范围内（防止显示器配置变化后窗口跑到屏幕外）
+            int cx = x + w / 2, cy = y + h / 2;
+            boolean onMonitor = false;
+            PointerBuffer monitors = GLFW.glfwGetMonitors();
+            if (monitors != null) {
+                for (int i = 0; i < monitors.limit(); i++) {
+                    long mon = monitors.get(i);
+                    int[] mx = new int[1], my = new int[1];
+                    GLFW.glfwGetMonitorPos(mon, mx, my);
+                    GLFWVidMode mode = GLFW.glfwGetVideoMode(mon);
+                    if (cx >= mx[0] && cx < mx[0] + mode.width()
+                            && cy >= my[0] && cy < my[0] + mode.height()) {
+                        onMonitor = true;
+                        break;
+                    }
+                }
+            }
+            if (!onMonitor) return null;
+            return new int[]{x, y, w, h};
+        } catch (Exception e) {
+            LOGGER.warn("Failed to load window state", e);
+            return null;
+        }
+    }
+
+    /** 把窗口恢复到保存的位置与大小，并应用尺寸限制。 */
+    private static void restoreWindowState(int[] state) {
+        long hwnd = Minecraft.getInstance().getWindow().getWindow();
+        GLFW.glfwSetWindowSize(hwnd, state[2], state[3]);
+        GLFW.glfwSetWindowPos(hwnd, state[0], state[1]);
+        applyWindowLimits();
+    }
+
+    /** 延迟初始化（退出全屏/最大化后）应用窗口：开启记忆位置且有保存状态时恢复，否则按配置值居中。
+     *  记忆位置不依赖配置值，分辨率过低（lockDisabled）时仍可恢复；回退到配置值时才受 lockDisabled 限制。 */
+    private static void applyDeferredWindow() {
+        if (Config.REMEMBER_POSITION.get()) {
+            int[] saved = loadWindowState();
+            if (saved != null) {
+                restoreWindowState(saved);
+                return;
+            }
+        }
+        if (!lockDisabled) {
+            applyConfigWindow();
+        }
     }
 }

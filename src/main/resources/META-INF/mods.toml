@@ -32,17 +32,22 @@ in-game rendering or gameplay logic, and therefore almost never
 conflicts with other mods.
 
 HOW IT WORKS
-On launch it waits about 1.5 seconds (30 ticks) so the loading
-screen never gets stretched, then resizes the window to your
-configured resolution and centers it on the monitor the window is
-actually sitting on. When the minimum size lock is enabled the
-window can be made larger freely, but can never be shrunk below the
-configured size, keeping every tuned UI from being dragged out of
-place.
+On launch it waits a configurable delay (default 1.5 seconds, 30
+ticks) so the loading screen never gets stretched, then resizes the
+window to your configured resolution and centers it on the monitor
+the window is actually sitting on. When the minimum size lock is
+enabled the window can be made larger freely, but can never be
+shrunk below the configured size, keeping every tuned UI from being
+dragged out of place.
 
 FEATURES
-- Auto window sizing on launch, with a 1.5s delay to avoid
-  stretching the loading screen.
+- Auto window sizing on launch, with a configurable delay
+  (default 1.5s) to avoid stretching the loading screen.
+- Resolution presets: common resolutions grouped by aspect ratio
+  (16:9, 16:10, 4:3, 5:4, 21:9) with 12 presets each, plus a
+  custom width/height input with live boundary validation. Presets
+  larger than the current screen or matching the current size are
+  auto-disabled.
 - Minimum size lock: grow as big as you like, never shrink below
   the configured resolution.
 - Fixed window size: freeze the window at its current size (min =
@@ -53,80 +58,68 @@ FEATURES
   impossible; the fixed-window-size toggle itself is disabled while
   the window is maximized or fullscreen. Fullscreen still works and
   returns to the fixed size on exit.
-- A native "Window Settings" button injected right below the
-  Fullscreen Resolution row in Video Settings.
-- A dedicated Window Settings screen showing live screen resolution
-  and current window resolution (turns yellow and labeled when
-  fullscreen).
-- A "Center Window" button that centers the window on its current
-  monitor in one click; it is automatically disabled, with a reason
-  shown, while fullscreen, maximized, minimized, or already centered.
-- Client commands under /aws: toggle, lock, unlock, status, gui,
-  center, and fixed.
+- Center window: one-click centering on whichever monitor the
+  window is currently on; disabled with a reason while fullscreen,
+  maximized, minimized or already centered.
+- Auto fullscreen / maximize on launch: persistent player toggles
+  plus a one-time onboarding flag for modpack authors.
+- Window position memory: optionally save and restore the window
+  position and size across launches instead of forcing center;
+  compatible with auto-fullscreen / auto-maximize.
+- A native "Window Settings" button in Options → Accessibility
+  Settings (moved from Video Settings to stay compatible with mods
+  like Embeddium that replace the video settings screen).
+- A dedicated Window Settings screen with a four-line live info area
+  (screen resolution / window state + config status / detailed status
+  / input bounds), toggles for all features, resolution presets,
+  custom resolution input, and button hover tooltips.
+- Client commands under /aws: help, gui, status, toggle, lock,
+  unlock, fixed, center, fullscreen, maximize, remember, resolution.
 - Fullscreen support: the minimum size lock and fixed window size
   are suspended in fullscreen and restored to their previous state
   when you leave.
 - Multi-monitor aware: centering follows whichever monitor the
   window is currently on.
 - An optional hotkey to open the Window Settings screen (unbound
-  by default so it never fights your existing keybinds).
+  by default).
 - A short chat status message every time you enter a world.
+- Live resolution readout: updates 0.2s after you stop dragging.
 - Graceful fallback: if the configured resolution is larger than
-  your screen, only the minimum size lock is disabled and explained
-  in chat; fixed window size and centering keep working (they do not
-  depend on the config value).
-- Auto fullscreen / maximize on launch: players can toggle persisted
-  "start fullscreen" and "start maximized" preferences from the Window
-  Settings screen. They are mutually exclusive (enabling one disables
-  the other). Modpack authors can also set a one-time onboarding flag in
-  the config so that the first launch enters fullscreen or maximized
-  once, after which the flag clears itself and control hands over to the
-  player's own preference; if both guide targets are set, neither applies
-  and both reset to false. The guide also yields to an existing player
-  preference, resetting all one-time flags automatically.
-- Resolution presets: a set of common resolutions grouped by aspect
-  ratio (16:9, 16:10, 4:3, 5:4, 21:9, plus Custom). Click a preset to
-  apply it immediately and center the window. The aspect ratio switches
-  via a cycle button showing the current ratio and live window resolution.
-  Presets matching the current resolution are auto-disabled; presets
-  larger than the current screen are also disabled. Custom mode lets you
-  type in any width/height and apply it instantly. If you drag the window
-  to a non-preset size, the view switches to Custom automatically. The
-  settings screen uses the vanilla scrolling list with a scrollbar and
-  fade, and polls the screen resolution live.
+  your screen, only the minimum size lock is disabled; fixed window
+  size and centering keep working.
+- Config screen translations: config option names and descriptions
+  follow the game language when opened via a config-screen mod.
 
 STATUS AND FUTURE PLANS
 This is the author's first Minecraft mod. It is currently maintained
 and tested only on Minecraft 1.20.1 with Forge. The priority right
-now is stability, polish and documentation rather than rushing out
-more versions. Once this release is proven stable, ports to other
-versions or loaders (such as NeoForge or Fabric) may follow.
+now is stability, polish and documentation. Multi-version ports
+(1.20.2–1.20.6) are planned for a future release.
 
 DETAILS
 - Client-side only; no server install required.
-- Config file: config/autowindowsize-client.toml, with bilingual
-  (English above, Chinese below) comments.
-- Default resolution 1280x720; the lower bound is bound to the
-  hardcoded minimum of 856x482 (16:9), so you can never configure a
-  window smaller than the mod actually supports.
+- Config files: config/AutoWindowSize/config.toml (main config)
+  and config/AutoWindowSize/window.json (saved window position).
+- Default resolution 1280x720; hardcoded minimum 856x482 (16:9).
 - Does not work on mobile / Bedrock editions; desktop Java edition
   only (Windows / macOS / Linux).
-- Supports 15 languages: Simplified Chinese, Traditional Chinese,
-  English, Russian, French, Japanese, Korean, German, Spanish,
-  Portuguese (BR), Italian, Turkish, Dutch, Polish, Vietnamese.
+- Supports 20 languages: English, Simplified Chinese, Traditional
+  Chinese, Japanese, Korean, Russian, French, German, Spanish,
+  Portuguese (BR), Italian, Turkish, Dutch, Polish, Vietnamese,
+  Arabic, Thai, Swedish, Czech, Indonesian.
 
 LINKS
 Prefer GitHub Releases for the always-latest build; other platforms may
 lag behind by a few days due to review or sync delays.
-GitHub:        https://github.com/3270728922/AutoWindowSize
+GitHub:          https://github.com/3270728922/AutoWindowSize
 GitHub Releases: https://github.com/3270728922/AutoWindowSize/releases
-CurseForge:    https://www.curseforge.com/minecraft/mc-mods/auto-window-size
-Modrinth:      https://modrinth.com/mod/autowindowsize
-MC百科:        https://www.mcmod.cn/class/30769.html
-MCBBS:         https://www.mcbbs.co/thread-6322-1-1.html
-BBSMC:         https://bbsmc.net/mod/autowindowsize
-KLBBS:         https://klpbbs.com/thread-173769-1-1.html
-HIMCBBS:       https://www.himcbbs.com/resources/1499/
+CurseForge:      https://www.curseforge.com/minecraft/mc-mods/auto-window-size
+Modrinth:        https://modrinth.com/mod/autowindowsize
+MC百科:          https://www.mcmod.cn/class/30769.html
+MCBBS:           https://www.mcbbs.co/thread-6322-1-1.html
+BBSMC:           https://bbsmc.net/mod/autowindowsize
+KLBBS:           https://klpbbs.com/thread-173769-1-1.html
+HIMCBBS:         https://www.himcbbs.com/resources/1499/
 '''
 
 # ===== Better ModList / Mod Menu (NeoForge) 增强信息 =====

@@ -7,6 +7,43 @@ Full release history for this mod. The latest version is expanded by default; ol
 ---
 
 <details open>
+<summary><strong>v1.0.9</strong> — Resolution presets expansion, window position memory, config rework & UI polish</summary>
+
+### Added
+- **Resolution presets expanded**: 5 aspect ratios (16:9 / 16:10 / 4:3 / 5:4 / 21:9) with 12 presets each (3 rows). Click a preset to apply it instantly and center the window.
+- **Custom resolution input**: when the aspect ratio is set to "Custom", two input fields (width + height) and an Apply button appear. Live boundary validation; values outside the valid range are clamped to the nearest valid value with a warning.
+- **Configurable startup delay**: new `startupDelay` option in the config (0.5–10.0 seconds, default 1.5). Controls how long the mod waits after launch before applying the window size and position.
+- **Window position memory**: new `rememberPosition` option (default false). When enabled, the window position and size are saved on exit and restored on the next launch instead of forcing the window to center. Compatible with auto-fullscreen / auto-maximize: the game launches fullscreen / maximized first, then restores the remembered position when you exit it.
+- **Config files unified directory**: all config files moved to `config/AutoWindowSize/` (main config `config.toml` + saved window state `window.json`), keeping the config folder clean.
+- **Config screen translations**: Forge config values now use `.translation()` keys, so option names and descriptions follow the game language when opened via a config-screen mod. 20 languages fully translated.
+- **New commands**: `/aws help` (command list, pinned first), `/aws fullscreen` (toggle fullscreen), `/aws maximize` (toggle maximize), `/aws remember` (toggle position memory), `/aws resolution` (set resolution — supports `ratio preset` format and custom `width height` format, with tab-completion).
+- **Button hover tooltips**: every button in the Window Settings screen now has a mouse-hover tooltip explaining what it does; tooltips support line wrapping.
+
+### Changed
+- **Settings entry moved** from Options → Video Settings to **Options → Accessibility Settings** (purpose: compatible with Embeddium and other mods that completely replace the video settings screen, which previously caused the "Window Settings" button to disappear).
+- **Settings screen info area reworked** from two lines to four lines: (1) screen resolution + centered indicator, (2) window state + config file status (always visible), (3) detailed status explanation for the current state, (4) custom input boundary value + input requirement (always visible below the input fields).
+- **Config comments reworked**: simplified per-option comments, removed duplicate Range lines (Forge auto-generates them), switched to English-only comments, added section separator lines.
+- **Command order rearranged**: help → gui → status → toggle → lock → unlock → fixed → center → fullscreen → maximize → remember → resolution.
+- **Language count expanded from 15 to 20**: added Arabic (ar_sa), Thai (th_th), Swedish (sv_se), Czech (cs_cz), Indonesian (id_id).
+
+### Fixed
+- Fixed the aspect ratio button incorrectly showing "Custom" after toggling maximize / fullscreen.
+- Fixed the aspect ratio display lagging / bouncing back after clicking a resolution preset.
+- Fixed the custom resolution input fields not updating live when the window is dragged.
+- Fixed the fixed-window-size toggle not disabling the aspect ratio button and preset buttons when enabled.
+- Fixed the Apply button and input field showing an oversized highlight background after clicking (spilling beyond the button bounds).
+- Fixed the "Window Settings" button in Accessibility Settings shifting position / growing too wide when the game language has no corresponding lang file.
+- Fixed the settings screen scrollbar overlapping the buttons; repositioned to match the vanilla scrollbar placement.
+- Fixed auto-fullscreen on launch not centering the window after exiting fullscreen.
+- Fixed various minor UI layout and spacing issues in the Window Settings screen.
+
+### Notes
+- **Config migration**: when upgrading from pre-1.0.9, manually delete the old `config/autowindowsize-client.toml` and the new `config/AutoWindowSize/` folder (if it exists), then launch the game to generate fresh config files.
+- The auto-fullscreen-on-launch and window-position-memory features are independent implementations inspired by [Window Control](https://www.curseforge.com/minecraft/mc-mods/window-control); no code was copied.
+
+</details>
+
+<details>
 <summary><strong>v1.0.8</strong> — Resolution presets + settings screen rework</summary>
 
 ### Added

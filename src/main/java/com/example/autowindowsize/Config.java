@@ -6,6 +6,9 @@ public class Config {
     public static final ForgeConfigSpec SPEC;
     public static final ForgeConfigSpec.IntValue WINDOW_WIDTH;
     public static final ForgeConfigSpec.IntValue WINDOW_HEIGHT;
+    // 记住窗口位置：开启后退出游戏时保存当前窗口位置与大小，下次启动恢复到该位置
+    // （而不是强制居中）。与自动全屏/最大化兼容：启动时先全屏/最大化，退出后恢复记忆位置。
+    public static final ForgeConfigSpec.BooleanValue REMEMBER_POSITION;
     // 值1：一次性"首次引导"开关（整合包作者用）。为 true 时，本次启动按 startFullscreen
     // 决定是否自动全屏，并把玩家偏好 autoFullscreen 同步成 startFullscreen；随后本值自动写回 false。
     // 默认 false：玩家单独安装时不被强制全屏。
@@ -21,6 +24,9 @@ public class Config {
     public static final ForgeConfigSpec.BooleanValue AUTO_FULLSCREEN;
     // 玩家在游戏内设置里的持久化偏好：下次启动是否自动最大化。与 autoFullscreen 互斥。
     public static final ForgeConfigSpec.BooleanValue AUTO_MAXIMIZED;
+    // 启动延迟（秒）：启动后等待多久再应用窗口大小/位置，避免拉伸加载界面。
+    // 范围 0.5 ~ 10.0，默认 1.5。
+    public static final ForgeConfigSpec.DoubleValue STARTUP_DELAY;
 
     // 代码硬编码的最小分辨率（16:9）。配置文件的取值下限与运行时锁定下限都以这里为准，
     // 避免出现"配置能填低于硬写死分辨率的值"的脱节 bug。
@@ -28,8 +34,8 @@ public class Config {
     public static final int HARD_MIN_HEIGHT = 482;
 
     // 允许的最大分辨率（超宽 / 8K 上限，仅作取值保护）
-    private static final int MAX_WIDTH = 7680;
-    private static final int MAX_HEIGHT = 4320;
+    public static final int MAX_WIDTH = 7680;
+    public static final int MAX_HEIGHT = 4320;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -38,17 +44,27 @@ public class Config {
 
         WINDOW_WIDTH = builder
                 .comment(
-                        "",
-                        "Startup window width. Also the minimum width allowed when the size lock is on.",
-                        "启动时的窗口宽度。开启最小尺寸锁定后，窗口不能缩小到该值以下。")
+                        "=== Window Size ===",
+                        "Startup window width. Also the minimum width when the minimum-size lock is on.",
+                        "Modpack authors can set this to the size that best fits the modpack UI layout.")
+                .translation("config.autowindowsize.window.width")
                 .defineInRange("width", 1280, HARD_MIN_WIDTH, MAX_WIDTH);
 
         WINDOW_HEIGHT = builder
                 .comment(
-                        "",
-                        "Startup window height. Also the minimum height allowed when the size lock is on.",
-                        "启动时的窗口高度。开启最小尺寸锁定后，窗口不能缩小到该值以下。")
+                        "Startup window height. Also the minimum height when the minimum-size lock is on.",
+                        "The lower bound is hard-coded (856x482).")
+                .translation("config.autowindowsize.window.height")
                 .defineInRange("height", 720, HARD_MIN_HEIGHT, MAX_HEIGHT);
+
+        REMEMBER_POSITION = builder
+                .comment(
+                        "=== Position Memory ===",
+                        "When enabled, the window position and size are saved on exit and restored on next launch",
+                        "(instead of forcing the window to center). Compatible with auto-fullscreen / auto-maximize:",
+                        "the game launches fullscreen / maximized first, then restores the remembered position on exit.")
+                .translation("config.autowindowsize.window.rememberPosition")
+                .define("rememberPosition", false);
 
         builder.pop();
 
@@ -56,46 +72,51 @@ public class Config {
 
         APPLY_STARTUP_GUIDE = builder
                 .comment(
-                        "",
-                        "-- Onboarding (modpack authors) --",
-                        "One-time onboarding. When true, this launch follows startFullscreen / startMaximized,",
-                        "syncs the in-game preference, then resets to false. If the player already has a",
-                        "preference, the guide is skipped and all three one-time flags reset to false.",
-                        "[整合包作者] 一次性首次引导。为 true 时本次启动按 startFullscreen / startMaximized",
-                        "决定是否全屏或最大化，同步游戏内偏好后自动写回 false。玩家已有偏好时跳过本引导，",
-                        "并把 applyStartupGuide / startFullscreen / startMaximized 全部写回 false。")
+                        "=== One-time Onboarding (Modpack Authors) ===",
+                        "When true, this launch follows startFullscreen / startMaximized to decide whether to auto-fullscreen",
+                        "or auto-maximize, then syncs the in-game preference and resets itself to false (one-time only).",
+                        "Skipped if the player already has an in-game preference.")
+                .translation("config.autowindowsize.startup.applyStartupGuide")
                 .define("applyStartupGuide", false);
 
         START_FULLSCREEN = builder
                 .comment(
-                        "",
-                        "Used only when applyStartupGuide is true: whether the first launch starts in fullscreen.",
-                        "仅当 applyStartupGuide 为 true 且玩家无偏好时生效：本次首次启动是否自动全屏。与 startMaximized 互斥。")
+                        "Only used when applyStartupGuide is true: whether the first launch starts in fullscreen.",
+                        "Mutually exclusive with startMaximized (if both are true, neither takes effect).")
+                .translation("config.autowindowsize.startup.startFullscreen")
                 .define("startFullscreen", false);
 
         START_MAXIMIZED = builder
                 .comment(
-                        "",
-                        "Used only when applyStartupGuide is true: whether the first launch starts maximized.",
-                        "仅当 applyStartupGuide 为 true 且玩家无偏好时生效：本次首次启动是否自动最大化。与 startFullscreen 互斥。")
+                        "Only used when applyStartupGuide is true: whether the first launch starts maximized.",
+                        "Mutually exclusive with startFullscreen (if both are true, neither takes effect).")
+                .translation("config.autowindowsize.startup.startMaximized")
                 .define("startMaximized", false);
 
         AUTO_FULLSCREEN = builder
                 .comment(
-                        "",
-                        "-- Player preference --",
-                        "Start in fullscreen on the NEXT launch (set in the in-game UI). Mutually exclusive with autoMaximized;",
-                        "if both are set true by hand, the mod resets both to false on launch.",
-                        "玩家偏好：下次启动是否自动全屏，在游戏内窗口设置里修改。与 autoMaximized 互斥；",
-                        "若被手动改成两者都 true，模组启动时会自动都归零。")
+                        "=== Player Preference ===",
+                        "Whether to auto-fullscreen on the next launch (set in the in-game Window Settings screen).",
+                        "Stays enabled until manually turned off. Mutually exclusive with autoMaximized;",
+                        "if both are set true by hand, the mod resets both to false on launch.")
+                .translation("config.autowindowsize.startup.autoFullscreen")
                 .define("autoFullscreen", false);
 
         AUTO_MAXIMIZED = builder
                 .comment(
-                        "",
-                        "Start maximized on the NEXT launch (set in the in-game UI).",
-                        "玩家偏好：下次启动是否自动最大化，在游戏内窗口设置里修改。与 autoFullscreen 互斥。")
+                        "Whether to auto-maximize on the next launch (set in the in-game Window Settings screen).",
+                        "Stays enabled until manually turned off. Mutually exclusive with autoFullscreen;",
+                        "if both are set true by hand, the mod resets both to false on launch.")
+                .translation("config.autowindowsize.startup.autoMaximized")
                 .define("autoMaximized", false);
+
+        STARTUP_DELAY = builder
+                .comment(
+                        "=== Startup Delay ===",
+                        "Seconds to wait before applying the window size and position on launch.",
+                        "A small delay avoids stretching the loading screen and gives lower-end PCs some buffer.")
+                .translation("config.autowindowsize.startup.startupDelay")
+                .defineInRange("startupDelay", 1.5, 0.5, 10.0);
 
         builder.pop();
 

@@ -12,6 +12,9 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ConfigScreen extends Screen {
     private final Screen parent;
     private static final int BUTTON_WIDTH = 310;
@@ -23,6 +26,7 @@ public class ConfigScreen extends Screen {
     private Button fixedButton;
     private Button autoFsButton;
     private Button autoMaxButton;
+    private Button rememberButton;
     private Button centerButton;
     // 比例 / 分辨率预设
     private Button cycleAspectButton;
@@ -41,6 +45,10 @@ public class ConfigScreen extends Screen {
     private boolean dragging = false;
     private boolean fullscreen = false;
     private boolean wasMaximized = false;
+    private boolean wasFullscreen = false;
+    // 标记当前这一轮尺寸变化是由"最大化/全屏/从中恢复"引起的，
+    // 整个过程（含恢复后尺寸稳定的那次判定）都不应自动把比例切到自定义。
+    private boolean windowStateTransition = false;
     private long lastDragTime = 0;
 
     private OptionList list;
@@ -99,6 +107,11 @@ public class ConfigScreen extends Screen {
             if (list != null) list.setupEntries();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.automax.tooltip"))).build();
 
+        this.rememberButton = Button.builder(getRememberButtonText(), btn -> {
+            AutoWindowSize.toggleRememberPosition();
+            if (list != null) list.setupEntries();
+        }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.remember.tooltip"))).build();
+
         this.centerButton = Button.builder(Component.translatable("gui.autowindowsize.center.button"), btn -> {
             if (AutoWindowSize.canCenter()) { AutoWindowSize.centerWindow(); }
             if (list != null) list.setupEntries();
@@ -156,6 +169,9 @@ public class ConfigScreen extends Screen {
                 Component.translatable("gui.autowindowsize.custom.apply"),
                 btn -> applyCustomResolution()
         ).bounds(centerX + 25, 0, 130, BUTTON_HEIGHT).build();
+        // 输入框内容变化时实时校验，非法则禁用应用按钮并给出悬浮提示
+        customWidthField.setResponder(s -> refreshCustomApplyState());
+        customHeightField.setResponder(s -> refreshCustomApplyState());
         customWidthField.visible = false;
         customHeightField.visible = false;
         customApplyButton.visible = false;
@@ -185,17 +201,25 @@ public class ConfigScreen extends Screen {
             addEntry(new ButtonEntry(lockButton));
             addEntry(new ButtonEntry(fixedButton));
             addEntry(new TwoButtonEntry(autoFsButton, autoMaxButton));
+            addEntry(new ButtonEntry(rememberButton));
             addEntry(new ButtonEntry(centerButton));
             addEntry(new InfoEntry());
+            addEntry(new SpacerEntry()); // InfoEntry 现为3行文字，需要额外条目高度容纳溢出
             addEntry(new ButtonEntry(cycleAspectButton));
             // 自定义模式：显示输入框；否则显示预设按钮
             if (currentGroup == AutoWindowSize.ASPECT_NAMES.length - 1) {
                 addEntry(new CustomEntry());
+                // 占位符补齐到3行高度
+                for (int r = 1; r < 3; r++) addEntry(new SpacerEntry());
             } else {
                 int resCount = AutoWindowSize.PRESETS[currentGroup].length;
                 int rows = (resCount + 3) / 4;
                 for (int r = 0; r < rows; r++) {
                     addEntry(new RowEntry(presetButtons, r * 4, false));
+                }
+                // 占位符补齐到3行高度，确保切换比例时列表内容高度不变、滚动位置不跳
+                for (int r = rows; r < 3; r++) {
+                    addEntry(new SpacerEntry());
                 }
                 customWidthField.visible = false;
                 customHeightField.visible = false;
@@ -231,6 +255,15 @@ public class ConfigScreen extends Screen {
             @Override
             public boolean mouseReleased(double mouseX, double mouseY, int button) {
                 return false;
+            }
+        }
+
+        // 空白占位条目：不渲染任何内容，用于固定列表内容高度，避免切换比例时滚动条超界
+        class SpacerEntry extends Entry {
+            @Override
+            public void render(GuiGraphics g, int index, int top, int left, int width, int height,
+                               int mouseX, int mouseY, boolean hovered, float partialTick) {
+                // 纯占位，不渲染
             }
         }
 
@@ -389,36 +422,85 @@ public class ConfigScreen extends Screen {
                 customWidthField.render(g, mouseX, mouseY, partialTick);
                 customHeightField.render(g, mouseX, mouseY, partialTick);
                 customApplyButton.render(g, mouseX, mouseY, partialTick);
+                // 输入框下方常驻两行提示：第一行边界值，第二行输入要求
+                // 输入不合法时整体变为黄色警告色
+                boolean invalid = combineErrors(getCustomInvalidReasons()) != null;
+                int hintColor = invalid ? 0xFFAA00 : 0xAAAAAA;
+                g.drawCenteredString(font,
+                        Component.translatable("gui.autowindowsize.custom_range",
+                                Config.HARD_MIN_WIDTH, screenWidth,
+                                Config.HARD_MIN_HEIGHT, screenHeight),
+                        left + width / 2, top + 24, hintColor);
+                g.drawCenteredString(font,
+                        Component.translatable("gui.autowindowsize.custom_input_hint"),
+                        left + width / 2, top + 38, hintColor);
             }
         }
 
-        // 信息区（三行分辨率文字）
+        // 信息区（三行：屏幕分辨率+居中标记 / 窗口状态+配置文件状态 / 详细说明）
         class InfoEntry extends Entry {
             @Override
             public void render(GuiGraphics g, int index, int top, int left, int width, int height,
                                int mouseX, int mouseY, boolean hovered, float partialTick) {
                 int cx = left + width / 2;
-                g.drawCenteredString(font,
-                        Component.translatable("gui.autowindowsize.screen_resolution", screenWidth, screenHeight),
-                        cx, top - 2, 0xFFFFFF);
-                int thirdColor = 0xFFFFFF;
-                Component thirdText = null;
+                // 第一行：屏幕分辨率（常驻）+ 窗口已居中（居中时才显示）
+                Component line1 = Component.translatable("gui.autowindowsize.screen_resolution", screenWidth, screenHeight);
+                if (AutoWindowSize.isWindowCentered()) {
+                    line1 = line1.copy().append("  ").append(Component.translatable("gui.autowindowsize.centered_mark"));
+                }
+                g.drawCenteredString(font, line1, cx, top - 2, 0xFFFFFF);
+
+                // 第二行：窗口状态 + 配置文件状态（常驻）
+                String stateKey;
+                int stateColor;
                 if (dragging) {
-                    thirdText = Component.translatable("gui.autowindowsize.refreshing");
-                    thirdColor = 0xFFAA00;
-                } else if (AutoWindowSize.isLockDisabled()) {
-                    thirdText = Component.translatable("gui.autowindowsize.disabled_reason");
-                    thirdColor = 0xFF5555;
+                    stateKey = "gui.autowindowsize.ws_dragging";
+                    stateColor = 0xFFAA00;
                 } else if (AutoWindowSize.isFullscreenTempDisabled()) {
-                    thirdText = Component.translatable("gui.autowindowsize.fullscreen_reason");
-                    thirdColor = 0xFF5555;
-                } else if (AutoWindowSize.getCenterDisabledReason() != null) {
-                    thirdText = AutoWindowSize.getCenterDisabledReason();
-                    thirdColor = 0xFFAA00;
+                    stateKey = "gui.autowindowsize.ws_fullscreen";
+                    stateColor = 0xFFAA00;
+                } else if (AutoWindowSize.isMaximized()) {
+                    stateKey = "gui.autowindowsize.ws_maximized";
+                    stateColor = 0xFFAA00;
+                } else if (AutoWindowSize.isFixedEnabled()) {
+                    stateKey = "gui.autowindowsize.ws_fixed";
+                    stateColor = 0xFFAA00;
+                } else {
+                    stateKey = "gui.autowindowsize.ws_normal";
+                    stateColor = 0xAAAAAA;
                 }
-                if (thirdText != null) {
-                    g.drawCenteredString(font, thirdText, cx, top + 14, thirdColor);
+                boolean configError = AutoWindowSize.isLockDisabled();
+                Component line2 = Component.translatable("gui.autowindowsize.line2_window_label")
+                        .copy().append(Component.translatable(stateKey).withStyle(style -> style.withColor(stateColor)))
+                        .append("  ")
+                        .append(Component.translatable("gui.autowindowsize.line2_config_label"))
+                        .append(Component.translatable(configError ? "gui.autowindowsize.cfg_error" : "gui.autowindowsize.cfg_correct")
+                                .withStyle(style -> style.withColor(configError ? 0xFF5555 : 0x55FF55)));
+                g.drawCenteredString(font, line2, cx, top + 12, 0xFFFFFF);
+
+                // 第三行：对当前状态的详细说明（配置错误优先级最高，其次按窗口状态分别显示）
+                String detailKey;
+                int detailColor;
+                if (configError) {
+                    detailKey = "gui.autowindowsize.detail_error";
+                    detailColor = 0xFF5555;
+                } else if (dragging) {
+                    detailKey = "gui.autowindowsize.detail_dragging";
+                    detailColor = 0xFFAA00;
+                } else if (AutoWindowSize.isFullscreenTempDisabled()) {
+                    detailKey = "gui.autowindowsize.detail_fullscreen";
+                    detailColor = 0xFFAA00;
+                } else if (AutoWindowSize.isMaximized()) {
+                    detailKey = "gui.autowindowsize.detail_maximized";
+                    detailColor = 0xFFAA00;
+                } else if (AutoWindowSize.isFixedEnabled()) {
+                    detailKey = "gui.autowindowsize.detail_fixed";
+                    detailColor = 0xFFAA00;
+                } else {
+                    detailKey = "gui.autowindowsize.detail_normal";
+                    detailColor = 0x55FF55;
                 }
+                g.drawCenteredString(font, Component.translatable(detailKey), cx, top + 26, detailColor);
             }
         }
     }
@@ -432,6 +514,7 @@ public class ConfigScreen extends Screen {
         this.autoFsButton.setMessage(getAutoFsButtonText());
         this.autoMaxButton.active = AutoWindowSize.canAutoMaximized();
         this.autoMaxButton.setMessage(getAutoMaxButtonText());
+        this.rememberButton.setMessage(getRememberButtonText());
         this.centerButton.active = AutoWindowSize.canCenter();
         boolean canPreset = AutoWindowSize.canApplyPreset() && !AutoWindowSize.isFixedEnabled();
         for (Button b : this.presetButtons) b.active = canPreset;
@@ -439,6 +522,7 @@ public class ConfigScreen extends Screen {
         if (customApplyButton != null) customApplyButton.active = canPreset;
         if (customWidthField != null) customWidthField.active = canPreset;
         if (customHeightField != null) customHeightField.active = canPreset;
+        refreshCustomApplyState();
     }
 
     // ============ 按钮文案 ============
@@ -468,6 +552,11 @@ public class ConfigScreen extends Screen {
         if (!AutoWindowSize.canAutoMaximized()) return Component.translatable("gui.autowindowsize.automax.button.mutual");
         if (AutoWindowSize.isAutoMaximizedPref()) return Component.translatable("gui.autowindowsize.automax.button.on");
         return Component.translatable("gui.autowindowsize.automax.button.off");
+    }
+
+    private Component getRememberButtonText() {
+        if (AutoWindowSize.isRememberPosition()) return Component.translatable("gui.autowindowsize.remember.button.on");
+        return Component.translatable("gui.autowindowsize.remember.button.off");
     }
 
     private void rebuildPresetButtons() {
@@ -502,7 +591,10 @@ public class ConfigScreen extends Screen {
         String cur = AutoWindowSize.ASPECT_NAMES[this.currentGroup];
         Component result = Component.translatable("gui.autowindowsize.aspect.current", cur);
         if (this.currentGroup < AutoWindowSize.PRESETS.length) {
-            result = result.copy().append(Component.literal("   [" + gameWidth + "×" + gameHeight + "]"));
+            result = result.copy()
+                    .append(Component.literal("   ["))
+                    .append(Component.translatable("gui.autowindowsize.aspect.window_resolution"))
+                    .append(Component.literal(gameWidth + "×" + gameHeight + "]"));
         }
         return result;
     }
@@ -518,6 +610,62 @@ public class ConfigScreen extends Screen {
                     : Component.translatable("gui.autowindowsize.preset.button", p[0], p[1]);
             this.presetButtons[i].setMessage(msg);
         }
+    }
+
+    // 收集自定义输入框的所有非法原因（空值/非整数为阻断型，遇到即返回；低于下限/高于上限可并存）
+    private List<Component> getCustomInvalidReasons() {
+        List<Component> errors = new ArrayList<>();
+        if (customWidthField == null || customHeightField == null) return errors;
+        // 只在自定义组做校验
+        if (this.currentGroup >= AutoWindowSize.PRESETS.length) {
+            String ws = customWidthField.getValue().trim();
+            String hs = customHeightField.getValue().trim();
+            if (ws.isEmpty() || hs.isEmpty()) {
+                errors.add(Component.translatable("gui.autowindowsize.custom.invalid.empty"));
+                return errors;
+            }
+            int w, h;
+            try {
+                w = Integer.parseInt(ws);
+                h = Integer.parseInt(hs);
+            } catch (NumberFormatException e) {
+                errors.add(Component.translatable("gui.autowindowsize.custom.invalid.number"));
+                return errors;
+            }
+            if (w < 856 || h < 482) {
+                errors.add(Component.translatable("gui.autowindowsize.custom.invalid.min", 856, 482));
+            }
+            if (w > screenWidth || h > screenHeight) {
+                errors.add(Component.translatable("gui.autowindowsize.custom.invalid.max", screenWidth, screenHeight));
+            }
+        }
+        return errors;
+    }
+
+    // 把多条非法原因合并成一条（默认用各语言分隔符连接，适合上方单行提示）
+    private Component combineErrors(List<Component> errors) {
+        return combineErrors(errors, Component.translatable("gui.autowindowsize.custom.invalid.separator").getString());
+    }
+
+    // 用指定分隔符合并多条原因（传 "\n" 可用于按钮悬浮提示的多行显示）
+    private Component combineErrors(List<Component> errors, String sep) {
+        if (errors.isEmpty()) return null;
+        Component result = errors.get(0);
+        for (int i = 1; i < errors.size(); i++) {
+            result = result.copy().append(Component.literal(sep)).append(errors.get(i));
+        }
+        return result;
+    }
+
+    // 根据输入合法性与全局可用状态，更新应用按钮的启用/禁用与悬浮提示
+    private void refreshCustomApplyState() {
+        if (customApplyButton == null || customWidthField == null || customHeightField == null) return;
+        boolean canPreset = AutoWindowSize.canApplyPreset() && !AutoWindowSize.isFixedEnabled();
+        List<Component> errors = getCustomInvalidReasons();
+        Component multiLine = combineErrors(errors, "\n");
+        customApplyButton.active = canPreset && errors.isEmpty();
+        // Tooltip 内部用 Font.split 排版，会按 \n 自动断行，实现多条原因逐行显示
+        customApplyButton.setTooltip(multiLine == null ? null : Tooltip.create(multiLine));
     }
 
     private void applyCustomResolution() {
@@ -545,7 +693,16 @@ public class ConfigScreen extends Screen {
         boolean maximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) != GLFW.GLFW_FALSE;
         this.fullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
         boolean justRestored = wasMaximized && !maximized && !this.fullscreen;
+        boolean justExitedFullscreen = wasFullscreen && !this.fullscreen;
         wasMaximized = maximized && !this.fullscreen;
+        wasFullscreen = this.fullscreen;
+
+        // 只要当前处于最大化/全屏，或本帧刚从中恢复，就把这一轮尺寸变化标记为
+        // "窗口状态变化引起"。标志会一直保留到尺寸稳定、完成那次判定后才清除，
+        // 因此能覆盖"恢复后尺寸才慢慢变回"的整个过程（justRestored 只在一帧内为 true）。
+        if (maximized || this.fullscreen || justRestored || justExitedFullscreen) {
+            this.windowStateTransition = true;
+        }
 
         // 实时检测屏幕分辨率（防止玩家在系统设置里改了屏幕分辨率）
         long monitor = AutoWindowSize.getCurrentMonitorStatic(hwnd);
@@ -566,9 +723,17 @@ public class ConfigScreen extends Screen {
             this.dragging = false;
             this.gameWidth = curW;
             this.gameHeight = curH;
-            // 如果当前分辨率不匹配当前比例组，自动切到自定义（最大化/全屏/从最大化恢复时不切）
-            boolean maximizedNow = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) != GLFW.GLFW_FALSE;
-            if (this.currentGroup < AutoWindowSize.PRESETS.length && !justRestored && !maximizedNow && !this.fullscreen) {
+            // 自定义组内拖动窗口后，同步更新输入框为当前窗口大小；
+            // 输入框正在被编辑（获得焦点）时不覆盖，避免打断用户输入。
+            if (this.currentGroup >= AutoWindowSize.PRESETS.length && customWidthField != null) {
+                if (!customWidthField.isFocused() && !customHeightField.isFocused()) {
+                    customWidthField.setValue(String.valueOf(curW));
+                    customHeightField.setValue(String.valueOf(curH));
+                }
+            }
+            // 尺寸稳定后：只有"玩家自由拖动/非窗口状态变化"才据当前比例组判定是否切自定义；
+            // 最大化、全屏及从中恢复引起的尺寸变化整轮都保持用户选中的比例分类不变。
+            if (this.currentGroup < AutoWindowSize.PRESETS.length && !this.windowStateTransition) {
                 boolean matched = false;
                 for (int[] p : AutoWindowSize.PRESETS[this.currentGroup]) {
                     if (p[0] == curW && p[1] == curH) { matched = true; break; }
@@ -583,6 +748,8 @@ public class ConfigScreen extends Screen {
                     markActiveButtons();
                 }
             }
+            // 本轮窗口状态变化已处理完，解除抑制
+            this.windowStateTransition = false;
         }
         this.lastSeenWidth = curW;
         this.lastSeenHeight = curH;
