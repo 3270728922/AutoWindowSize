@@ -6,10 +6,33 @@
 
 > **📮 关于源码：作者是 GitHub / Git 新手，早期仓库更新曾出现过操作失误导致文件混乱。如果你下载到的源码与实际发布的 jar 对不上，请发邮件至 3270728922@qq.com 获取正确源码。**
 
-![视频设置中的窗口设置按钮](docs/zh-video-settings.png)
-![窗口设置界面 — 分辨率预设](docs/zh-settings-presets.png)
-![自定义分辨率输入](docs/zh-settings-custom.png)
-![固定窗口大小开启（预设按钮自动禁用）](docs/zh-settings-fixed.png)
+<details>
+<summary><strong>📸 截图展示</strong>（点击展开 — 共7张）</summary>
+
+<br>
+
+**1. 设置入口** — 选项 → 辅助功能设置 → 窗口设置
+![辅助功能设置中的窗口设置按钮](docs/zh-accessibility-entry.png)
+
+**2. 设置主界面** — 所有开关、信息区和16:9分辨率预设
+![设置主界面与分辨率预设](docs/zh-settings-main.png)
+
+**3. 自定义分辨率输入** — 宽/高输入框，带实时校验和范围提示
+![自定义分辨率输入与边界校验](docs/zh-custom-resolution.png)
+
+**4. 游戏内指令** — `/aws help` 分页输出和指令聊天反馈
+![游戏内指令与聊天反馈](docs/zh-commands-chat.png)
+
+**5. 快捷键绑定** — 选项 → 控制中可配置的5个快捷键
+![快捷键绑定设置](docs/zh-keybinds.png)
+
+**6. 无边框模式** — 窗口标题栏和边框已去除
+![无边框模式开启效果](docs/zh-borderless-mode.png)
+
+**7. 最大化状态** — 相关按钮自动禁用，黄色状态提示
+![最大化状态与禁用按钮](docs/zh-maximized-state.png)
+
+</details>
 
 [English Wiki](WIKI.md) · [返回 README](README_ZH-CN.md)
 

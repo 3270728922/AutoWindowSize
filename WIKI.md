@@ -6,10 +6,33 @@
 
 > **📮 About the source: the author is new to GitHub / Git and once caused some messy repository state during an update. If the source you downloaded does not match the released jar, email 3270728922@qq.com for the correct source.**
 
-![Window Settings button in Video Settings](docs/en-video-settings.png)
-![Window Settings screen — resolution presets](docs/en-settings-presets.png)
-![Custom resolution input](docs/en-settings-custom.png)
-![Fixed window size enabled (preset buttons auto-disabled)](docs/en-settings-fixed.png)
+<details>
+<summary><strong>📸 Screenshots</strong> (click to expand — 7 images)</summary>
+
+<br>
+
+**1. Settings entry** — Options → Accessibility Settings → Window Settings
+![Window Settings button in Accessibility Settings](docs/en-accessibility-entry.png)
+
+**2. Main settings screen** — all toggles, info area, and 16:9 resolution presets
+![Main settings screen with resolution presets](docs/en-settings-main.png)
+
+**3. Custom resolution input** — width/height fields with live validation and range hint
+![Custom resolution input with boundary validation](docs/en-custom-resolution.png)
+
+**4. In-game commands** — `/aws help` pagination and command feedback in chat
+![In-game commands and chat feedback](docs/en-commands-chat.png)
+
+**5. Key bindings** — 5 configurable keybinds in Options → Controls
+![Key bindings configuration](docs/en-keybinds.png)
+
+**6. Borderless mode** — window title bar and borders removed
+![Borderless mode enabled](docs/en-borderless-mode.png)
+
+**7. Maximized state** — relevant buttons auto-disabled with yellow status hint
+![Maximized state with disabled buttons](docs/en-maximized-state.png)
+
+</details>
 
 [中文 Wiki](WIKI_ZH-CN.md) · [Back to README](README.md)
 
