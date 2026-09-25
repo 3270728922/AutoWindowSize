@@ -29,7 +29,6 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.client.player.LocalPlayer;
@@ -82,6 +81,8 @@ public class AutoWindowSize {
     private static boolean fixedBeforeFullscreen = false;
     // 加载期间用户已全屏/最大化，导致初始化被跳过：等他退出该状态后补设配置大小并居中
     private static boolean deferredInitPending = false;
+    // 强制置顶模式的焦点回调是否已注册（避免重复注册）
+    private static boolean forceTopFocusCallbackRegistered = false;
 
     /** 最后一次正常（非全屏非最大化非最小化）窗口状态 {x,y,w,h}，退出游戏保存时用 */
     private static int[] lastNormalState = null;
@@ -92,10 +93,38 @@ public class AutoWindowSize {
     private static boolean wasMaximizedAtFullscreen = false;
     // 加载期间"最大化→全屏→退出全屏恢复最大化"后，等用户再取消最大化时补设配置大小并居中
     private static boolean pendingCenterAfterUnmaximize = false;
+    // 当前是否处于"无边框伪全屏"状态（窗口化模式铺满屏幕，非真正独占全屏）
+    private static boolean borderlessFullscreenActive = false;
+    // 循环切换窗口状态时，从全屏退出后需要强制还原为窗口化（避免恢复到最大化）
+    private static boolean pendingRestoreToWindowed = false;
 
     // 按键绑定：默认未设置，玩家自行在控制设置中绑定
-    public static final KeyMapping TOGGLE_LOCK_KEY = new KeyMapping(
-            "key.autowindowsize.toggle_lock",
+    public static final KeyMapping OPEN_SETTINGS_KEY = new KeyMapping(
+            "key.autowindowsize.open_settings",
+            InputConstants.Type.KEYSYM,
+            -1,
+            "key.categories.autowindowsize"
+    );
+    public static final KeyMapping CENTER_KEY = new KeyMapping(
+            "key.autowindowsize.center",
+            InputConstants.Type.KEYSYM,
+            -1,
+            "key.categories.autowindowsize"
+    );
+    public static final KeyMapping BORDERLESS_KEY = new KeyMapping(
+            "key.autowindowsize.borderless",
+            InputConstants.Type.KEYSYM,
+            -1,
+            "key.categories.autowindowsize"
+    );
+    public static final KeyMapping CYCLE_STATE_KEY = new KeyMapping(
+            "key.autowindowsize.cycle_state",
+            InputConstants.Type.KEYSYM,
+            -1,
+            "key.categories.autowindowsize"
+    );
+    public static final KeyMapping TOP_KEY = new KeyMapping(
+            "key.autowindowsize.top",
             InputConstants.Type.KEYSYM,
             -1,
             "key.categories.autowindowsize"
@@ -128,7 +157,11 @@ public class AutoWindowSize {
     }
 
     private void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
-        event.register(TOGGLE_LOCK_KEY);
+        event.register(OPEN_SETTINGS_KEY);
+        event.register(CENTER_KEY);
+        event.register(BORDERLESS_KEY);
+        event.register(CYCLE_STATE_KEY);
+        event.register(TOP_KEY);
     }
 
     private void initWindow() {
@@ -152,6 +185,9 @@ public class AutoWindowSize {
         int targetWidth = configWidth;
         int targetHeight = configHeight;
 
+        // 先应用无边框，再设置大小和位置，确保居中计算基于正确的窗口状态
+        applyBorderless();
+
         GLFW.glfwSetWindowSize(hwnd, targetWidth, targetHeight);
         long monitor = getCurrentMonitor(hwnd);
         int[] monX = new int[1], monY = new int[1];
@@ -162,6 +198,148 @@ public class AutoWindowSize {
         GLFW.glfwSetWindowPos(hwnd, posX, posY);
 
         applyWindowLimits();
+        applyAlwaysOnTop();
+
+        // 强制置顶模式：注册焦点变化回调，失去焦点时立即重新聚焦（快速响应）
+        if (!forceTopFocusCallbackRegistered) {
+            GLFW.glfwSetWindowFocusCallback(hwnd, (window, focused) -> {
+                if (!focused && Config.ALWAYS_ON_TOP_MODE.get() == 2) {
+                    GLFW.glfwFocusWindow(window);
+                }
+            });
+            forceTopFocusCallbackRegistered = true;
+        }
+    }
+
+    /** 应用窗口置顶设置：根据模式设置 GLFW_FLOATING。0=关闭，1=普通，2=强制。 */
+    public static void applyAlwaysOnTop() {
+        long hwnd = Minecraft.getInstance().getWindow().getWindow();
+        int mode = Config.ALWAYS_ON_TOP_MODE.get();
+        boolean floating = (mode == 1 || mode == 2);
+        GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_FLOATING,
+                floating ? GLFW.GLFW_TRUE : GLFW.GLFW_FALSE);
+    }
+
+    /** 切换窗口置顶模式：0→1→2→0 循环。返回新模式。 */
+    public static int toggleAlwaysOnTop() {
+        int newMode = (Config.ALWAYS_ON_TOP_MODE.get() + 1) % 3;
+        Config.ALWAYS_ON_TOP_MODE.set(newMode);
+        saveConfig();
+        applyAlwaysOnTop();
+        return newMode;
+    }
+
+    /** 当前置顶模式：0=关闭，1=普通，2=强制。 */
+    public static int getAlwaysOnTopMode() {
+        return Config.ALWAYS_ON_TOP_MODE.get();
+    }
+
+    /** 切换调试模式：开→关→开。返回新状态。 */
+    public static boolean toggleDebug() {
+        boolean newState = !Config.DEBUG.get();
+        Config.DEBUG.set(newState);
+        saveConfig();
+        return newState;
+    }
+
+    /** 当前调试模式是否开启。 */
+    public static boolean isDebugEnabled() {
+        return Config.DEBUG.get();
+    }
+
+    /** 应用无边框设置：根据配置设置 GLFW_DECORATED 属性。全屏时 GLFW 自动无边框。 */
+    public static void applyBorderless() {
+        long hwnd = getWindowHandle();
+        if (hwnd == 0) return;
+        boolean fullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+        // 全屏时 GLFW 自动无边框，不设置 GLFW_DECORATED（避免干扰全屏逻辑）
+        if (!fullscreen) {
+            boolean borderless = Config.BORDERLESS.get();
+            GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_DECORATED, borderless ? GLFW.GLFW_FALSE : GLFW.GLFW_TRUE);
+        }
+    }
+
+    /** 切换无边框模式：开→关→开。
+     *  全屏状态下：真正全屏 ↔ 无边框伪全屏（窗口化铺满屏幕，失去焦点不最小化）。
+     *  最大化状态下：还原→切换→重新最大化（用户确认目前无bug，保持现状）。
+     *  窗口化状态下：保持窗口总大小（外框尺寸）不变，边框空间并入/划出客户区，窗口位置不动。 */
+    public static boolean toggleBorderless() {
+        long hwnd = getWindowHandle();
+        boolean newState = !Config.BORDERLESS.get();
+        Config.BORDERLESS.set(newState);
+        saveConfig();
+
+        boolean isTrueFullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+        boolean maximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
+        int[] dbgW = new int[1], dbgH = new int[1];
+        GLFW.glfwGetWindowSize(hwnd, dbgW, dbgH);
+        if (Config.DEBUG.get()) {
+            LOGGER.info("[AWS BORDERLESS] toggle called: newState={} isTrueFullscreen={} maximized={} pseudoActive={} size={}x{}",
+                    newState, isTrueFullscreen, maximized, borderlessFullscreenActive, dbgW[0], dbgH[0]);
+        }
+
+        // ===== 真正全屏状态：优先拦截，避免误走最大化分支导致窗口变成"窗口化但全屏大小" =====
+        if (isTrueFullscreen) {
+            if (newState) {
+                // 真正全屏 → 无边框伪全屏：退出独占全屏，用窗口化模式铺满屏幕
+                long monitor = getCurrentMonitorStatic(hwnd);
+                int[] monX = new int[1], monY = new int[1];
+                GLFW.glfwGetMonitorPos(monitor, monX, monY);
+                GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+                borderlessFullscreenActive = true;
+                GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE);
+                GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_FALSE);
+                GLFW.glfwSetWindowMonitor(hwnd, 0, monX[0], monY[0], mode.width(), mode.height(), GLFW.GLFW_DONT_CARE);
+                if (Config.DEBUG.get()) LOGGER.info("[AWS BORDERLESS] true fullscreen -> pseudo fullscreen at {}x{}", mode.width(), mode.height());
+            } else {
+                // 真正全屏下关闭无边框：全屏时 GLFW 自动无边框，只需保存配置，不改变窗口状态
+                borderlessFullscreenActive = false;
+                if (Config.DEBUG.get()) LOGGER.info("[AWS BORDERLESS] true fullscreen, closing borderless: no window change needed");
+            }
+            return newState;
+        }
+        // 伪全屏（窗口化铺满屏幕）下关闭无边框 → 恢复真正全屏
+        if (borderlessFullscreenActive && !newState) {
+            long monitor = getCurrentMonitorStatic(hwnd);
+            GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+            borderlessFullscreenActive = false;
+            GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_DECORATED, GLFW.GLFW_TRUE);
+            GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_TRUE);
+            GLFW.glfwSetWindowMonitor(hwnd, monitor, 0, 0, mode.width(), mode.height(), mode.refreshRate());
+            if (Config.DEBUG.get()) LOGGER.info("[AWS BORDERLESS] pseudo fullscreen -> true fullscreen");
+            return newState;
+        }
+
+        // ===== 最大化状态 =====
+        if (maximized) {
+            GLFW.glfwRestoreWindow(hwnd);
+            GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_DECORATED, newState ? GLFW.GLFW_FALSE : GLFW.GLFW_TRUE);
+            GLFW.glfwMaximizeWindow(hwnd);
+            if (Config.DEBUG.get()) LOGGER.info("[AWS BORDERLESS] maximized branch: restore->toggle->remaximize, newState={}", newState);
+            return newState;
+        }
+
+        // ===== 普通窗口化：暂时只切换边框属性（简单实现，位置/大小补偿后续再研究） =====
+        GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_DECORATED, newState ? GLFW.GLFW_FALSE : GLFW.GLFW_TRUE);
+        return newState;
+    }
+
+    /** 当前无边框模式是否开启。 */
+    public static boolean isBorderlessEnabled() {
+        return Config.BORDERLESS.get();
+    }
+
+    /** 当前是否处于无边框伪全屏状态（窗口化模式铺满屏幕，非真正独占全屏）。 */
+    public static boolean isBorderlessFullscreenActive() {
+        return borderlessFullscreenActive;
+    }
+
+    /** 统一的"全屏类状态"检测：真正独占全屏 + 无边框伪全屏都算。
+     *  用于按钮禁用、状态提示等需要把伪全屏也当作全屏处理的场景。 */
+    public static boolean isFullscreenLike() {
+        long hwnd = getWindowHandle();
+        if (hwnd == 0) return false;
+        return GLFW.glfwGetWindowMonitor(hwnd) != 0 || borderlessFullscreenActive;
     }
 
     // ========== 供外部调用的静态方法 ==========
@@ -214,7 +392,7 @@ public class AutoWindowSize {
     /** 居中按钮不可用的原因；null 表示可用。按优先级返回全屏/最大化/最小化/已居中。 */
     public static Component getCenterDisabledReason() {
         long hwnd = getWindowHandle();
-        if (GLFW.glfwGetWindowMonitor(hwnd) != 0) {
+        if (isFullscreenLike()) {
             return Component.translatable("gui.autowindowsize.center.disabled_fullscreen");
         }
         if (GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE) {
@@ -288,15 +466,11 @@ public class AutoWindowSize {
         return new int[]{-1, -1};
     }
 
-    /** 应用指定分辨率预设：先写回配置并更新尺寸限制，再设窗口大小、居中。 */
+    /** 应用指定分辨率预设：临时取消最小尺寸限制→设窗口大小并居中→恢复限制。不修改配置值。 */
     public static void applyResolutionPreset(int w, int h) {
         long hwnd = getWindowHandle();
-        // 先写回配置并更新 GLFW 最小尺寸限制，否则锁定开着时窗口不能变小，
-        // glfwSetWindowSize 会被旧的最小尺寸拦截、窗口纹丝不动。
-        Config.WINDOW_WIDTH.set(w);
-        Config.WINDOW_HEIGHT.set(h);
-        saveConfig();
-        applyWindowLimits();
+        // 临时取消最小尺寸限制，否则锁定开着时 glfwSetWindowSize 会被拦截、窗口纹丝不动
+        GLFW.glfwSetWindowSizeLimits(hwnd, 0, 0, GLFW.GLFW_DONT_CARE, GLFW.GLFW_DONT_CARE);
 
         GLFW.glfwSetWindowSize(hwnd, w, h);
         long monitor = getCurrentMonitorStatic(hwnd);
@@ -312,6 +486,9 @@ public class AutoWindowSize {
             Minecraft.getInstance().gui.getChat().addMessage(
                 Component.translatable("message.autowindowsize.preset_oversize", w, h, mode.width(), mode.height()));
         }
+
+        // 恢复原来的最小尺寸限制
+        applyWindowLimits();
     }
 
     public static long getCurrentMonitorStatic(long window) {
@@ -408,6 +585,17 @@ public class AutoWindowSize {
         return now;
     }
 
+    /**
+     * 切换"下次启动自动无边框"偏好。不与自动全屏/最大化互斥（全屏本身无边框）。
+     * 只改持久化设置，不影响当前窗口。
+     */
+    public static boolean toggleAutoBorderlessPref() {
+        boolean now = !Config.AUTO_BORDERLESS.get();
+        Config.AUTO_BORDERLESS.set(now);
+        saveConfig();
+        return now;
+    }
+
     /** "记住窗口位置"是否开启 */
     public static boolean isRememberPosition() {
         return Config.REMEMBER_POSITION.get();
@@ -419,6 +607,58 @@ public class AutoWindowSize {
         Config.REMEMBER_POSITION.set(now);
         saveConfig();
         return now;
+    }
+
+    /**
+     * 循环切换窗口状态：窗口化 → 最大化 → 全屏 → 窗口化。
+     * 无边框状态下也能正常切换（无边框最大化/全屏都支持）。
+     * 伪全屏（无边框全屏）切换到窗口化时，先恢复真正全屏再退出，避免状态混乱。
+     * @return 切换后的状态描述（0=窗口化, 1=最大化, 2=全屏）
+     */
+    public static int cycleWindowState() {
+        long hwnd = getWindowHandle();
+        boolean isTrueFullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+        boolean isPseudo = borderlessFullscreenActive;
+        boolean maximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
+
+        if (isTrueFullscreen || isPseudo) {
+            // ===== 全屏（含伪全屏）→ 窗口化 =====
+            if (isPseudo) {
+                // 伪全屏：保持无边框状态，直接把窗口大小改回配置值并居中，不恢复有边框
+                borderlessFullscreenActive = false;
+                GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_TRUE);
+                // 用配置值设窗口大小并居中
+                int targetW = Config.WINDOW_WIDTH.get();
+                int targetH = Config.WINDOW_HEIGHT.get();
+                long monitor = getCurrentMonitorStatic(hwnd);
+                int[] monX = new int[1], monY = new int[1];
+                GLFW.glfwGetMonitorPos(monitor, monX, monY);
+                GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+                int posX = monX[0] + (mode.width() - targetW) / 2;
+                int posY = monY[0] + (mode.height() - targetH) / 2;
+                GLFW.glfwSetWindowSize(hwnd, targetW, targetH);
+                GLFW.glfwSetWindowPos(hwnd, posX, posY);
+                if (Config.DEBUG.get()) LOGGER.info("[AWS CYCLE] pseudo -> windowed (borderless kept), size={}x{}", targetW, targetH);
+                return 0; // 窗口化
+            } else {
+                // 真正全屏：退出全屏，但 Minecraft 会恢复到进入全屏前的状态（可能是最大化），
+                // 所以设置标记，等窗口退出全屏后强制还原为窗口化
+                pendingRestoreToWindowed = true;
+                Minecraft.getInstance().getWindow().toggleFullScreen();
+                if (Config.DEBUG.get()) LOGGER.info("[AWS CYCLE] true fullscreen -> windowed (pending restore)");
+                return 0; // 窗口化
+            }
+        } else if (maximized) {
+            // ===== 最大化 → 全屏 =====
+            Minecraft.getInstance().getWindow().toggleFullScreen();
+            if (Config.DEBUG.get()) LOGGER.info("[AWS CYCLE] maximized -> fullscreen");
+            return 2; // 全屏
+        } else {
+            // ===== 窗口化 → 最大化 =====
+            GLFW.glfwMaximizeWindow(hwnd);
+            if (Config.DEBUG.get()) LOGGER.info("[AWS CYCLE] windowed -> maximized");
+            return 1; // 最大化
+        }
     }
 
     /**
@@ -636,7 +876,11 @@ public class AutoWindowSize {
             LiteralArgumentBuilder<CommandSourceStack> aws = Commands.literal("aws");
 
             // 顺序即游戏内 /aws 的补全/帮助顺序：help、gui 置顶，其余按功能近似度与添加时间排列
-            aws.then(Commands.literal("help").executes(CommandHandler::cmdHelp));
+            aws.then(Commands.literal("help")
+                    .executes(CommandHandler::cmdHelp)
+                    .then(Commands.argument("page", IntegerArgumentType.integer(1,
+                            (HELP_LINES.length - 1 + HELP_COMMANDS_PER_PAGE - 1) / HELP_COMMANDS_PER_PAGE))
+                            .executes(CommandHandler::cmdHelpPage)));
             aws.then(Commands.literal("gui").executes(CommandHandler::cmdGui));
             aws.then(Commands.literal("status").executes(CommandHandler::cmdStatus));
             aws.then(Commands.literal("toggle").executes(CommandHandler::cmdToggle));
@@ -647,6 +891,11 @@ public class AutoWindowSize {
             aws.then(Commands.literal("fullscreen").executes(CommandHandler::cmdFullscreen));
             aws.then(Commands.literal("maximize").executes(CommandHandler::cmdMaximize));
             aws.then(Commands.literal("remember").executes(CommandHandler::cmdRemember));
+            aws.then(Commands.literal("top").executes(CommandHandler::cmdTop));
+            aws.then(Commands.literal("debug").executes(CommandHandler::cmdDebug));
+            aws.then(Commands.literal("borderless")
+                    .executes(CommandHandler::cmdBorderless)
+                    .then(Commands.literal("auto").executes(CommandHandler::cmdAutoBorderless)));
             // /aws resolution 支持两种格式：
             //   比例模式：/aws resolution <比例> <预设>，如 /aws resolution 16:9 1920x1080
             //   自定义模式：/aws resolution <宽> <高>，如 /aws resolution 1920 1080
@@ -662,26 +911,53 @@ public class AutoWindowSize {
             event.getDispatcher().register(aws);
         }
 
+        private static final String[] HELP_LINES = {
+                "message.autowindowsize.help.header",
+                "message.autowindowsize.help.gui",
+                "message.autowindowsize.help.status",
+                "message.autowindowsize.help.toggle",
+                "message.autowindowsize.help.lock",
+                "message.autowindowsize.help.unlock",
+                "message.autowindowsize.help.fixed",
+                "message.autowindowsize.help.center",
+                "message.autowindowsize.help.fullscreen",
+                "message.autowindowsize.help.maximize",
+                "message.autowindowsize.help.remember",
+                "message.autowindowsize.help.top",
+                "message.autowindowsize.help.debug",
+                "message.autowindowsize.help.borderless",
+                "message.autowindowsize.help.autoborderless",
+                "message.autowindowsize.help.resolution"
+        };
+        // HELP_LINES[0]是标题，HELP_LINES[1..16]是16个命令
+        private static final int HELP_COMMANDS_PER_PAGE = 8;
+        private static final int HELP_TOTAL_PAGES = (HELP_LINES.length - 1 + HELP_COMMANDS_PER_PAGE - 1) / HELP_COMMANDS_PER_PAGE;
+
         private static int cmdHelp(CommandContext<CommandSourceStack> context) {
+            return showHelpPage(context, 1);
+        }
+
+        private static int cmdHelpPage(CommandContext<CommandSourceStack> context) {
+            int page = IntegerArgumentType.getInteger(context, "page");
+            return showHelpPage(context, page);
+        }
+
+        private static int showHelpPage(CommandContext<CommandSourceStack> context, int page) {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player == null) return 0;
-            String[] lines = {
-                    "message.autowindowsize.help.header",
-                    "message.autowindowsize.help.gui",
-                    "message.autowindowsize.help.status",
-                    "message.autowindowsize.help.toggle",
-                    "message.autowindowsize.help.lock",
-                    "message.autowindowsize.help.unlock",
-                    "message.autowindowsize.help.fixed",
-                    "message.autowindowsize.help.center",
-                    "message.autowindowsize.help.fullscreen",
-                    "message.autowindowsize.help.maximize",
-                    "message.autowindowsize.help.remember",
-                    "message.autowindowsize.help.resolution"
-            };
-            for (String key : lines) {
-                player.displayClientMessage(Component.translatable(key), false);
+            if (page < 1) page = 1;
+            if (page > HELP_TOTAL_PAGES) page = HELP_TOTAL_PAGES;
+            // 第1行：标题（每页都显示）
+            player.displayClientMessage(Component.translatable(HELP_LINES[0]), false);
+            // 第2-9行：8个命令
+            int cmdStart = 1 + (page - 1) * HELP_COMMANDS_PER_PAGE;
+            int cmdEnd = Math.min(cmdStart + HELP_COMMANDS_PER_PAGE, HELP_LINES.length);
+            for (int i = cmdStart; i < cmdEnd; i++) {
+                player.displayClientMessage(Component.translatable(HELP_LINES[i]), false);
             }
+            // 第10行：页码提示（每页都显示）
+            player.displayClientMessage(Component.translatable(
+                    "message.autowindowsize.help.page", page, HELP_TOTAL_PAGES), false);
             return 1;
         }
 
@@ -717,6 +993,48 @@ public class AutoWindowSize {
             boolean now = toggleRememberPosition();
             player.displayClientMessage(Component.translatable(
                     now ? "message.autowindowsize.remember_on" : "message.autowindowsize.remember_off"), false);
+            return 1;
+        }
+
+        /** /aws top：切换窗口置顶 */
+        private static int cmdTop(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            int mode = toggleAlwaysOnTop();
+            String key = switch (mode) {
+                case 1 -> "message.autowindowsize.top_normal";
+                case 2 -> "message.autowindowsize.top_force";
+                default -> "message.autowindowsize.top_off";
+            };
+            player.displayClientMessage(Component.translatable(key), false);
+            return 1;
+        }
+
+        /** /aws debug：切换调试模式 */
+        private static int cmdDebug(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            boolean enabled = toggleDebug();
+            String key = enabled ? "message.autowindowsize.debug_on" : "message.autowindowsize.debug_off";
+            player.displayClientMessage(Component.translatable(key), false);
+            return 1;
+        }
+
+        private static int cmdBorderless(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            boolean enabled = toggleBorderless();
+            String key = enabled ? "message.autowindowsize.borderless_on" : "message.autowindowsize.borderless_off";
+            player.displayClientMessage(Component.translatable(key), false);
+            return 1;
+        }
+
+        private static int cmdAutoBorderless(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            boolean enabled = toggleAutoBorderlessPref();
+            String key = enabled ? "message.autowindowsize.autoborderless_on" : "message.autowindowsize.autoborderless_off";
+            player.displayClientMessage(Component.translatable(key), false);
             return 1;
         }
 
@@ -1004,12 +1322,26 @@ public class AutoWindowSize {
         private boolean wasFullscreen = false;
         private boolean wasMaximized = false;
         private boolean enteredGameMessageShown = false;
+        private boolean windowStateFileEnsured = false;
 
         @SubscribeEvent
         public void onTick(TickEvent.ClientTickEvent event) {
             if (event.phase != TickEvent.Phase.END) return;
             Minecraft mc = Minecraft.getInstance();
             long hwnd = mc.getWindow().getWindow();
+
+            // 确保 window.json 在首次启动时就生成（不依赖延迟初始化路径），
+            // 只尝试一次；全屏/最大化/小尺寸时跳过，等状态正常后下一帧再试。
+            if (!windowStateFileEnsured) {
+                ensureWindowStateFileExists();
+                File f = new File(mc.gameDirectory, WINDOW_STATE_DIR + "/" + WINDOW_STATE_FILE);
+                if (f.exists()) windowStateFileEnsured = true;
+            }
+
+            // 强制置顶模式：每帧都确保窗口在最顶端（点击标题栏、被其他置顶窗口盖住都能拉回来）
+            if (Config.ALWAYS_ON_TOP_MODE.get() == 2) {
+                GLFW.glfwFocusWindow(hwnd);
+            }
 
             // 全屏检测：用 GLFW 原生 API
             boolean isFullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
@@ -1025,20 +1357,19 @@ public class AutoWindowSize {
                 fixedEnabled = false;
                 // 全屏下窗口尺寸交给显示器模式：先恢复可调整属性，退出全屏时再按状态统一应用
                 GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
-                if (mc.player != null) {
-                    if (lockBeforeFullscreen) {
-                        mc.player.displayClientMessage(
-                                Component.translatable("message.autowindowsize.lock_fullscreen_disabled_on"), false);
-                    } else {
-                        mc.player.displayClientMessage(
-                                Component.translatable("message.autowindowsize.lock_fullscreen_disabled_off"), false);
-                    }
-                }
+                // 注意：不在聊天框重复提示"最小尺寸锁定已禁用"，状态切换消息已说明进入全屏，
+                // 设置界面中的按钮会直观显示禁用状态。
             }
 
             // 退出全屏
             if (!isFullscreen && wasFullscreen) {
                 fullscreenTempDisabled = false;
+                // 循环切换窗口状态时，从全屏退出后需要强制还原为窗口化（避免 Minecraft 恢复到最大化）
+                if (pendingRestoreToWindowed) {
+                    pendingRestoreToWindowed = false;
+                    GLFW.glfwRestoreWindow(hwnd);
+                    if (Config.DEBUG.get()) LOGGER.info("[AWS CYCLE] restored to windowed after fullscreen exit");
+                }
                 if (!lockDisabled) {
                     if (lockBeforeFullscreen) {
                         lockEnabled = true;
@@ -1057,6 +1388,8 @@ public class AutoWindowSize {
                 if (deferredInitPending) {
                     deferredInitPending = false;
                     pendingCenterAfterAutoFullscreen = false;
+                    // 先设置边框状态，再恢复窗口，确保最大化/居中布局基于正确的边框
+                    applyBorderless();
                     if (wasMaximizedAtFullscreen) {
                         GLFW.glfwMaximizeWindow(hwnd);
                         // 恢复了最大化；等用户之后取消最大化时，再补一次配置大小与居中
@@ -1067,6 +1400,7 @@ public class AutoWindowSize {
                 } else if (pendingCenterAfterAutoFullscreen) {
                     // 本次是"启动自动全屏"直接进的全屏：退出后恢复记忆位置或按配置值居中
                     pendingCenterAfterAutoFullscreen = false;
+                    applyBorderless();
                     applyDeferredWindow();
                 }
             }
@@ -1082,6 +1416,44 @@ public class AutoWindowSize {
             if (pendingCenterAfterUnmaximize && wasMaximized && !isMaximized && !isFullscreen) {
                 pendingCenterAfterUnmaximize = false;
                 applyDeferredWindow();
+            }
+
+            // 从无边框伪全屏切换到最大化：伪全屏不是最大化状态，glfwRestoreWindow 不生效，
+            // 直接 glfwMaximizeWindow 会因 GLFW_DECORATED=false 导致顶部空白。
+            // 注意：全屏状态下 GLFW_MAXIMIZED 可能仍为 true，切换到伪全屏后该标志不会自动清除，
+            // 因此必须用窗口大小区分：伪全屏大小=屏幕大小，真正最大化大小=工作区大小<屏幕大小。
+            if (borderlessFullscreenActive && isMaximized) {
+                int[] curW = new int[1], curH = new int[1];
+                GLFW.glfwGetWindowSize(hwnd, curW, curH);
+                long monitor = getCurrentMonitorStatic(hwnd);
+                GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+                // 只有窗口明显小于屏幕时才认为是真正的最大化（伪全屏大小=屏幕大小，不触发）
+                if (mode != null && (curW[0] < mode.width() || curH[0] < mode.height())) {
+                    borderlessFullscreenActive = false;
+                    if (Config.DEBUG.get()) LOGGER.info("[AWS BORDERLESS] pseudo->maximized fix triggered: size={}x{} (screen={}x{}), two-step remaximize",
+                            curW[0], curH[0], mode.width(), mode.height());
+                    // 第一步：有边框最大化
+                    GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_DECORATED, GLFW.GLFW_TRUE);
+                    GLFW.glfwRestoreWindow(hwnd);
+                    GLFW.glfwMaximizeWindow(hwnd);
+                    // 第二步：切换到无边框最大化（与 toggleBorderless 最大化分支一致）
+                    GLFW.glfwRestoreWindow(hwnd);
+                    GLFW.glfwSetWindowAttrib(hwnd, GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE);
+                    GLFW.glfwMaximizeWindow(hwnd);
+                }
+            }
+            // 从伪全屏退出到普通窗口化（窗口大小不再等于屏幕大小）：重置标记，
+            // 避免标记残留导致后续操作误触发修复逻辑
+            else if (borderlessFullscreenActive) {
+                int[] curW = new int[1], curH = new int[1];
+                GLFW.glfwGetWindowSize(hwnd, curW, curH);
+                long monitor = getCurrentMonitorStatic(hwnd);
+                GLFWVidMode mode = GLFW.glfwGetVideoMode(monitor);
+                if (mode != null && (curW[0] != mode.width() || curH[0] != mode.height())) {
+                    borderlessFullscreenActive = false;
+                    if (Config.DEBUG.get()) LOGGER.info("[AWS BORDERLESS] pseudo exited to windowed: size={}x{} (screen={}x{}), reset flag",
+                            curW[0], curH[0], mode.width(), mode.height());
+                }
             }
 
             wasFullscreen = isFullscreen;
@@ -1119,13 +1491,60 @@ public class AutoWindowSize {
             }
 
             // 按键：打开窗口设置界面
-            if (TOGGLE_LOCK_KEY.consumeClick()) {
+            if (OPEN_SETTINGS_KEY.consumeClick()) {
                 if (lockDisabled) {
                     mc.player.displayClientMessage(
                             Component.translatable("message.autowindowsize.lock_disabled"), false);
                 } else {
                     mc.setScreen(new ConfigScreen(mc.screen));
                 }
+            }
+
+            // 按键：居中窗口
+            if (CENTER_KEY.consumeClick()) {
+                if (!canCenter()) {
+                    Component reason = getCenterDisabledReason();
+                    mc.player.displayClientMessage(Component.translatable("message.autowindowsize.center_unavailable",
+                            reason != null ? reason : Component.empty()), false);
+                } else if (isWindowCentered()) {
+                    mc.player.displayClientMessage(Component.translatable("message.autowindowsize.center_already"), false);
+                } else {
+                    centerWindow();
+                    mc.player.displayClientMessage(Component.translatable("message.autowindowsize.center_done"), false);
+                }
+            }
+
+            // 按键：切换无边框
+            if (BORDERLESS_KEY.consumeClick()) {
+                boolean now = toggleBorderless();
+                mc.player.displayClientMessage(Component.translatable(
+                        now ? "message.autowindowsize.borderless_on" : "message.autowindowsize.borderless_off"), false);
+            }
+
+            // 按键：循环切换窗口状态
+            if (CYCLE_STATE_KEY.consumeClick()) {
+                int newState = cycleWindowState();
+                String stateKey = switch (newState) {
+                    case 0 -> "message.autowindowsize.state_windowed";
+                    case 1 -> "message.autowindowsize.state_maximized";
+                    case 2 -> "message.autowindowsize.state_fullscreen";
+                    default -> "message.autowindowsize.state_windowed";
+                };
+                mc.player.displayClientMessage(Component.translatable("message.autowindowsize.state_changed",
+                        Component.translatable(stateKey)), false);
+            }
+
+            // 按键：切换窗口置顶模式
+            if (TOP_KEY.consumeClick()) {
+                int nextMode = toggleAlwaysOnTop();
+                String modeKey = switch (nextMode) {
+                    case 0 -> "message.autowindowsize.top_off";
+                    case 1 -> "message.autowindowsize.top_normal";
+                    case 2 -> "message.autowindowsize.top_force";
+                    default -> "message.autowindowsize.top_off";
+                };
+                mc.player.displayClientMessage(Component.translatable("message.autowindowsize.top_changed",
+                        Component.translatable(modeKey)), false);
             }
         }
     }
@@ -1276,6 +1695,19 @@ public class AutoWindowSize {
 
         // 确保 window.json 存在（首次启动时创建默认文件，方便用户调试）；已存在则不覆盖
         ensureWindowStateFileExists();
+
+        // ===== 6. 启动自动无边框：在窗口尺寸/位置确定后应用（全屏本身无边框，无需处理） =====
+        if (Config.AUTO_BORDERLESS.get() && !Config.BORDERLESS.get()) {
+            boolean isFs = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+            if (!isFs) {
+                // 窗口化或最大化状态：直接切换无边框（toggleBorderless 内部会按状态走对应分支）
+                toggleBorderless();
+            } else {
+                // 全屏状态：全屏本身就是无边框的，只需把配置标记设为 true
+                Config.BORDERLESS.set(true);
+                saveConfig();
+            }
+        }
     }
 
     /** 把窗口设为配置分辨率、在所在显示器居中，并按当前锁定状态设置尺寸限制。 */

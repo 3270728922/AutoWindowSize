@@ -100,13 +100,18 @@ This is the author's first Minecraft mod, so it stays focused for now:
 - **Minimum size lock**: grow as big as you like, never shrink below the configured resolution.
 - **Fixed window size**: freezes the window at its current size (min = max = size at toggle time). No jump to the config value, no forced recenter. The maximize button is disabled at the OS level (GLFW_RESIZABLE=false), so a "fake maximized" state is impossible; the toggle itself is disabled while maximized or fullscreen. Fullscreen still works and returns to the fixed size on exit.
 - **Center window button**: centers the window on its current monitor in one click; disabled with a reason while fullscreen, maximized, minimized or already centered.
-- **Auto-fullscreen / auto-maximize on launch**: players can persistently toggle "start fullscreen" or "start maximized" on next launch (mutually exclusive); modpack authors can set a one-time onboarding flag for the first launch.
+- **Borderless mode**: removes the window title bar and borders (GLFW_DECORATED=false). Supports windowed, maximized, and fullscreen (pseudo-fullscreen) states. Auto-borderless on launch option available.
+- **Always-on-top (3 modes)**: off, normal (GLFW floating), and force (re-claims focus every frame via glfwFocusWindow + focus-loss callback, can override other always-on-top windows like classroom monitoring software).
+- **Cycle window state**: one button / keybind to cycle through windowed → maximized → fullscreen.
+- **Auto-fullscreen / auto-maximize / auto-borderless on launch**: players can persistently toggle "start fullscreen", "start maximized", or "start borderless" on next launch; modpack authors can set a one-time onboarding flag for the first launch.
 - **Window position memory**: optionally save and restore the window position and size across launches instead of forcing center; compatible with auto-fullscreen / auto-maximize.
 - **Native entry point**: a "Window Settings" button in Options → Accessibility Settings (moved from Video Settings for Embeddium compatibility).
-- **Window Settings screen**: toggles for minimum-size lock / fixed window size / auto-fullscreen / auto-maximize, a center button, resolution presets, custom resolution input, and a four-line live info area (screen resolution / window state + config status / detailed status / input bounds).
-- **Client commands**: `/aws help`, `gui`, `status`, `toggle`, `lock`, `unlock`, `fixed`, `center`, `fullscreen`, `maximize`, `remember`, `resolution`.
+- **Window Settings screen**: toggles for minimum-size lock / fixed window size / auto-fullscreen / auto-maximize / auto-borderless / borderless / always-on-top / remember position / debug, a center button, a cycle-state button, resolution presets, custom resolution input, an About page, and a four-line live info area (screen resolution / window state + config status / detailed status / input bounds).
+- **5 keybinds** (all unbound by default): Open Settings, Center, Toggle Borderless, Cycle State, Toggle Always-on-Top. All give chat feedback.
+- **About page**: in-game info screen with 6 sections (Purpose, About, Usage, Downloads, Feedback, Author) in 20 languages.
+- **Debug mode**: outputs detailed diagnostic info (preset availability, borderless transitions, window state changes) to the game log.
+- **Client commands**: 15 commands — `/aws help` (paginated), `gui`, `status`, `toggle`, `lock`, `unlock`, `fixed`, `center`, `fullscreen`, `maximize`, `remember`, `top`, `debug`, `borderless` (with `auto` subcommand), `resolution`.
 - **Fullscreen support**: the lock and fixed size are suspended in fullscreen and restored on exit.
-- **Custom keybind**: opens the Window Settings screen (unbound by default).
 - **Too-low resolution fallback**: only the minimum-size lock is disabled; fixed size, centering and auto-fullscreen keep working.
 - **A short chat status message every time you enter a world.**
 - **Live resolution readout**: updates 0.2 s after you stop dragging.
@@ -263,15 +268,61 @@ Exiting fullscreen (F11):
 
 ---
 
+## Borderless mode
+
+Borderless mode removes the window title bar and borders by setting `GLFW_DECORATED = false`. It works in three window states:
+
+| State | Behaviour |
+|-------|-----------|
+| **Windowed borderless** | Simple implementation — just removes the decorations. The window keeps its current size. Note: the window can no longer be dragged by the title bar; use "Remember position" or set a resolution to move it. |
+| **Maximized borderless** | Removes decorations while maximized. The window fills the screen work area (excluding taskbar). |
+| **Fullscreen borderless (pseudo-fullscreen)** | A borderless window at the full screen resolution. Unlike true fullscreen (exclusive mode), pseudo-fullscreen allows fast alt-tabbing and doesn't interfere with other monitors. |
+
+**Auto-borderless on launch**: the `autoBorderless` config option (default false) starts the game in borderless mode on the next launch. Toggle via `/aws borderless auto` or in the settings screen.
+
+**Known limitations**:
+- GLFW only provides a single `GLFW_DECORATED` toggle — it's not possible to remove only the title bar while keeping the resize borders (that would require platform-specific Win32 API calls).
+- Windowed borderless uses a simple implementation (just removes decorations). Keeping the total window size constant when toggling borderless in windowed mode is complex and currently deferred.
+
+---
+
+## Always-on-top
+
+Three modes, controlled by the `alwaysOnTopMode` config option (0–2):
+
+| Mode | Implementation | Use case |
+|------|---------------|----------|
+| **0 — Off** | Window behaves normally. | Default. |
+| **1 — Normal** | Sets `GLFW_FLOATING = true`. The window stays above other non-floating windows, but can be covered by other floating windows. | General use. |
+| **2 — Force** | Calls `glfwFocusWindow(hwnd)` every frame, plus a focus-loss callback that re-claims focus when the window loses it. This can override other always-on-top windows (e.g. classroom monitoring software, kiosk applications). | Situations where you absolutely need the window on top. |
+
+**Performance note**: Force mode calls `glfwFocusWindow` every frame, which has a small CPU cost (measurable only at very high frame rates, e.g. 1000+ FPS). At normal frame rates (60–240 FPS) the impact is negligible.
+
+---
+
+## Key bindings
+
+All keybinds are **unbound by default**. Set them in **Options → Controls → Auto Window Size**.
+
+| Keybind | Action | Chat feedback |
+|---------|--------|---------------|
+| Open Window Settings | Opens the settings screen | — |
+| Center Window | Centers the window on the current monitor | "Window centered" / "Already centered" / reason if unavailable |
+| Toggle Borderless | Toggles borderless mode on/off | "Borderless mode enabled" / "Borderless mode disabled" |
+| Cycle Window State | Cycles windowed → maximized → fullscreen | "Window state: [state]" |
+| Toggle Always-on-Top | Cycles off → normal → force | "Always-on-top: [mode]" |
+
+---
+
 ## Commands
 
-All commands start with `/aws` (client-side, in-game only):
+All commands start with `/aws` (client-side, in-game only). Type `/aws help [page]` for the paginated list (2 pages, 8 commands per page).
 
 | Command | Description |
 |---------|-------------|
-| `/aws help` | Show the full command list |
+| `/aws help [page]` | Show the command list (paginated, 8 per page) |
 | `/aws gui` | Open the Window Settings screen |
-| `/aws status` | Show current lock state and screen resolution |
+| `/aws status` | Show current window state, config status, and resolution |
 | `/aws toggle` | Toggle the minimum-size lock |
 | `/aws lock` | Enable the minimum-size lock |
 | `/aws unlock` | Disable the minimum-size lock |
@@ -280,10 +331,14 @@ All commands start with `/aws` (client-side, in-game only):
 | `/aws fullscreen` | Toggle fullscreen |
 | `/aws maximize` | Toggle maximize |
 | `/aws remember` | Toggle window position memory |
+| `/aws top` | Cycle always-on-top mode (off → normal → force) |
+| `/aws debug` | Toggle debug logging |
+| `/aws borderless` | Toggle borderless mode |
+| `/aws borderless auto` | Toggle auto-borderless on next launch |
 | `/aws resolution <ratio> <preset>` | Set resolution by ratio and preset (e.g. `/aws resolution 16:9 1920x1080`) |
 | `/aws resolution <width> <height>` | Set a custom resolution (e.g. `/aws resolution 1280 720`) |
 
-When the lock is disabled (too-low resolution or fullscreen), related commands show a red reason. The `/aws resolution` command validates input against the screen resolution and clamps out-of-range values.
+When the lock is disabled (too-low resolution or fullscreen), related commands show a red reason. The `/aws resolution` command validates input against the screen resolution and clamps out-of-range values. Tab-completion is supported for ratio and preset arguments.
 
 ---
 

@@ -1,0 +1,55 @@
+Auto Window Size（自动窗口大小）
+
+【制作目的】
+制作整合包时，你花了大量时间把 GUI、HUD 和交互界面调整到恰到好处。但玩家在不同显示器或分辨率下启动游戏时，窗口大小一变，所有布局都乱了。这个模组就是为了解决这个问题：把"游戏窗口大小"从随机事件变成可控、可重复、受约束的选择。它的功能范围刻意保持精简，只操作操作系统层面的窗口本身，不改变 GUI 缩放，不触碰任何游戏内渲染或游戏逻辑，因此几乎不会与其他模组冲突。
+
+【MOD 介绍】
+一个轻量级的客户端模组，自动调整、居中和锁定 Minecraft 游戏窗口，让精心调校的整合包 UI 布局在每台玩家的电脑上都保持一致。
+核心功能包括：启动时自动调整窗口大小、分辨率预设（按宽高比分组）、最小尺寸锁定、固定窗口大小、窗口居中、启动自动全屏/最大化/无边框、窗口位置记忆、窗口置顶（普通/强制）、无边框窗口模式（含伪全屏）、窗口状态循环按钮、/aws 客户端命令、快捷键绑定、多显示器感知、实时分辨率显示等。支持 20 种语言。
+
+【使用方法】
+1、安装模组后启动游戏，在"辅助功能设置"中点击"窗口设置"按钮打开配置界面，或使用 /aws gui 命令。
+2、在配置界面中调整各项设置：窗口大小、最小尺寸锁定、固定窗口大小、自动全屏/最大化/无边框、窗口置顶、无边框模式等。
+3、分辨率预设：点击"切换比例"按钮在 16:9、16:10、4:3、5:4、21:9、自定义之间循环，选择对应预设即可一键调整窗口大小并居中。
+4、自定义分辨率：切换到"自定义"比例后，在输入框中输入宽高，点击"应用"按钮即可。输入值超出范围时应用按钮会禁用并提示。
+5、快捷键：在"控制设置"中为"居中窗口"、"切换无边框"、"循环窗口状态"、"切换窗口置顶"绑定快捷键，默认未绑定。
+6、命令：输入 /aws help 查看所有可用命令。
+7、配置文件：config/AutoWindowSize/config.toml（主配置）和 config/AutoWindowSize/window.json（保存的窗口位置）。
+
+【下载渠道】
+推荐优先从 GitHub 下载最新版本，其他平台可能因审核或同步延迟而慢几天。
+- GitHub：
+  https://github.com/3270728922/AutoWindowSize
+- CurseForge：
+  https://www.curseforge.com/minecraft/mc-mods/auto-window-size
+- Modrinth：
+  https://modrinth.com/mod/autowindowsize
+- MC百科：
+  https://www.mcmod.cn/class/30769.html
+- MCBBS：
+  https://www.mcbbs.co/thread-6322-1-1.html
+- BBSMC：
+  https://bbsmc.net/mod/autowindowsize
+- 苦力怕论坛：
+  https://klpbbs.com/thread-173769-1-1.html
+- HIMCBBS：
+  https://www.himcbbs.com/resources/1499/
+
+【反馈渠道】
+遇到 bug 或有功能建议，欢迎通过以下渠道反馈：
+- GitHub Issues：
+  https://github.com/3270728922/AutoWindowSize/issues
+- GitHub Discussions：
+  https://github.com/3270728922/AutoWindowSize/discussions
+- 苦力怕论坛帖子：
+  https://klpbbs.com/thread-173769-1-1.html
+- MCBBS 帖子：
+  https://www.mcbbs.co/thread-6322-1-1.html
+反馈时请附上游戏版本、Forge 版本、模组版本、崩溃日志（如有）和复现步骤。
+
+【作者信息】
+作者：3270728922
+GitHub 主页：https://github.com/3270728922
+许可证：MIT License
+仅客户端，无需安装服务端。仅支持桌面 Java 版（Windows / macOS / Linux），不支持手机版 / 基岩版。
+默认分辨率 1280x720；硬编码最小分辨率 856x482；最大 7680x4320。

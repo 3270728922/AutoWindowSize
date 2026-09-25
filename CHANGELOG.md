@@ -7,6 +7,59 @@ Full release history for this mod. The latest version is expanded by default; ol
 ---
 
 <details open>
+<summary><strong>v1.1.0</strong> — Borderless mode, always-on-top, keybinds, about page & massive UI overhaul</summary>
+
+### Added
+- **Borderless mode**: removes the window title bar and borders (GLFW_DECORATED = false). Supports three states: windowed borderless (simple implementation), maximized borderless, and fullscreen borderless (pseudo-fullscreen — borderless window at screen resolution). New `borderless` config option and `/aws borderless` command.
+- **Auto-borderless on launch**: new `autoBorderless` config option (default false). When enabled, the game starts in borderless mode on the next launch. Toggle via `/aws borderless auto`.
+- **Always-on-top (3 modes)**: new `alwaysOnTopMode` config option (0=off, 1=normal, 2=force). Normal mode uses GLFW_FLOATING. Force mode re-claims window focus every frame via `glfwFocusWindow` plus a focus-loss callback, so it can override other always-on-top windows (e.g. classroom monitoring software). Toggle via `/aws top`.
+- **Cycle window state button**: one-click cycling through windowed → maximized → fullscreen in the settings screen. Also available as a keybind.
+- **5 keybinds** (all unbound by default, configurable in Options → Controls → Auto Window Size):
+  - Open Window Settings
+  - Center Window
+  - Toggle Borderless
+  - Cycle Window State
+  - Toggle Always-on-Top
+  - All keybinds give chat feedback when pressed.
+- **About page**: in-game info screen (accessed via the "About" button in settings) with 6 sections — Purpose, About, Usage, Downloads, Feedback, Author. Supports 20 languages via per-language `.txt` files.
+- **Debug mode**: new `debug` config option. When enabled, outputs detailed diagnostic info (preset availability checks, borderless state transitions, window state changes, etc.) to the game log. Toggle via `/aws debug`.
+- **New commands**: `/aws gui` (open settings), `/aws status` (show current state), `/aws toggle` (toggle lock), `/aws top` (cycle always-on-top), `/aws debug` (toggle debug), `/aws borderless` (toggle borderless, with `auto` subcommand). Total: 15 commands.
+- **Help pagination**: `/aws help [page]` now supports 2 pages (8 commands per page), with a persistent title line and page indicator.
+- **Custom resolution input live validation**: when typing in the custom width/height fields, the Apply button is disabled if the input is invalid (non-numeric or out of range). Hovering the disabled Apply button shows a tooltip explaining the valid range and which bound was exceeded.
+- **Preset auto-disable expanded**: presets are now disabled if they are (1) larger than the screen resolution, (2) smaller than the configured minimum size, (3) smaller than the hard-coded minimum (856×482), or (4) matching the current window size.
+
+### Changed
+- **Settings entry confirmed in Accessibility Settings**: the "Window Settings" button lives in Options → Accessibility Settings (moved from Video Settings in v1.0.9). This is the permanent location, chosen for compatibility with Embeddium and other mods that completely replace the video settings screen.
+- **Settings screen layout reworked**: fixed window size is now a large button; "Remember position" and "Center" are side-by-side; "Debug" and "About" are side-by-side at the bottom. The aspect ratio button cycles through ratios and shows the current resolution.
+- **Info area finalized**: 4 lines — (1) screen resolution + centered indicator, (2) window state + config file status (always visible), (3) detailed status explanation, (4) custom input boundary hint (below input fields).
+- **Scrolling system rebuilt**: the settings screen now extends `AbstractSelectionList` for a native Minecraft scrolling list, with the title and Done button having independent opaque backgrounds (matching vanilla options screens exactly). Scrollbar position matches vanilla.
+- **Config comments reworked**: simplified per-option comments, removed duplicate Range lines (Forge auto-generates them), switched to English-only comments.
+- **Language count**: 20 languages fully supported (en_us, zh_cn, zh_tw, ja_jp, ko_kr, ru_ru, fr_fr, de_de, es_es, pt_br, it_it, tr_tr, nl_nl, pl_pl, vi_vn, ar_sa, th_th, sv_se, cs_cz, id_id).
+
+### Fixed
+- Fixed the settings screen button layout overlapping the title and Done button (rebuilt with AbstractSelectionList).
+- Fixed the scrollbar position overlapping buttons (now matches vanilla exactly).
+- Fixed button highlight/selection border overflowing beyond the button bounds (rewrote `isSelectedItem()`).
+- Fixed the aspect ratio button incorrectly showing "Custom" after toggling maximize / fullscreen.
+- Fixed the aspect ratio button reverting to the previous ratio after clicking a preset (state sync issue).
+- Fixed custom resolution input fields not updating in real-time when the window is resized by dragging.
+- Fixed custom resolution input fields showing the previous value after switching to Custom from a preset.
+- Fixed fixed window size not disabling resolution preset buttons (only disabled the ratio button).
+- Fixed the window state detection in borderless mode (pseudo-fullscreen was incorrectly detected as maximized).
+- Fixed borderless mode causing a gap at the top when switching from fullscreen to maximized.
+- Fixed borderless mode causing the window to become windowed at fullscreen resolution after rapid state switching.
+- Fixed force always-on-top mode losing focus when clicking the title bar of another window (added focus-loss callback).
+- Fixed scroll position resetting to the top after clicking certain buttons (preserved scroll position via `lastScroll`).
+- Fixed scroll position going out of bounds when switching to an aspect ratio with fewer presets.
+- Fixed `window.json` not being generated on first launch (moved the ensure-check to `onTick` with a one-time flag).
+- Fixed duplicate chat messages when entering fullscreen (removed the redundant "lock disabled" message; only the state-change message is shown).
+- Fixed the Debug config option missing translation keys in the config screen (added `config.autowindowsize.window.debug` and `.tooltip` to all 20 languages).
+- Fixed mouse wheel not scrolling when hovering over input fields or buttons.
+- Fixed various minor UI alignment and spacing issues.
+
+</details>
+
+<details>
 <summary><strong>v1.0.9</strong> — Resolution presets expansion, window position memory, config rework & UI polish</summary>
 
 ### Added

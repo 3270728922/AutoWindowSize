@@ -9,6 +9,13 @@ public class Config {
     // 记住窗口位置：开启后退出游戏时保存当前窗口位置与大小，下次启动恢复到该位置
     // （而不是强制居中）。与自动全屏/最大化兼容：启动时先全屏/最大化，退出后恢复记忆位置。
     public static final ForgeConfigSpec.BooleanValue REMEMBER_POSITION;
+    // 窗口置顶模式：0=关闭，1=普通置顶（GLFW_FLOATING），2=强制置顶（失去焦点时自动重新聚焦）。默认0。
+    public static final ForgeConfigSpec.IntValue ALWAYS_ON_TOP_MODE;
+    // 调试模式：开启后在日志中输出预设禁用判断等详细信息，方便排查问题。默认 false。
+    public static final ForgeConfigSpec.BooleanValue DEBUG;
+    // 无边框模式：开启后窗口没有标题栏和边框。全屏时自动无边框（无需设置）。
+    // 无边框窗口无法通过标题栏拖动，需配合记住位置功能或在设置中调整分辨率。默认 false。
+    public static final ForgeConfigSpec.BooleanValue BORDERLESS;
     // 值1：一次性"首次引导"开关（整合包作者用）。为 true 时，本次启动按 startFullscreen
     // 决定是否自动全屏，并把玩家偏好 autoFullscreen 同步成 startFullscreen；随后本值自动写回 false。
     // 默认 false：玩家单独安装时不被强制全屏。
@@ -24,6 +31,8 @@ public class Config {
     public static final ForgeConfigSpec.BooleanValue AUTO_FULLSCREEN;
     // 玩家在游戏内设置里的持久化偏好：下次启动是否自动最大化。与 autoFullscreen 互斥。
     public static final ForgeConfigSpec.BooleanValue AUTO_MAXIMIZED;
+    // 玩家在游戏内设置里的持久化偏好：下次启动是否自动开启无边框。
+    public static final ForgeConfigSpec.BooleanValue AUTO_BORDERLESS;
     // 启动延迟（秒）：启动后等待多久再应用窗口大小/位置，避免拉伸加载界面。
     // 范围 0.5 ~ 10.0，默认 1.5。
     public static final ForgeConfigSpec.DoubleValue STARTUP_DELAY;
@@ -65,6 +74,34 @@ public class Config {
                         "the game launches fullscreen / maximized first, then restores the remembered position on exit.")
                 .translation("config.autowindowsize.window.rememberPosition")
                 .define("rememberPosition", false);
+
+        ALWAYS_ON_TOP_MODE = builder
+                .comment(
+                        "=== Always On Top Mode ===",
+                        "0 = Off (no always on top)",
+                        "1 = Normal (GLFW_FLOATING: stays above non-floating windows; multiple floating windows follow Z-order)",
+                        "2 = Force (always stays on top: when focus is lost, automatically re-focuses the window)",
+                        "Cycle in the in-game Window Settings screen or with /aws top. Default 0.")
+                .translation("config.autowindowsize.window.alwaysOnTopMode")
+                .defineInRange("alwaysOnTopMode", 0, 0, 2);
+
+        DEBUG = builder
+                .comment(
+                        "=== Debug Mode ===",
+                        "When enabled, outputs detailed preset availability checks and other diagnostic info to the log.",
+                        "Useful for troubleshooting. Toggle in-game or with /aws debug. Default false.")
+                .translation("config.autowindowsize.window.debug")
+                .define("debug", false);
+
+        BORDERLESS = builder
+                .comment(
+                        "=== Borderless Window ===",
+                        "When enabled, the window has no title bar or border (GLFW_DECORATED = false).",
+                        "Fullscreen windows are automatically borderless, so this only affects windowed mode.",
+                        "Borderless windows cannot be dragged by the title bar; use remember position",
+                        "or adjust resolution in the settings screen. Toggle with /aws borderless. Default false.")
+                .translation("config.autowindowsize.window.borderless")
+                .define("borderless", false);
 
         builder.pop();
 
@@ -109,6 +146,14 @@ public class Config {
                         "if both are set true by hand, the mod resets both to false on launch.")
                 .translation("config.autowindowsize.startup.autoMaximized")
                 .define("autoMaximized", false);
+
+        AUTO_BORDERLESS = builder
+                .comment(
+                        "Whether to auto-enable borderless window on the next launch (set in the in-game Window Settings screen).",
+                        "Stays enabled until manually turned off. Works independently of autoFullscreen / autoMaximized;",
+                        "if autoFullscreen is also enabled, the game enters true fullscreen (which is inherently borderless).")
+                .translation("config.autowindowsize.startup.autoBorderless")
+                .define("autoBorderless", false);
 
         STARTUP_DELAY = builder
                 .comment(

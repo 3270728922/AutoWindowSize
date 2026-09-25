@@ -8,18 +8,25 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.ModList;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.InputStream;
 
 public class ConfigScreen extends Screen {
     private final Screen parent;
     private static final int BUTTON_WIDTH = 310;
     private static final int BUTTON_HEIGHT = 20;
     private static final int ROW_H = 25;
+    private static final Logger LOGGER = LogManager.getLogger();
 
     // 主功能按钮
     private Button lockButton;
@@ -27,6 +34,12 @@ public class ConfigScreen extends Screen {
     private Button autoFsButton;
     private Button autoMaxButton;
     private Button rememberButton;
+    private Button topButton;
+    private Button borderlessButton;
+    private Button autoBorderlessButton;
+    private Button windowStateButton;
+    private Button debugButton;
+    private Button aboutButton;
     private Button centerButton;
     // 比例 / 分辨率预设
     private Button cycleAspectButton;
@@ -37,6 +50,7 @@ public class ConfigScreen extends Screen {
     private EditBox customWidthField;
     private EditBox customHeightField;
     private Button customApplyButton;
+    private double lastScroll = 0; // 持续记录滚动位置，init() 重建列表后恢复（含窗口大小变化、子界面返回）
 
     // 实时分辨率
     private int screenWidth, screenHeight;
@@ -88,33 +102,65 @@ public class ConfigScreen extends Screen {
         // ---- 创建主功能按钮（不在此 addWidget，由 Entry 管理渲染/点击）----
         this.lockButton = Button.builder(getLockButtonText(), btn -> {
             if (AutoWindowSize.canLock()) { AutoWindowSize.toggleLock(); }
-            if (list != null) list.setupEntries();
+            syncButtonStates();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.lock.tooltip"))).build();
 
         this.fixedButton = Button.builder(getFixedButtonText(), btn -> {
             if (AutoWindowSize.canFixed()) { AutoWindowSize.toggleFixed(); }
             syncButtonStates();
-            if (list != null) list.setupEntries();
+            syncButtonStates();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.fixed.tooltip"))).build();
 
         this.autoFsButton = Button.builder(getAutoFsButtonText(), btn -> {
             if (AutoWindowSize.canAutoFullscreen()) { AutoWindowSize.toggleAutoFullscreenPref(); }
-            if (list != null) list.setupEntries();
+            syncButtonStates();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.autofs.tooltip"))).build();
 
         this.autoMaxButton = Button.builder(getAutoMaxButtonText(), btn -> {
             if (AutoWindowSize.canAutoMaximized()) { AutoWindowSize.toggleAutoMaximizedPref(); }
-            if (list != null) list.setupEntries();
+            syncButtonStates();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.automax.tooltip"))).build();
 
         this.rememberButton = Button.builder(getRememberButtonText(), btn -> {
             AutoWindowSize.toggleRememberPosition();
-            if (list != null) list.setupEntries();
+            syncButtonStates();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.remember.tooltip"))).build();
+
+        this.topButton = Button.builder(getTopButtonText(), btn -> {
+            AutoWindowSize.toggleAlwaysOnTop();
+            syncButtonStates();
+        }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.top.tooltip"))).build();
+
+        this.borderlessButton = Button.builder(getBorderlessButtonText(), btn -> {
+            // 标记本次窗口大小变化由无边框切换引起，防止被误判为玩家拖动导致比例切自定义
+            this.windowStateTransition = true;
+            AutoWindowSize.toggleBorderless();
+            syncButtonStates();
+        }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.borderless.tooltip"))).build();
+
+        this.autoBorderlessButton = Button.builder(getAutoBorderlessButtonText(), btn -> {
+            AutoWindowSize.toggleAutoBorderlessPref();
+            syncButtonStates();
+        }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.autoborderless.tooltip"))).build();
+
+        this.windowStateButton = Button.builder(getWindowStateButtonText(), btn -> {
+            this.windowStateTransition = true;
+            AutoWindowSize.cycleWindowState();
+            syncButtonStates();
+        }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.windowstate.tooltip"))).build();
+
+        this.debugButton = Button.builder(getDebugButtonText(), btn -> {
+            AutoWindowSize.toggleDebug();
+            syncButtonStates();
+        }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.debug.tooltip"))).build();
+
+        this.aboutButton = Button.builder(Component.translatable("gui.autowindowsize.about.button"), btn -> {
+            Minecraft.getInstance().setScreen(new AboutScreen(this));
+        }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.about.tooltip"))).build();
 
         this.centerButton = Button.builder(Component.translatable("gui.autowindowsize.center.button"), btn -> {
             if (AutoWindowSize.canCenter()) { AutoWindowSize.centerWindow(); }
-            if (list != null) list.setupEntries();
+            syncButtonStates();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.center.tooltip"))).build();
 
         // 比例按钮：只在第一次打开时自动匹配，之后保留用户选择
@@ -134,7 +180,9 @@ public class ConfigScreen extends Screen {
             }
             btn.setMessage(cycleAspectText());
             rebuildPresetButtons();
-            if (list != null) list.setupEntries();
+            // 自定义↔预设的条目结构不同，必须重建条目；safeSetupEntries 自动保存恢复滚动位置
+            this.list.safeSetupEntries();
+            syncButtonStates();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).build();
 
         // 分辨率预设按钮
@@ -142,13 +190,14 @@ public class ConfigScreen extends Screen {
             final int idx = i;
             Button b = Button.builder(Component.empty(), btn -> {
                 if (AutoWindowSize.canApplyPreset()) {
+                    double savedScroll = (list != null) ? list.getScrollAmount() : 0;
                     int[] p = AutoWindowSize.PRESETS[this.currentGroup][idx];
                     AutoWindowSize.applyResolutionPreset(p[0], p[1]);
                     this.gameWidth = p[0];
                     this.gameHeight = p[1];
                     this.currentPreset = idx;
                     rebuildPresetButtons();
-                    if (list != null) list.setupEntries();
+                    if (list != null) list.setScrollAmount(savedScroll);
                 }
             }).bounds(0, 0, 68, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.preset.tooltip"))).build();
             this.presetButtons[i] = b;
@@ -182,6 +231,8 @@ public class ConfigScreen extends Screen {
         // ---- 创建列表 ----
         this.list = new OptionList(mc, this.width, this.height, 32, this.height - 32, ROW_H);
         this.addRenderableWidget(this.list);
+        // 重建列表后恢复滚动位置（窗口大小变化、子界面返回等都会触发 init 重建）
+        this.list.setScrollAmount(this.lastScroll);
 
         // 完成按钮（原版位置）
         this.addRenderableWidget(Button.builder(Component.translatable("gui.done"),
@@ -196,13 +247,28 @@ public class ConfigScreen extends Screen {
             setupEntries();
         }
 
+        /** 不渲染条目选中边框（点击按钮后整条Entry围一圈白边的问题） */
+        @Override
+        protected boolean isSelectedItem(int index) {
+            return false;
+        }
+
+        /** 重建条目前后自动保存/恢复滚动位置，避免滚动条跳回顶部 */
+        void safeSetupEntries() {
+            double scroll = this.getScrollAmount();
+            setupEntries();
+            this.setScrollAmount(scroll);
+        }
+
         void setupEntries() {
             this.children().clear();
             addEntry(new ButtonEntry(lockButton));
             addEntry(new ButtonEntry(fixedButton));
             addEntry(new TwoButtonEntry(autoFsButton, autoMaxButton));
-            addEntry(new ButtonEntry(rememberButton));
-            addEntry(new ButtonEntry(centerButton));
+            addEntry(new TwoButtonEntry(topButton, borderlessButton));
+            addEntry(new TwoButtonEntry(autoBorderlessButton, windowStateButton));
+            addEntry(new TwoButtonEntry(rememberButton, centerButton));
+            addEntry(new TwoButtonEntry(debugButton, aboutButton));
             addEntry(new InfoEntry());
             addEntry(new SpacerEntry()); // InfoEntry 现为3行文字，需要额外条目高度容纳溢出
             addEntry(new ButtonEntry(cycleAspectButton));
@@ -361,23 +427,22 @@ public class ConfigScreen extends Screen {
                         btns[i].render(g, mouseX, mouseY, partialTick);
                     }
                 } else {
+                    // 边界检查：快速切换比例时旧条目可能临时访问到自定义索引
+                    if (currentGroup >= AutoWindowSize.PRESETS.length) return;
                     int resCount = AutoWindowSize.PRESETS[currentGroup].length;
                     int end = Math.min(startIdx + 4, resCount);
                     int count = end - startIdx;
                     int rg = 10;
                     int rw = (width - rg * 3) / 4;
+                    // 统一由 updatePresetButtonStates() 管理 active 状态（含小于配置值/硬编码最小值/大于屏幕分辨率判断）
+                    updatePresetButtonStates();
                     for (int i = startIdx; i < end; i++) {
-                        int[] p = AutoWindowSize.PRESETS[currentGroup][i];
                         btns[i].setX(left + (i - startIdx) * (rw + rg));
                         btns[i].setY(top);
                         btns[i].setWidth(rw);
                         btns[i].setHeight(BUTTON_HEIGHT);
                         btns[i].setFocused(false);
                         btns[i].visible = true;
-                        // 超过屏幕分辨率或已是当前分辨率时自动禁用（仍可看见但点不动）
-                        boolean tooBig = p[0] > screenWidth || p[1] > screenHeight;
-                        boolean alreadyMatch = p[0] == gameWidth && p[1] == gameHeight;
-                        btns[i].active = AutoWindowSize.canApplyPreset() && !AutoWindowSize.isFixedEnabled() && !tooBig && !alreadyMatch;
                         btns[i].render(g, mouseX, mouseY, partialTick);
                     }
                     for (int i = end; i < btns.length; i++) {
@@ -451,22 +516,24 @@ public class ConfigScreen extends Screen {
                 g.drawCenteredString(font, line1, cx, top - 2, 0xFFFFFF);
 
                 // 第二行：窗口状态 + 配置文件状态（常驻）
+                boolean borderless = AutoWindowSize.isBorderlessEnabled();
+                boolean pseudoFs = AutoWindowSize.isBorderlessFullscreenActive();
                 String stateKey;
                 int stateColor;
                 if (dragging) {
                     stateKey = "gui.autowindowsize.ws_dragging";
                     stateColor = 0xFFAA00;
-                } else if (AutoWindowSize.isFullscreenTempDisabled()) {
-                    stateKey = "gui.autowindowsize.ws_fullscreen";
+                } else if (pseudoFs || AutoWindowSize.isFullscreenTempDisabled()) {
+                    stateKey = borderless ? "gui.autowindowsize.ws_borderless_fullscreen" : "gui.autowindowsize.ws_fullscreen";
                     stateColor = 0xFFAA00;
                 } else if (AutoWindowSize.isMaximized()) {
-                    stateKey = "gui.autowindowsize.ws_maximized";
+                    stateKey = borderless ? "gui.autowindowsize.ws_borderless_maximized" : "gui.autowindowsize.ws_maximized";
                     stateColor = 0xFFAA00;
                 } else if (AutoWindowSize.isFixedEnabled()) {
                     stateKey = "gui.autowindowsize.ws_fixed";
                     stateColor = 0xFFAA00;
                 } else {
-                    stateKey = "gui.autowindowsize.ws_normal";
+                    stateKey = borderless ? "gui.autowindowsize.ws_borderless_windowed" : "gui.autowindowsize.ws_normal";
                     stateColor = 0xAAAAAA;
                 }
                 boolean configError = AutoWindowSize.isLockDisabled();
@@ -487,17 +554,17 @@ public class ConfigScreen extends Screen {
                 } else if (dragging) {
                     detailKey = "gui.autowindowsize.detail_dragging";
                     detailColor = 0xFFAA00;
-                } else if (AutoWindowSize.isFullscreenTempDisabled()) {
-                    detailKey = "gui.autowindowsize.detail_fullscreen";
+                } else if (pseudoFs || AutoWindowSize.isFullscreenTempDisabled()) {
+                    detailKey = borderless ? "gui.autowindowsize.detail_borderless_fullscreen" : "gui.autowindowsize.detail_fullscreen";
                     detailColor = 0xFFAA00;
                 } else if (AutoWindowSize.isMaximized()) {
-                    detailKey = "gui.autowindowsize.detail_maximized";
+                    detailKey = borderless ? "gui.autowindowsize.detail_borderless_maximized" : "gui.autowindowsize.detail_maximized";
                     detailColor = 0xFFAA00;
                 } else if (AutoWindowSize.isFixedEnabled()) {
                     detailKey = "gui.autowindowsize.detail_fixed";
                     detailColor = 0xFFAA00;
                 } else {
-                    detailKey = "gui.autowindowsize.detail_normal";
+                    detailKey = borderless ? "gui.autowindowsize.detail_borderless_windowed" : "gui.autowindowsize.detail_normal";
                     detailColor = 0x55FF55;
                 }
                 g.drawCenteredString(font, Component.translatable(detailKey), cx, top + 26, detailColor);
@@ -515,9 +582,14 @@ public class ConfigScreen extends Screen {
         this.autoMaxButton.active = AutoWindowSize.canAutoMaximized();
         this.autoMaxButton.setMessage(getAutoMaxButtonText());
         this.rememberButton.setMessage(getRememberButtonText());
+        this.topButton.setMessage(getTopButtonText());
+        this.borderlessButton.setMessage(getBorderlessButtonText());
+        this.autoBorderlessButton.setMessage(getAutoBorderlessButtonText());
+        this.windowStateButton.setMessage(getWindowStateButtonText());
+        this.debugButton.setMessage(getDebugButtonText());
         this.centerButton.active = AutoWindowSize.canCenter();
+        updatePresetButtonStates();
         boolean canPreset = AutoWindowSize.canApplyPreset() && !AutoWindowSize.isFixedEnabled();
-        for (Button b : this.presetButtons) b.active = canPreset;
         this.cycleAspectButton.active = canPreset;
         if (customApplyButton != null) customApplyButton.active = canPreset;
         if (customWidthField != null) customWidthField.active = canPreset;
@@ -559,6 +631,83 @@ public class ConfigScreen extends Screen {
         return Component.translatable("gui.autowindowsize.remember.button.off");
     }
 
+    private Component getTopButtonText() {
+        int mode = AutoWindowSize.getAlwaysOnTopMode();
+        return switch (mode) {
+            case 1 -> Component.translatable("gui.autowindowsize.top.button.normal");
+            case 2 -> Component.translatable("gui.autowindowsize.top.button.force");
+            default -> Component.translatable("gui.autowindowsize.top.button.off");
+        };
+    }
+
+    private Component getBorderlessButtonText() {
+        boolean enabled = AutoWindowSize.isBorderlessEnabled();
+        return enabled
+                ? Component.translatable("gui.autowindowsize.borderless.button.on")
+                : Component.translatable("gui.autowindowsize.borderless.button.off");
+    }
+
+    private Component getAutoBorderlessButtonText() {
+        boolean enabled = Config.AUTO_BORDERLESS.get();
+        return enabled
+                ? Component.translatable("gui.autowindowsize.autoborderless.button.on")
+                : Component.translatable("gui.autowindowsize.autoborderless.button.off");
+    }
+
+    private Component getWindowStateButtonText() {
+        long hwnd = AutoWindowSize.getWindowHandle();
+        boolean isFullscreen = AutoWindowSize.isFullscreenLike();
+        boolean maximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) == GLFW.GLFW_TRUE;
+        if (isFullscreen) {
+            return Component.translatable("gui.autowindowsize.windowstate.button.fullscreen");
+        } else if (maximized) {
+            return Component.translatable("gui.autowindowsize.windowstate.button.maximized");
+        } else {
+            return Component.translatable("gui.autowindowsize.windowstate.button.windowed");
+        }
+    }
+
+    private Component getDebugButtonText() {
+        boolean enabled = AutoWindowSize.isDebugEnabled();
+        return enabled
+                ? Component.translatable("gui.autowindowsize.debug.button.on")
+                : Component.translatable("gui.autowindowsize.debug.button.off");
+    }
+
+    /** 逐个判断预设按钮是否可用：小于硬编码最小值、小于配置值、大于屏幕分辨率都禁用 */
+    private void updatePresetButtonStates() {
+        if (this.currentGroup >= AutoWindowSize.PRESETS.length) return;
+        int resCount = AutoWindowSize.PRESETS[this.currentGroup].length;
+        boolean canPresetGlobal = AutoWindowSize.canApplyPreset() && !AutoWindowSize.isFixedEnabled();
+        long hwnd = AutoWindowSize.getWindowHandle();
+        int[] screenRes = AutoWindowSize.getCurrentMonitorResolutionStatic(hwnd);
+        int configW = Config.WINDOW_WIDTH.get();
+        int configH = Config.WINDOW_HEIGHT.get();
+        if (Config.DEBUG.get()) {
+            LOGGER.info("[AWS DEBUG] configW={} configH={} hardMinW={} hardMinH={} screenW={} screenH={} canPresetGlobal={}",
+                    configW, configH, Config.HARD_MIN_WIDTH, Config.HARD_MIN_HEIGHT, screenRes[0], screenRes[1], canPresetGlobal);
+        }
+        for (int i = 0; i < this.presetButtons.length; i++) {
+            if (i < resCount) {
+                int[] p = AutoWindowSize.PRESETS[this.currentGroup][i];
+                boolean available = canPresetGlobal;
+                boolean belowHard = (p[0] < Config.HARD_MIN_WIDTH || p[1] < Config.HARD_MIN_HEIGHT);
+                boolean belowConfig = (p[0] < configW || p[1] < configH);
+                boolean aboveScreen = (p[0] > screenRes[0] || p[1] > screenRes[1]);
+                boolean alreadyMatch = (p[0] == this.gameWidth && p[1] == this.gameHeight);
+                if (belowHard) available = false;
+                if (belowConfig) available = false;
+                if (aboveScreen) available = false;
+                if (alreadyMatch) available = false;
+                this.presetButtons[i].active = available;
+                if (Config.DEBUG.get()) {
+                    LOGGER.info("[AWS DEBUG PRESET] i={} p={}x{} belowHard={} belowConfig={} aboveScreen={} alreadyMatch={} available={}",
+                            i, p[0], p[1], belowHard, belowConfig, aboveScreen, alreadyMatch, available);
+                }
+            }
+        }
+    }
+
     private void rebuildPresetButtons() {
         if (this.currentGroup >= AutoWindowSize.PRESETS.length) {
             for (Button b : this.presetButtons) b.visible = false;
@@ -580,10 +729,7 @@ public class ConfigScreen extends Screen {
             }
         }
         this.currentPreset = -1;
-        boolean canPreset = AutoWindowSize.canApplyPreset() && !AutoWindowSize.isFixedEnabled();
-        for (int i = 0; i < this.presetButtons.length; i++) {
-            if (i < resCount) this.presetButtons[i].active = canPreset;
-        }
+        updatePresetButtonStates();
         markActiveButtons();
     }
 
@@ -691,7 +837,8 @@ public class ConfigScreen extends Screen {
         long hwnd = AutoWindowSize.getWindowHandle();
         boolean minimized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_ICONIFIED) != GLFW.GLFW_FALSE;
         boolean maximized = GLFW.glfwGetWindowAttrib(hwnd, GLFW.GLFW_MAXIMIZED) != GLFW.GLFW_FALSE;
-        this.fullscreen = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+        // 全屏类状态：真正独占全屏 + 无边框伪全屏都算（伪全屏是窗口化模式铺满屏幕）
+        this.fullscreen = AutoWindowSize.isFullscreenLike();
         boolean justRestored = wasMaximized && !maximized && !this.fullscreen;
         boolean justExitedFullscreen = wasFullscreen && !this.fullscreen;
         wasMaximized = maximized && !this.fullscreen;
@@ -716,13 +863,16 @@ public class ConfigScreen extends Screen {
 
         int curW = this.minecraft.getWindow().getScreenWidth();
         int curH = this.minecraft.getWindow().getScreenHeight();
+        // 每帧更新显示用的实时分辨率（拖动过程中也实时显示）
+        this.gameWidth = curW;
+        this.gameHeight = curH;
         if (curW != this.lastSeenWidth || curH != this.lastSeenHeight) {
             this.dragging = true;
             this.lastDragTime = System.currentTimeMillis();
+            // 窗口大小变化时实时更新比例按钮上的分辨率显示
+            markActiveButtons();
         } else if (this.dragging && System.currentTimeMillis() - this.lastDragTime > 200) {
             this.dragging = false;
-            this.gameWidth = curW;
-            this.gameHeight = curH;
             // 自定义组内拖动窗口后，同步更新输入框为当前窗口大小；
             // 输入框正在被编辑（获得焦点）时不覆盖，避免打断用户输入。
             if (this.currentGroup >= AutoWindowSize.PRESETS.length && customWidthField != null) {
@@ -743,7 +893,7 @@ public class ConfigScreen extends Screen {
                     if (customWidthField != null) customWidthField.setValue(String.valueOf(curW));
                     if (customHeightField != null) customHeightField.setValue(String.valueOf(curH));
                     rebuildPresetButtons();
-                    if (list != null) list.setupEntries();
+                    if (list != null) list.safeSetupEntries();
                 } else {
                     markActiveButtons();
                 }
@@ -758,13 +908,179 @@ public class ConfigScreen extends Screen {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         updateLiveDimensions();
+        // 每帧记录滚动位置，供 init() 重建列表后恢复（窗口大小变化、子界面返回都会触发重建）
+        if (this.list != null) this.lastScroll = this.list.getScrollAmount();
+        // 每帧更新比例按钮上的实时分辨率显示，确保拖动/切换状态时总是最新
+        if (this.cycleAspectButton != null) {
+            this.cycleAspectButton.setMessage(cycleAspectText());
+        }
+        // 每帧清除所有按钮的焦点状态，避免点击后保持焦点导致白色高亮边框异常
+        // （Screen.mouseClicked 会在按钮点击后把焦点设回按钮，必须在渲染前清除）
+        clearAllButtonFocus();
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xFFFFFF);
     }
 
+    private void clearAllButtonFocus() {
+        if (this.lockButton != null) this.lockButton.setFocused(false);
+        if (this.fixedButton != null) this.fixedButton.setFocused(false);
+        if (this.autoFsButton != null) this.autoFsButton.setFocused(false);
+        if (this.autoMaxButton != null) this.autoMaxButton.setFocused(false);
+        if (this.rememberButton != null) this.rememberButton.setFocused(false);
+        if (this.topButton != null) this.topButton.setFocused(false);
+        if (this.borderlessButton != null) this.borderlessButton.setFocused(false);
+        if (this.autoBorderlessButton != null) this.autoBorderlessButton.setFocused(false);
+        if (this.windowStateButton != null) this.windowStateButton.setFocused(false);
+        if (this.debugButton != null) this.debugButton.setFocused(false);
+        if (this.aboutButton != null) this.aboutButton.setFocused(false);
+        if (this.centerButton != null) this.centerButton.setFocused(false);
+        if (this.cycleAspectButton != null) this.cycleAspectButton.setFocused(false);
+        if (this.customWidthField != null) this.customWidthField.setFocused(false);
+        if (this.customHeightField != null) this.customHeightField.setFocused(false);
+        if (this.customApplyButton != null) this.customApplyButton.setFocused(false);
+        for (Button b : this.presetButtons) {
+            if (b != null) b.setFocused(false);
+        }
+    }
+
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    /** 重写滚轮事件：无论鼠标悬停在按钮还是输入框上，都优先让列表处理滚动 */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        if (this.list != null && this.list.mouseScrolled(mouseX, mouseY, delta)) {
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    // ============ 关于页面：显示 mods.toml description 内容 ============
+
+    public static class AboutScreen extends Screen {
+        private final Screen parent;
+        private TextList textList;
+
+        public AboutScreen(Screen parent) {
+            super(Component.translatable("gui.autowindowsize.about.title"));
+            this.parent = parent;
+        }
+
+        @Override
+        protected void init() {
+            this.textList = new TextList(this.minecraft, this.width, this.height, 32, this.height - 32, 12);
+            this.addWidget(this.textList);
+            this.addRenderableWidget(Button.builder(Component.translatable("gui.back"), btn ->
+                    this.minecraft.setScreen(this.parent)).bounds(this.width / 2 - 100, this.height - 26, 200, 20).build());
+        }
+
+        @Override
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            this.renderBackground(guiGraphics);
+            this.textList.render(guiGraphics, mouseX, mouseY, partialTick);
+            guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xFFFFFF);
+            super.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
+
+        @Override
+        public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+            if (this.textList != null && this.textList.mouseScrolled(mouseX, mouseY, delta)) {
+                return true;
+            }
+            return super.mouseScrolled(mouseX, mouseY, delta);
+        }
+
+        @Override
+        public boolean isPauseScreen() {
+            return false;
+        }
+
+        /** 可滚动的文字列表，每行显示 mods.toml description 的一行 */
+        private static class TextList extends AbstractSelectionList<TextList.TextEntry> {
+            public TextList(Minecraft mc, int width, int height, int y0, int y1, int itemHeight) {
+                super(mc, width, height, y0, y1, itemHeight);
+                String content = loadAboutContent(mc);
+                int maxWidth = width - 28; // 列表宽度 - 滚动条 - 左右边距
+                for (String line : content.split("\n")) {
+                    if (line.isEmpty()) {
+                        this.addEntry(new TextEntry(""));
+                    } else {
+                        // 用 Font.split 按可用宽度自动换行，长行拆成多个单行条目
+                        for (FormattedCharSequence seg : mc.font.split(Component.literal(line), maxWidth)) {
+                            this.addEntry(new TextEntry(formattedToString(seg)));
+                        }
+                    }
+                }
+            }
+
+            /** 把 FormattedCharSequence 还原为纯字符串（Font.split 的结果需要手动收集字符） */
+            private static String formattedToString(FormattedCharSequence seq) {
+                StringBuilder sb = new StringBuilder();
+                seq.accept((index, style, codePoint) -> {
+                    sb.appendCodePoint(codePoint);
+                    return true;
+                });
+                return sb.toString();
+            }
+
+            /** 根据当前游戏语言加载关于页面内容：优先语言文件，回退英文，最后回退 mods.toml description */
+            private static String loadAboutContent(Minecraft mc) {
+                String lang = mc.getLanguageManager().getSelected();
+                // 依次尝试：当前语言 → 英文 → mods.toml description
+                String content = tryLoadAboutFile(mc, lang);
+                if (content != null) return content;
+                content = tryLoadAboutFile(mc, "en_us");
+                if (content != null) return content;
+                return ModList.get().getModContainerById("autowindowsize")
+                        .map(c -> c.getModInfo().getDescription()).orElse("No description available.");
+            }
+
+            /** 尝试加载指定语言的关于页面文本文件，失败返回 null */
+            private static String tryLoadAboutFile(Minecraft mc, String lang) {
+                try {
+                    ResourceLocation loc = new ResourceLocation("autowindowsize", "about/" + lang + ".txt");
+                    var resource = mc.getResourceManager().getResource(loc);
+                    if (resource.isPresent()) {
+                        try (InputStream is = resource.get().open()) {
+                            return new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+                return null;
+            }
+
+            @Override
+            public void updateNarration(NarrationElementOutput out) {
+            }
+
+            @Override
+            public int getRowWidth() {
+                return this.width - 20;
+            }
+
+            @Override
+            protected int getScrollbarPosition() {
+                return this.width - 6;
+            }
+
+            private static class TextEntry extends AbstractSelectionList.Entry<TextEntry> {
+                private final String text;
+
+                public TextEntry(String text) {
+                    this.text = text;
+                }
+
+                @Override
+                public void render(GuiGraphics guiGraphics, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTick) {
+                    if (text != null && !text.isEmpty()) {
+                        guiGraphics.drawString(Minecraft.getInstance().font, text, x + 4, y + 2, 0xCCCCCC, false);
+                    }
+                }
+            }
+        }
     }
 }
