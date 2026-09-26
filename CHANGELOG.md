@@ -7,6 +7,49 @@ Full release history for this mod. The latest version is expanded by default; ol
 ---
 
 <details open>
+<summary><strong>v1.1.2</strong> — More presets, command overhaul, UI polish & quality of life</summary>
+
+### Added
+- **3 new aspect ratios**: added 3:2, 2:1, and 9:16 (portrait) to the preset list, bringing the total from 5 to 8 aspect ratios.
+- **16 presets per ratio**: expanded each ratio from 12 to 16 presets (4 rows of 4), for a total of 128 preset resolutions across all ratios.
+- **Aspect ratio split button**: the single cycle button is now split into 3 parts — left arrow (◀), center info display (current ratio + live window resolution), and right arrow (▶). No more cycling all the way around when you miss-click.
+- **Enter-to-apply in custom resolution**: pressing Enter while a custom width/height field is focused now applies the resolution immediately, no need to click the Apply button.
+- **4 new commands**: `/aws about` (opens About page), `/aws info` (detailed window info), `/aws version` (mod version info), `/aws config` (opens config folder).
+- **true/false parameters for toggle commands**: all 8 toggle commands (`toggle`, `fixed`, `fullscreen`, `maximize`, `remember`, `debug`, `borderless`, `borderless auto`) now accept optional `true`/`false` parameters for explicit on/off. Without parameters they still cycle as before.
+- **Named parameters for /aws top**: the always-on-top command now accepts `off`, `normal`, or `force` for direct mode selection, in addition to the default cycle behavior.
+- **About page clickable links**: URLs in the About page are now blue underlined clickable links that open in the browser (with confirmation dialog). Email addresses are click-to-copy to clipboard with a chat confirmation.
+- **About page scroll position restore**: returning from a link confirmation dialog now restores the previous scroll position instead of jumping to the top.
+- **About page faster scrolling**: mouse wheel scroll speed in the About page increased to 3x for faster navigation through the long text.
+- **Config auto-migration improvement**: fresh installs no longer trigger the "config updated" chat notice; only actual upgrades from older versions show it.
+
+### Changed
+- **Settings entry renamed**: the Accessibility Settings button changed from "Window Settings" to "Window Management & Resolution Settings" for clarity.
+- **Custom resolution screen hints**: reorganized from fragmented lines into clean 3-line hints: (1) valid range, (2) tip about unlocking more presets by disabling minimum size lock, (3) Enter-to-apply reminder.
+- **Preset button tooltips**: expanded to list all disable conditions (fullscreen/maximized/fixed mode, exceeds screen, equals current, below minimum when locked) with manual line breaks and bullet points.
+- **Minimum size lock tooltip**: reworded with manual line breaks to avoid awkward word-wrap on resolution numbers.
+- **Button state text unified**: all toggle buttons now consistently use "On"/"Off" (English) or "已开启"/"已关闭" (Chinese), replacing the previous mix of "开启/关闭" and "已开启/已关闭".
+- **Always-on-top tooltip**: clarified that force mode overrides *same-level* always-on-top windows but remains below system-level windows like Task Manager.
+- **Window state button**: removed the redundant "(click to cycle)" suffix from the button label.
+- **Command list cleanup**: removed redundant `/aws lock` and `/aws unlock` commands (functionality covered by `/aws toggle`). Total commands now 18.
+- **/aws help page footer**: the page number hint line is now fully aqua-colored, matching the title line.
+- **/aws info output**: compressed from 11 lines to 6 lines by merging related info (window+screen resolution, window state+borderless, lock+fixed, top+remember+debug).
+- **mods.toml description**: updated feature list (8 ratios, 128 presets, 17 commands (18 including subcommand), 5 keybinds), added known issues section (Windows Snap workaround), version plan (1.21.1/26.2/26.3 ports planned), and contact email.
+
+### Fixed
+- **Preset button disable logic**: when minimum size lock is disabled, presets below the configured/hardcoded minimum are no longer incorrectly disabled — only presets larger than the screen or equal to the current window size are disabled.
+- **Custom resolution input focus**: the input fields could not receive focus because a per-frame focus-clear method was clearing all widget focus including text fields. Fixed to preserve input field focus.
+- **Language file JSON parse error**: adding a new translation key after the last key without a comma caused the entire JSON file to fail parsing, making all translations show raw key names. Fixed in all 20 language files.
+- **Config migration false positive**: fresh installs were incorrectly triggering the "config updated" notice because the default configVersion was set to the latest version. Fixed by checking config file existence before registration to distinguish fresh installs from upgrades.
+- **Removed duplicate call**: `syncButtonStates()` was called twice in the fixed button callback, removed the redundant call.
+
+### Notes
+- Windows Snap (split-screen) compatibility with minimum size lock remains a known limitation. Workaround: disable lock, arrange window with Snap, re-enable lock.
+- Windowed borderless mode has some edge-case bugs; maximized and fullscreen borderless work correctly.
+- Ports to 1.21.1, 26.2, and 26.3 are planned for future releases.
+
+</details>
+
+<details>
 <summary><strong>v1.1.1</strong> — Config auto-migration, license fix, package rename & quality improvements</summary>
 
 ### Added

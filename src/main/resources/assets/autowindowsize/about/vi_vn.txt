@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size (Kích thước cửa sổ tự động)
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【Mục đích】
+Khi tạo một modpack, bạn dành nhiều thời gian để tinh chỉnh hoàn hảo các GUI, HUD và giao diện. Nhưng khi người chơi khởi động trò chơi trên các màn hình hoặc độ phân giải khác nhau, kích thước cửa sổ thay đổi và tất cả các bố cục bị hỏng. Mod này giải quyết vấn đề đó: nó biến "kích thước cửa sổ trò chơi" từ một sự kiện ngẫu nhiên thành một lựa chọn có thể kiểm soát, lặp lại và bị ràng buộc. Phạm vi của nó được cố tình giữ ở mức tối thiểu — nó chỉ hoạt động với cửa sổ ở cấp hệ điều hành, không thay đổi tỷ lệ GUI và không chạm vào bất kỳ kết xuất trong trò chơi hoặc logic trò chơi nào, do đó nó hầu như không bao giờ xung đột với các mod khác.
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【Giới thiệu MOD】
+Một mod nhẹ ở phía máy khách tự động thay đổi kích thước, căn giữa và khóa cửa sổ trò chơi Minecraft, giữ cho các bố cục UI của modpack được tinh chỉnh cẩn thận nhất quán trên máy tính của mọi người chơi.
+Các tính năng chính: tự động thay đổi kích thước cửa sổ khi khởi động, 128 cài đặt trước độ phân giải (nhóm theo 8 tỷ lệ hình ảnh), khóa kích thước tối thiểu, kích thước cửa sổ cố định, căn giữa bằng một cú nhấp, tự động toàn màn hình/phóng to/không viền khi khởi động, bộ nhớ vị trí cửa sổ, cửa sổ luôn ở trên cùng (3 chế độ: tắt/tiêu chuẩn/bắt buộc), chế độ cửa sổ không viền (3 trạng thái: cửa sổ/phóng to/toàn màn hình), nút chu kỳ trạng thái cửa sổ, 17 lệnh máy khách /aws, 5 phím tắt có thể tùy chỉnh, hỗ trợ nhiều màn hình, hiển thị độ phân giải thời gian thực, chế độ nhật ký gỡ lỗi, v.v. Hỗ trợ 20 ngôn ngữ.
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【Cách sử dụng】
+1、Sau khi cài đặt mod và khởi động trò chơi, nhấp vào nút "Quản lý cửa sổ và cài đặt độ phân giải" trong "Cài đặt trợ năng" để mở giao diện cấu hình, hoặc sử dụng lệnh /aws gui.
+2、Điều chỉnh các cài đặt khác nhau trong giao diện cấu hình: kích thước cửa sổ, khóa kích thước tối thiểu, kích thước cửa sổ cố định, tự động toàn màn hình/phóng to/không viền, cửa sổ luôn ở trên cùng, chế độ không viền, v.v.
+3、Cài đặt trước độ phân giải: sử dụng các mũi tên trái/phải của bộ chọn tỷ lệ hình ảnh để chuyển đổi giữa 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16 và Tùy chỉnh. Ở giữa hiển thị tỷ lệ hiện tại và độ phân giải cửa sổ thời gian thực, và bên dưới hiển thị 16 nút cài đặt trước cho tỷ lệ tương ứng. Nhấp để điều chỉnh kích thước cửa sổ và căn giữa bằng một cú nhấp.
+4、Độ phân giải tùy chỉnh: sau khi chuyển sang tỷ lệ "Tùy chỉnh", nhập chiều rộng và chiều cao vào các trường nhập, nhấp vào nút "Áp dụng" hoặc nhấn phím Enter. Nút Áp dụng bị vô hiệu hóa với gợi ý khi giá trị nhập nằm ngoài phạm vi.
+5、Phím tắt: gán phím cho "Mở cài đặt Auto Window Size", "Căn giữa cửa sổ", "Chuyển đổi không viền", "Chu kỳ trạng thái cửa sổ" và "Chuyển đổi cửa sổ luôn ở trên cùng" trong "Cài đặt điều khiển". Mặc định không được gán.
+6、Lệnh: gõ /aws help để xem danh sách lệnh đầy đủ được phân trang (tổng cộng 3 trang, 8 lệnh mỗi trang).
+7、Tệp cấu hình: config/AutoWindowSize/config.toml (cấu hình chính) và config/AutoWindowSize/window.json (vị trí cửa sổ đã lưu).
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
+【Lệnh】
+Tất cả các lệnh bắt đầu bằng /aws. Gõ /aws help trong trò chơi để xem danh sách lệnh đầy đủ được phân trang.
+Các lệnh phổ biến:
+· /aws help [trang] - Hiển thị danh sách lệnh (3 trang, 8 mỗi trang)
+· /aws gui - Mở giao diện quản lý cửa sổ và cài đặt độ phân giải
+· /aws about - Mở trang Giới thiệu
+· /aws info - Hiển thị thông tin cửa sổ, cấu hình và độ phân giải hiện tại
+· /aws version - Hiển thị thông tin phiên bản mod
+· /aws config - Mở thư mục cấu hình
+· /aws status - Kiểm tra trạng thái khóa kích thước tối thiểu
+· /aws toggle [true/false] - Chuyển đổi khóa kích thước tối thiểu
+· /aws fixed [true/false] - Chuyển đổi kích thước cửa sổ cố định
+· /aws center - Căn giữa cửa sổ trên màn hình hiện tại
+· /aws fullscreen [true/false] - Chuyển đổi trạng thái toàn màn hình hiện tại
+· /aws maximize [true/false] - Chuyển đổi trạng thái phóng to hiện tại
+· /aws remember [true/false] - Chuyển đổi bộ nhớ vị trí cửa sổ
+· /aws top [off/normal/force] - Chu kỳ hoặc đặt trực tiếp chế độ luôn ở trên cùng
+· /aws debug [true/false] - Chuyển đổi nhật ký gỡ lỗi
+· /aws borderless [true/false] - Chuyển đổi chế độ không viền
+· /aws borderless auto [true/false] - Chuyển đổi chế độ không viền tự động khi khởi động
+· /aws resolution [tỷ lệ] <cài đặt trước> - Áp dụng độ phân giải và căn giữa, hỗ trợ tự động hoàn thành Tab
+
+【Phím tắt】
+Tất cả các phím tắt mặc định không được gán. Đặt chúng trong "Tùy chọn → Điều khiển → Auto Window Size". Khi nhấn bất kỳ phím tắt nào, phản hồi sẽ được hiển thị trong trò chuyện.
+· Mở cài đặt Auto Window Size - Mở giao diện quản lý cửa sổ và cài đặt độ phân giải
+· Căn giữa cửa sổ - Căn giữa cửa sổ trên màn hình hiện tại
+· Chuyển đổi không viền - Bật/tắt chế độ không viền
+· Chu kỳ trạng thái cửa sổ - Chu kỳ giữa cửa sổ → phóng to → toàn màn hình
+· Chuyển đổi cửa sổ luôn ở trên cùng - Chu kỳ chế độ luôn ở trên cùng (tắt → tiêu chuẩn → bắt buộc)
+
+【Kênh tải xuống】
+Khuyến nghị nên tải xuống phiên bản mới nhất từ GitHub trước. Các nền tảng khác có thể bị trễ vài ngày do kiểm duyệt hoặc đồng bộ hóa.
 - GitHub:
   https://github.com/3270728922/AutoWindowSize
 - CurseForge:
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - Modrinth:
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- Bách khoa toàn thư MC:
   https://www.mcmod.cn/class/30769.html
 - MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
 - BBSMC:
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- Diễn đàn Creeper:
   https://klpbbs.com/thread-173769-1-1.html
 - HIMCBBS:
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
+【Kênh phản hồi】
+Nếu bạn gặp lỗi hoặc có đề xuất tính năng, đừng ngần ngại đưa ra phản hồi thông qua các kênh sau:
 - GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 - GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- Chủ đề diễn đàn Creeper:
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- Chủ đề MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+Khi đưa ra phản hồi, vui lòng bao gồm phiên bản trò chơi, phiên bản Forge, phiên bản mod, nhật ký crash (nếu có) và các bước tái tạo.
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【Lưu ý】
+· Di chuyển cấu hình tự động: từ v1.1.1, khi cập nhật, mod tự động phát hiện và di chuyển các tệp cấu hình cũ khi khởi động lần đầu. Bạn không cần xóa thủ công thư mục cấu hình. Sau khi vào thế giới, trò chuyện sẽ thông báo hoàn tất di chuyển.
+· Chỉ mod phía máy khách: chỉ cần cài đặt trên máy khách, không cần trên máy chủ.
+· Hỗ trợ nền tảng: chỉ hỗ trợ Java Edition dành cho máy tính để bàn (Windows / macOS / Linux), không hỗ trợ phiên bản di động / Bedrock.
+· Cửa sổ không viền và Windows Snap: trong phiên bản hiện tại, chức năng Windows Snap (gắn cửa sổ) có thể có vấn đề tương thích trong chế độ cửa sổ không viền. Giải pháp tạm thời: trước tiên tắt khóa kích thước tối thiểu, sử dụng Windows Snap để điều chỉnh cửa sổ, sau đó bật lại khóa.
+· Lưu ý về luôn ở trên cùng bắt buộc: chế độ bắt buộc luôn ở trên cùng trong số các cửa sổ luôn ở trên cùng cùng cấp và không bị che bởi chúng, nhưng sẽ không cao hơn các cửa sổ luôn ở trên cùng ở cấp hệ thống (ví dụ: Trình quản lý tác vụ).
+
+【Thông tin tác giả】
+Tác giả: JujuMLQwQ, ML
+Email: jujuawa@qq.com (Nhấp để sao chép)
+Trang GitHub: https://github.com/3270728922
+Giấy phép: MIT License
+Phiên bản hiện tại: v1.1.2
+Độ phân giải mặc định 1280x720; độ phân giải tối thiểu được mã hóa cứng 856x482; tối đa 7680x4320.

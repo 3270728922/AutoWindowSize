@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size (Taille de fenêtre automatique)
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【Objectif】
+Lors de la création d'un modpack, vous passez beaucoup de temps à ajuster parfaitement les GUI, HUD et interfaces. Mais lorsque les joueurs lancent le jeu sur différents moniteurs ou résolutions, la taille de la fenêtre change et toutes les mises en page sont cassées. Ce mod résout ce problème : transformer la "taille de la fenêtre de jeu" d'un événement aléatoire en un choix contrôlable, reproductible et contraint. Sa portée est volontairement minimale — il ne manipule que la fenêtre au niveau du système d'exploitation, ne modifie pas l'échelle de l'interface et ne touche à aucun rendu ou logique de jeu interne, donc il n'entre presque jamais en conflit avec d'autres mods.
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【Présentation du MOD】
+Un mod côté client léger qui redimensionne, centre et verrouille automatiquement la fenêtre de jeu Minecraft, gardant les mises en page UI du modpack soigneusement ajustées cohérentes sur l'ordinateur de chaque joueur.
+Fonctionnalités principales : redimensionnement automatique de la fenêtre au lancement, 128 préréglages de résolution (groupés par 8 formats d'image), verrouillage de taille minimale, taille de fenêtre fixe, centrage en un clic, plein écran/maximisation/sans bordure automatiques au lancement, mémorisation de la position de la fenêtre, fenêtre toujours au premier plan (3 modes : désactivé/standard/forcé), mode fenêtre sans bordure (3 états : fenêtré/maximisé/plein écran), bouton de cycle d'état de fenêtre, 17 commandes client /aws, 5 raccourcis personnalisables, prise en charge multi-écrans, affichage de résolution en temps réel, mode journal de débogage, etc. Prend en charge 20 langues.
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【Mode d'emploi】
+1、Après avoir installé le mod et lancé le jeu, cliquez sur le bouton "Gestion des fenêtres et paramètres de résolution" dans "Paramètres d'accessibilité" pour ouvrir l'interface de configuration, ou utilisez la commande /aws gui.
+2、Ajustez divers paramètres dans l'interface de configuration : taille de la fenêtre, verrouillage de taille minimale, taille de fenêtre fixe, plein écran/maximisation/sans bordure automatiques, fenêtre toujours au premier plan, mode sans bordure, etc.
+3、Préréglages de résolution : utilisez les flèches gauche/droite du sélecteur de format d'image pour basculer entre 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16 et Personnalisé. Le centre affiche le format actuel et la résolution en temps réel de la fenêtre, et en dessous s'affichent 16 boutons de préréglage pour le format correspondant. Cliquez pour redimensionner et centrer la fenêtre en un clic.
+4、Résolution personnalisée : après avoir basculé sur le format "Personnalisé", entrez la largeur et la hauteur dans les champs de saisie, cliquez sur le bouton "Appliquer" ou appuyez sur la touche Entrée. Le bouton Appliquer est désactivé avec une info-bulle lorsque la valeur saisie est hors plage.
+5、Raccourcis : attribuez des touches pour "Ouvrir les paramètres Auto Window Size", "Centrer la fenêtre", "Basculer sans bordure", "Cycler l'état de la fenêtre" et "Basculer la fenêtre toujours au premier plan" dans "Paramètres des contrôles". Non attribués par défaut.
+6、Commandes : tapez /aws help pour afficher la liste complète des commandes paginée (3 pages, 8 commandes par page).
+7、Fichiers de configuration : config/AutoWindowSize/config.toml (configuration principale) et config/AutoWindowSize/window.json (position de fenêtre enregistrée).
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
-- GitHub:
+【Commandes】
+Toutes les commandes commencent par /aws. Tapez /aws help dans le jeu pour afficher la liste complète des commandes paginée.
+Commandes courantes :
+· /aws help [page] - Afficher la liste des commandes (3 pages, 8 par page)
+· /aws gui - Ouvrir l'interface de gestion des fenêtres et des paramètres de résolution
+· /aws about - Ouvrir la page À propos
+· /aws info - Afficher les informations sur la fenêtre, la configuration et la résolution actuelles
+· /aws version - Afficher les informations de version du mod
+· /aws config - Ouvrir le dossier de configuration
+· /aws status - Vérifier l'état du verrouillage de taille minimale
+· /aws toggle [true/false] - Basculer le verrouillage de taille minimale
+· /aws fixed [true/false] - Basculer la taille de fenêtre fixe
+· /aws center - Centrer la fenêtre sur le moniteur actuel
+· /aws fullscreen [true/false] - Basculer l'état de plein écran actuel
+· /aws maximize [true/false] - Basculer l'état de maximisation actuel
+· /aws remember [true/false] - Basculer la mémorisation de la position de la fenêtre
+· /aws top [off/normal/force] - Cycler ou définir directement le mode toujours au premier plan
+· /aws debug [true/false] - Basculer le journal de débogage
+· /aws borderless [true/false] - Basculer le mode sans bordure
+· /aws borderless auto [true/false] - Basculer le sans bordure automatique au lancement
+· /aws resolution [format] <préréglage> - Appliquer la résolution et centrer, prend en charge la complétion automatique par Tab
+
+【Raccourcis】
+Tous les raccourcis ne sont pas attribués par défaut. Définissez-les dans "Options → Contrôles → Auto Window Size". Appuyer sur n'importe quel raccourci donne un retour dans le chat.
+· Ouvrir les paramètres Auto Window Size - Ouvrir l'interface de gestion des fenêtres et des paramètres de résolution
+· Centrer la fenêtre - Centrer la fenêtre sur le moniteur actuel
+· Basculer sans bordure - Basculer le mode sans bordure activé/désactivé
+· Cycler l'état de la fenêtre - Cycler entre fenêtré → maximisé → plein écran
+· Basculer toujours au premier plan - Cycler le mode toujours au premier plan (désactivé → standard → forcé)
+
+【Canaux de téléchargement】
+Il est recommandé de télécharger d'abord la dernière version depuis GitHub. Les autres plateformes peuvent avoir quelques jours de retard en raison de la modération ou de la synchronisation.
+- GitHub :
   https://github.com/3270728922/AutoWindowSize
-- CurseForge:
+- CurseForge :
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
-- Modrinth:
+- Modrinth :
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MC Encyclopedia :
   https://www.mcmod.cn/class/30769.html
-- MCBBS:
+- MCBBS :
   https://www.mcbbs.co/thread-6322-1-1.html
-- BBSMC:
+- BBSMC :
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- Forum Creeper :
   https://klpbbs.com/thread-173769-1-1.html
-- HIMCBBS:
+- HIMCBBS :
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
-- GitHub Issues:
+【Canaux de retour】
+Si vous rencontrez des bugs ou avez des suggestions de fonctionnalités, n'hésitez pas à donner votre retour via les canaux suivants :
+- GitHub Issues :
   https://github.com/3270728922/AutoWindowSize/issues
-- GitHub Discussions:
+- GitHub Discussions :
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- Sujet du Forum Creeper :
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- Sujet MCBBS :
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+Lors du retour, veuillez inclure la version du jeu, la version de Forge, la version du mod, le journal de crash (le cas échéant) et les étapes de reproduction.
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【Remarques】
+· Migration automatique de la configuration : depuis la v1.1.1, lors de la mise à niveau, le mod détecte et migre automatiquement les anciens fichiers de configuration au premier lancement. Pas besoin de supprimer manuellement le dossier de configuration. Un message de chat confirme la fin de la migration après être entré dans un monde.
+· Mod côté client uniquement : doit être installé uniquement sur le client, pas sur le serveur.
+· Prise en charge des plateformes : prend uniquement en charge l'édition Java de bureau (Windows / macOS / Linux), pas les éditions mobile / Bedrock.
+· Fenêtre sans bordure et Windows Snap : dans la version actuelle, la fonction Windows Snap (ancrage de fenêtre) peut avoir des problèmes de compatibilité en mode fenêtre sans bordure. Solution temporaire : désactivez d'abord le verrouillage de taille minimale, utilisez Windows Snap pour ajuster la fenêtre, puis réactivez le verrouillage.
+· Remarque sur le toujours au premier plan forcé : le mode forcé reste toujours au premier plan parmi les fenêtres toujours au premier plan de même niveau et ne sera pas couvert par elles, mais ne sera pas au-dessus des fenêtres toujours au premier plan au niveau système (par ex. le Gestionnaire des tâches).
+
+【Informations sur l'auteur】
+Auteur : JujuMLQwQ, ML
+E-mail : jujuawa@qq.com (cliquez pour copier)
+Page GitHub : https://github.com/3270728922
+Licence : MIT License
+Version actuelle : v1.1.2
+Résolution par défaut 1280x720 ; résolution minimale codée en dur 856x482 ; maximale 7680x4320.

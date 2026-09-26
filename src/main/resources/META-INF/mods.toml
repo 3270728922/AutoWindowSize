@@ -33,11 +33,12 @@ therefore almost never conflicts with other mods.
 FEATURES
 - Auto window sizing on launch, with configurable delay
   (default 1.5s) to avoid stretching the loading screen.
-- Resolution presets grouped by aspect ratio (16:9, 16:10,
-  4:3, 5:4, 21:9) with 12 presets each, plus custom width/
-  height input with live boundary validation. Presets larger
-  than the current screen or matching the current size are
-  auto-disabled.
+- Resolution presets grouped by 8 aspect ratios (16:9, 16:10,
+  4:3, 5:4, 21:9, 3:2, 2:1, 9:16) with 16 presets each (128
+  total), plus custom width/height input with live boundary
+  validation and Enter-to-apply. Presets larger than the current
+  screen, matching the current size, or below the minimum size
+  (when lock is enabled) are auto-disabled.
 - Minimum size lock: grow as big as you like, never shrink
   below the configured resolution.
 - Fixed window size: freeze the window at its current size.
@@ -52,18 +53,23 @@ FEATURES
 - Window position memory: optionally save and restore the
   window position and size across launches instead of forcing
   center; compatible with auto-fullscreen / auto-maximize.
-- Always on top: normal mode and forced mode (forced mode
-  re-claims top focus every frame).
+- Always on top: 3 modes (off / normal / force). Force mode
+  re-claims top focus every frame and can override other
+  always-on-top windows (but still below system-level windows
+  like Task Manager).
 - Borderless window mode, including pseudo-fullscreen (alt-tab
   does not minimize the game).
 - Window state cycle button: windowed -> maximized ->
   fullscreen, works in borderless mode too.
-- Keybindings for center window, switch to windowed, cycle
-  window state, and toggle always on top (unbound by default),
-  plus a key to open the settings screen.
-- Client commands under /aws: help, gui, status, toggle,
-  lock, unlock, fixed, center, fullscreen, maximize,
-  remember, top, debug, borderless, resolution.
+- Keybindings for center window, toggle borderless, cycle
+  window state, toggle always on top, and open settings screen
+  (all unbound by default).
+- Client commands under /aws with 17 top-level commands (18
+  including borderless auto subcommand): help (paged), gui,
+  about, info, version, config, status, toggle, fixed, center,
+  fullscreen, maximize, remember, top, debug, borderless,
+  borderless auto, resolution. Toggle commands accept optional
+  true/false; /aws top accepts off/normal/force.
 - Fullscreen support: minimum size lock and fixed window size
   are suspended in fullscreen and restored when you leave.
 - Multi-monitor aware: centering follows whichever monitor the
@@ -72,18 +78,37 @@ FEATURES
 - Graceful fallback: if the configured resolution is larger
   than your screen, only the minimum size lock is disabled;
   fixed window size and centering keep working.
-- Config screen translations: option names and descriptions
-  follow the game language when opened via a config-screen mod.
+- Config auto-migration: upgrading from older versions no longer
+  requires manual config deletion; missing fields are added
+  automatically.
+- About page with mod info, download links, and contact email.
 - Supports 20 languages.
 
 USAGE
-1. Install the mod, launch the game, click "Window Settings"
-   in Accessibility Settings (or use /aws gui).
+1. Install the mod, launch the game, click "Window Management
+   & Resolution" in Accessibility Settings (or use /aws gui).
 2. Adjust settings in the config screen.
-3. Cycle aspect ratios and select presets to resize and center
-   in one click.
+3. Cycle aspect ratios with left/right arrows and select presets
+   to resize and center in one click.
 4. Bind keys in Controls Settings for quick actions.
 5. Type /aws help to see all available commands.
+
+KNOWN ISSUES
+- Windows Snap (window tiling / split screen) may not work
+  correctly while minimum size lock is enabled: the window may
+  be forced to a fixed aspect ratio instead of snapping to half
+  screen. Workaround: temporarily disable minimum size lock,
+  arrange the window with Snap, then re-enable the lock. This
+  is a known limitation and will be improved in a future version.
+- Windowed borderless mode has some edge-case bugs with window
+  resizing and position. Maximized borderless and fullscreen
+  borderless work correctly.
+
+VERSION PLAN
+- Currently supports Minecraft 1.20.1 (Forge 47.x).
+- Ports to 1.21.1, 26.2, and 26.3 are planned and will be
+  released as separate branches/builds once the core features
+  are stable.
 
 DETAILS
 - Client-side only; no server install required.
@@ -120,10 +145,13 @@ GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
+Email:
+  jujuawa@qq.com
 
 AUTHOR
 Author: JujuMLQwQ, ML
 GitHub: https://github.com/3270728922
+Email: jujuawa@qq.com
 License: MIT
 '''
 

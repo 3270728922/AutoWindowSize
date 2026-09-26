@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size (ขนาดหน้าต่างอัตโนมัติ)
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【วัตถุประสงค์】
+เมื่อคุณทำ modpack คุณใช้เวลามากในการปรับแต่ง GUI, HUD และอินเทอร์เฟซให้สมบูรณ์แบบ แต่เมื่อผู้เล่นเปิดเกมบนจอภาพหรือความละเอียดที่แตกต่างกัน ขนาดหน้าต่างจะเปลี่ยนไปและเลย์เอาต์ทั้งหมดจะเสียหาย mod นี้แก้ปัญหานี้: มันเปลี่ยน "ขนาดหน้าต่างเกม" จากเหตุการณ์สุ่มให้กลายเป็นทางเลือกที่ควบคุมได้ ทำซ้ำได้ และมีข้อจำกัด ขอบเขตของมันถูกเก็บไว้ให้น้อยที่สุดโดยเจตนา — มันทำงานเฉพาะกับหน้าต่างในระดับระบบปฏิบัติการ ไม่เปลี่ยนมาตราส่วน GUI และไม่แตะต้องการเรนเดอร์ในเกมหรือตรรกะเกมใดๆ ดังนั้นมันจึงแทบไม่เคยขัดแย้งกับ mod อื่นๆ
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【แนะนำ MOD】
+mod ที่เบาบางด้านไคลเอนต์ซึ่งปรับขนาด จัดกึ่งกลาง และล็อกหน้าต่างเกม Minecraft โดยอัตโนมัติ ทำให้เลย์เอาต์ UI ของ modpack ที่คุณปรับแต่งอย่างรอบคอบยังคงสอดคล้องกันบนคอมพิวเตอร์ของผู้เล่นทุกคน
+คุณสมบัติหลัก: ปรับขนาดหน้าต่างอัตโนมัติเมื่อเปิดตัว, 128 ค่าล่วงหน้าความละเอียด (จัดกลุ่มตาม 8 อัตราส่วนภาพ), ล็อกขนาดขั้นต่ำ, ขนาดหน้าต่างคงที่, จัดกึ่งกลางด้วยคลิกเดียว, เต็มหน้าจอ/ขยายสูงสุด/ไร้กรอบอัตโนมัติเมื่อเปิดตัว, หน่วยความจำตำแหน่งหน้าต่าง, หน้าต่างอยู่บนสุดเสมอ (3 โหมด: ปิด/มาตรฐาน/บังคับ), โหมดหน้าต่างไร้กรอบ (3 สถานะ: หน้าต่าง/ขยายสูงสุด/เต็มหน้าจอ), ปุ่มวนสถานะหน้าต่าง, 17 คำสั่งไคลเอนต์ /aws, 5 ปุ่มลัดที่ปรับแต่งได้, รองรับหลายจอภาพ, แสดงความละเอียดแบบเรียลไทม์, โหมดบันทึกการดีบัก ฯลฯ รองรับ 20 ภาษา
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【วิธีใช้】
+1、หลังจากติดตั้ง mod และเปิดเกมแล้ว ให้คลิกปุ่ม "การจัดการหน้าต่างและการตั้งค่าความละเอียด" ใน "การตั้งค่าความสามารถในการเข้าถึง" เพื่อเปิดอินเทอร์เฟซการกำหนดค่า หรือใช้คำสั่ง /aws gui
+2、ปรับการตั้งค่าต่างๆ ในอินเทอร์เฟซการกำหนดค่า: ขนาดหน้าต่าง, ล็อกขนาดขั้นต่ำ, ขนาดหน้าต่างคงที่, เต็มหน้าจอ/ขยายสูงสุด/ไร้กรอบอัตโนมัติ, หน้าต่างอยู่บนสุดเสมอ, โหมดไร้กรอบ ฯลฯ
+3、ค่าล่วงหน้าความละเอียด: ใช้ลูกศรซ้าย/ขวาของตัวเลือกอัตราส่วนภาพเพื่อสลับระหว่าง 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16 และ กำหนดเอง ที่กึ่งกลางแสดงอัตราส่วนปัจจุบันและความละเอียดหน้าต่างแบบเรียลไทม์ และด้านล่างแสดงปุ่มค่าล่วงหน้า 16 ปุ่มสำหรับอัตราส่วนที่เกี่ยวข้อง คลิกเพื่อปรับขนาดหน้าต่างและจัดกึ่งกลางด้วยคลิกเดียว
+4、ความละเอียดที่กำหนดเอง: หลังจากสลับไปที่อัตราส่วน "กำหนดเอง" ให้ป้อนความกว้างและความสูงในช่องป้อนข้อมูล คลิกปุ่ม "ใช้" หรือกดปุ่ม Enter ปุ่มใช้จะถูกปิดใช้งานพร้อมคำแนะนำเมื่อค่าที่ป้อนอยู่นอกช่วง
+5、ปุ่มลัด: กำหนดปุ่มสำหรับ "เปิดการตั้งค่า Auto Window Size", "จัดกึ่งกลางหน้าต่าง", "สลับไร้กรอบ", "วนสถานะหน้าต่าง" และ "สลับหน้าต่างอยู่บนสุดเสมอ" ใน "การตั้งค่าการควบคุม" ไม่ได้กำหนดโดยค่าเริ่มต้น
+6、คำสั่ง: พิมพ์ /aws help เพื่อดูรายการคำสั่งครบถ้วนแบบแบ่งหน้า (ทั้งหมด 3 หน้า, 8 คำสั่งต่อหน้า)
+7、ไฟล์การกำหนดค่า: config/AutoWindowSize/config.toml (การกำหนดค่าหลัก) และ config/AutoWindowSize/window.json (ตำแหน่งหน้าต่างที่บันทึกไว้)
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
+【คำสั่ง】
+คำสั่งทั้งหมดขึ้นต้นด้วย /aws พิมพ์ /aws help ในเกมเพื่อดูรายการคำสั่งครบถ้วนแบบแบ่งหน้า
+คำสั่งที่พบบ่อย:
+· /aws help [หน้า] - แสดงรายการคำสั่ง (3 หน้า, 8 ต่อหน้า)
+· /aws gui - เปิดอินเทอร์เฟซการจัดการหน้าต่างและการตั้งค่าความละเอียด
+· /aws about - เปิดหน้าเกี่ยวกับ
+· /aws info - แสดงข้อมูลหน้าต่าง การกำหนดค่า และความละเอียดปัจจุบัน
+· /aws version - แสดงข้อมูลเวอร์ชันของ mod
+· /aws config - เปิดโฟลเดอร์การกำหนดค่า
+· /aws status - ตรวจสอบสถานะของล็อกขนาดขั้นต่ำ
+· /aws toggle [true/false] - สลับล็อกขนาดขั้นต่ำ
+· /aws fixed [true/false] - สลับขนาดหน้าต่างคงที่
+· /aws center - จัดกึ่งกลางหน้าต่างบนจอภาพปัจจุบัน
+· /aws fullscreen [true/false] - สลับสถานะเต็มหน้าจอปัจจุบัน
+· /aws maximize [true/false] - สลับสถานะขยายสูงสุดปัจจุบัน
+· /aws remember [true/false] - สลับหน่วยความจำตำแหน่งหน้าต่าง
+· /aws top [off/normal/force] - วนหรือตั้งค่าโหมดอยู่บนสุดเสมอโดยตรง
+· /aws debug [true/false] - สลับบันทึกการดีบัก
+· /aws borderless [true/false] - สลับโหมดไร้กรอบ
+· /aws borderless auto [true/false] - สลับโหมดไร้กรอบอัตโนมัติเมื่อเปิดตัว
+· /aws resolution [อัตราส่วน] <ค่าล่วงหน้า> - ใช้ความละเอียดและจัดกึ่งกลาง รองรับการเติมข้อความอัตโนมัติด้วย Tab
+
+【ปุ่มลัด】
+ปุ่มลัดทั้งหมดไม่ได้ถูกกำหนดโดยค่าเริ่มต้น ตั้งค่าได้ที่ "ตัวเลือก → การควบคุม → Auto Window Size" เมื่อกดปุ่มลัดใดๆ จะมีการแสดงข้อเสนอแนะในแชต
+· เปิดการตั้งค่า Auto Window Size - เปิดอินเทอร์เฟซการจัดการหน้าต่างและการตั้งค่าความละเอียด
+· จัดกึ่งกลางหน้าต่าง - จัดกึ่งกลางหน้าต่างบนจอภาพปัจจุบัน
+· สลับไร้กรอบ - เปิด/ปิดโหมดไร้กรอบ
+· วนสถานะหน้าต่าง - วนระหว่าง หน้าต่าง → ขยายสูงสุด → เต็มหน้าจอ
+· สลับหน้าต่างอยู่บนสุดเสมอ - วนโหมดอยู่บนสุดเสมอ (ปิด → มาตรฐาน → บังคับ)
+
+【ช่องทางดาวน์โหลด】
+แนะนำให้ดาวน์โหลดเวอร์ชันล่าสุดจาก GitHub ก่อน แพลตฟอร์มอื่นๆ อาจมีความล่าช้าไม่กี่วันเนื่องจากการตรวจสอบหรือการซิงโครไนซ์
 - GitHub:
   https://github.com/3270728922/AutoWindowSize
 - CurseForge:
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - Modrinth:
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MC สารานุกรม:
   https://www.mcmod.cn/class/30769.html
 - MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
 - BBSMC:
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- ฟอรั่ม Creeper:
   https://klpbbs.com/thread-173769-1-1.html
 - HIMCBBS:
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
+【ช่องทางข้อเสนอแนะ】
+หากคุณพบข้อผิดพลาดหรือมีข้อเสนอแนะคุณสมบัติ อย่าลังเลที่จะให้ข้อเสนอแนะผ่านช่องทางต่อไปนี้:
 - GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 - GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- หัวข้อฟอรั่ม Creeper:
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- หัวข้อ MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+เมื่อให้ข้อเสนอแนะ โปรดรวมเวอร์ชันเกม, เวอร์ชัน Forge, เวอร์ชัน mod, บันทึก crash (หากมี) และขั้นตอนการทำซ้ำ
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【หมายเหตุ】
+· การโยกย้ายการกำหนดค่าอัตโนมัติ: ตั้งแต่ v1.1.1 เมื่ออัปเดต mod จะตรวจจับและโยกย้ายไฟล์การกำหนดค่าเก่าโดยอัตโนมัติเมื่อเปิดตัวครั้งแรก คุณไม่จำเป็นต้องลบโฟลเดอร์การกำหนดค่าด้วยตนเอง หลังจากเข้าโลกแล้ว แชตจะแจ้งเตือนการโยกย้ายเสร็จสิ้น
+· mod เฉพาะด้านไคลเอนต์: จำเป็นต้องติดตั้งเฉพาะบนไคลเอนต์เท่านั้น ไม่ใช่บนเซิร์ฟเวอร์
+· การรองรับแพลตฟอร์ม: รองรับเฉพาะ Java Edition สำหรับเดสก์ท็อป (Windows / macOS / Linux) ไม่รองรับมือถือ / Bedrock Edition
+· หน้าต่างไร้กรอบและ Windows Snap: ในเวอร์ชันปัจจุบัน ฟังก์ชัน Windows Snap (การยึดหน้าต่าง) อาจมีปัญหาความเข้ากันได้ในโหมดหน้าต่างไร้กรอบ วิธีแก้ไขชั่วคราว: ปิดใช้งานล็อกขนาดขั้นต่ำก่อน ใช้ Windows Snap เพื่อปรับหน้าต่าง จากนั้นเปิดใช้งานล็อกอีกครั้ง
+· หมายเหตุเกี่ยวกับการอยู่บนสุดเสมอแบบบังคับ: โหมดบังคับจะอยู่บนสุดเสมอในหมู่หน้าต่างที่อยู่บนสุดเสมอในระดับเดียวกันและจะไม่ถูกปกคลุมโดยพวกมัน แต่จะไม่อยู่เหนือหน้าต่างที่อยู่บนสุดเสมอในระดับระบบ (เช่น ตัวจัดการงาน)
+
+【ข้อมูลผู้เขียน】
+ผู้เขียน: JujuMLQwQ, ML
+อีเมล: jujuawa@qq.com (คลิกเพื่อคัดลอก)
+หน้า GitHub: https://github.com/3270728922
+ใบอนุญาต: MIT License
+เวอร์ชันปัจจุบัน: v1.1.2
+ความละเอียดเริ่มต้น 1280x720; ความละเอียดขั้นต่ำที่เข้ารหัสไว้ 856x482; สูงสุด 7680x4320

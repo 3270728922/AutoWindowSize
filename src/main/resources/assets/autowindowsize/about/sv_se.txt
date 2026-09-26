@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size (Automatisk fönsterstorlek)
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【Syfte】
+När du gör en modpack lägger du mycket tid på att perfekt justera GUI:er, HUD:er och gränssnitt. Men när spelare startar spelet på olika skärmar eller upplösningar, ändras fönsterstorleken och alla layouter går sönder. Denna mod löser detta problem: den förvandlar "spelfönsterstorleken" från en slumpmässig händelse till ett kontrollerbart, reproducerbart och begränsat val. Dess omfattning är medvetet minimal — den fungerar bara med fönstret på operativsystemsnivå, ändrar inte GUI-skalan och rör inte någon in-game rendering eller spellogik, därför kommer den nästan aldrig i konflikt med andra mods.
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【MOD-presenttion】
+En lättviktig klient-side mod som automatiskt ändrar storlek, centrerar och låser Minecraft-spelfönstret, vilket håller dina noggrant justerade modpack UI-layouter konsekventa på varje spelares dator.
+Huvudfunktioner: automatisk fönsterstorleksändring vid start, 128 upplösningsförinställningar (grupperade efter 8 bildförhållanden), låsning av minimal storlek, fast fönsterstorlek, centrering med ett klick, automatisk helskärm/maximera/gränslöst läge vid start, minne för fönsterposition, fönster alltid i förgrunden (3 lägen: av/standard/tvingat), gränslöst fönsterläge (3 tillstånd: fönster/maximerat/helskärm), fönstertillstånds-cyklusknapp, 17 /aws klientkommandon, 5 anpassningsbara kortkommandon, stöd för flera skärmar, realtidsupplösningsvisning, felsökningsloggläge, etc. Stöder 20 språk.
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【Användning】
+1、Efter att ha installerat modden och startat spelet, klicka på knappen "Fönsterhantering och upplösningsinställningar" i "Tillgänglighetsinställningar" för att öppna konfigurationsgränssnittet, eller använd kommandot /aws gui.
+2、Justera olika inställningar i konfigurationsgränssnittet: fönsterstorlek, låsning av minimal storlek, fast fönsterstorlek, automatisk helskärm/maximera/gränslöst läge, fönster alltid i förgrunden, gränslöst läge, etc.
+3、Upplösningsförinställningar: använd vänster/höger pilar på bildförhållandsväljaren för att växla mellan 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16 och Anpassat. I mitten visas aktuellt förhållande och realtidsfönsterupplösning, och nedan visas 16 förinställningsknappar för motsvarande förhållande. Klicka för att ändra fönsterstorlek och centrera med ett klick.
+4、Anpassad upplösning: efter att ha växlat till förhållandet "Anpassat", ange bredd och höjd i inmatningsfälten, klicka på knappen "Använd" eller tryck på Enter-tangenten. Använd-knappen är inaktiverad med en tooltip när det inmatade värdet är utanför intervallet.
+5、Kortkommandon: tilldela tangenter för "Öppna Auto Window Size-inställningar", "Centrera fönster", "Växla gränslöst", "Cykla fönstertillstånd" och "Växla fönster alltid i förgrunden" i "Kontrollinställningar". Ej tilldelade som standard.
+6、Kommandon: skriv /aws help för att se den sidindelade fullständiga kommandolistan (totalt 3 sidor, 8 kommandon per sida).
+7、Konfigurationsfiler: config/AutoWindowSize/config.toml (huvudkonfiguration) och config/AutoWindowSize/window.json (sparad fönsterposition).
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
+【Kommandon】
+Alla kommandon börjar med /aws. Skriv /aws help i spelet för att se den sidindelade fullständiga kommandolistan.
+Vanliga kommandon:
+· /aws help [sida] - Visa kommandolista (3 sidor, 8 per sida)
+· /aws gui - Öppna fönsterhantering och upplösningsinställningar
+· /aws about - Öppna Om-sidan
+· /aws info - Visa aktuell information om fönster, konfiguration och upplösning
+· /aws version - Visa modversionsinformation
+· /aws config - Öppna konfigurationsmapp
+· /aws status - Kontrollera status för minimal storlekslåsning
+· /aws toggle [true/false] - Växla minimal storlekslåsning
+· /aws fixed [true/false] - Växla fast fönsterstorlek
+· /aws center - Centrera fönster på aktuell skärm
+· /aws fullscreen [true/false] - Växla aktuellt helskärmstillstånd
+· /aws maximize [true/false] - Växla aktuellt maximerat tillstånd
+· /aws remember [true/false] - Växla minne för fönsterposition
+· /aws top [off/normal/force] - Cykla eller ställ direkt in alltid-i-förgrunden-läge
+· /aws debug [true/false] - Växla felsökningslogg
+· /aws borderless [true/false] - Växla gränslöst läge
+· /aws borderless auto [true/false] - Växla automatiskt gränslöst läge vid start
+· /aws resolution [förhållande] <förinställning> - Använd upplösning och centrera, stöder Tab-auto komplettering
+
+【Kortkommandon】
+Alla kortkommandon är som standard ej tilldelade. Ställ in dem under "Alternativ → Kontroller → Auto Window Size". Vid tryck på vilket kortkommando som helst ges feedback i chatten.
+· Öppna Auto Window Size-inställningar - Öppna fönsterhantering och upplösningsinställningar
+· Centrera fönster - Centrera fönster på aktuell skärm
+· Växla gränslöst - Växla gränslöst läge på/av
+· Cykla fönstertillstånd - Cykla mellan fönster → maximerat → helskärm
+· Växla fönster alltid i förgrunden - Cykla alltid-i-förgrunden-läge (av → standard → tvingat)
+
+【Nedladdningskanaler】
+Rekommenderas att först ladda ner den senaste versionen från GitHub. Andra plattformar kan ha några dagars fördröjning på grund av moderering eller synkronisering.
 - GitHub:
   https://github.com/3270728922/AutoWindowSize
 - CurseForge:
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - Modrinth:
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MC-encyklopedin:
   https://www.mcmod.cn/class/30769.html
 - MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
 - BBSMC:
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- Creeper-forum:
   https://klpbbs.com/thread-173769-1-1.html
 - HIMCBBS:
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
+【Feedbackkanaler】
+Om du stöter på buggar eller har funktionsförslag, tveka inte att ge feedback via följande kanaler:
 - GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 - GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- Creeper-forum tråd:
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- MCBBS tråd:
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+Vid feedback, vänligen inkludera spelversion, Forge-version, mod-version, crash-log (om någon) och reproduktionssteg.
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【Anmärkningar】
+· Automatisk konfigurationsmigrering: från v1.1.1, vid uppdatering upptäcker och migrerar modden automatiskt gamla konfigurationsfiler vid första start. Du behöver inte manuellt ta bort konfigurationsmappen. Efter att ha gått in i en värld meddelar chatten slutförd migrering.
+· Endast klient-side mod: behöver bara installeras på klienten, inte på servern.
+· Plattformsstöd: stöder endast skrivbords Java Edition (Windows / macOS / Linux), stöder inte mobil / Bedrock Edition.
+· Gränslöst fönster och Windows Snap: i nuvarande version kan Windows Snap (fönsterfästning) funktionen ha kompatibilitetsproblem i gränslöst fönsterläge. Tillfällig lösning: inaktivera först minimal storlekslåsning, använd Windows Snap för att justera fönstret och aktivera sedan låsningen igen.
+· Anmärkning om tvingat alltid i förgrunden: det tvingade läget förblir alltid i förgrunden bland alltid-i-förgrunden-fönster på samma nivå och täcks inte av dem, men är inte högre än alltid-i-förgrunden-fönster på systemnivå (t.ex. Aktivitetshanteraren).
+
+【Författarinformation】
+Författare: JujuMLQwQ, ML
+E-post: jujuawa@qq.com (Klicka för att kopiera)
+GitHub-sida: https://github.com/3270728922
+Licens: MIT License
+Nuvarande version: v1.1.2
+Standardupplösning 1280x720; hårdkodad minimal upplösning 856x482; maximal 7680x4320.

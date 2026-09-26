@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size（自動視窗大小）
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【製作目的】
+製作整合包時，你花了大量時間把 GUI、HUD 和介面調整到恰到好處。但玩家在不同顯示器或解析度下啟動遊戲時，視窗大小一變，所有佈局都亂了。這個模組就是為了解決這個問題：把「遊戲視窗大小」從隨機事件變成可控、可重複、受約束的選擇。它的功能範圍刻意保持精簡，只操作作業系統層面的視窗本身，不改變 GUI 縮放，不碰觸任何遊戲內渲染或遊戲邏輯，因此幾乎不會與其他模組衝突。
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【MOD 介紹】
+一個輕量級的用戶端模組，自動調整、置中和鎖定 Minecraft 遊戲視窗，讓精心校調的整合包 UI 佈局在每台玩家的電腦上都保持一致。
+核心功能包括：啟動時自動調整視窗大小、128 個解析度預設（按 8 種寬高比分組）、最小尺寸鎖定、固定視窗大小、一鍵置中、啟動自動全螢幕/最大化/無邊框、視窗位置記憶、視窗置頂（關閉/標準置頂/強制置頂三檔）、無邊框視窗模式（視窗化/最大化/全螢幕三種狀態）、視窗狀態循環按鈕、17 個 /aws 用戶端指令、5 個可自訂快捷鍵、多顯示器感知、即時解析度顯示、除錯日誌模式等。支援 20 種語言。
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【使用方法】
+1、安裝模組後啟動遊戲，在「協助工具設定」中點擊「視窗管理與解析度設定」按鈕開啟設定介面，或使用 /aws gui 指令。
+2、在設定介面中調整各項設定：視窗大小、最小尺寸鎖定、固定視窗大小、自動全螢幕/最大化/無邊框、視窗置頂、無邊框模式等。
+3、解析度預設：使用比例選擇器左右箭頭在 16:9、16:10、4:3、5:4、21:9、3:2、2:1、9:16、自訂之間切換，中間顯示目前比例與視窗即時解析度，下方顯示對應比例的 16 個預設按鈕，點擊即可一鍵調整視窗大小並置中。
+4、自訂解析度：切換到「自訂」比例後，在輸入框中輸入寬高，點擊「套用」按鈕或按 Enter 鍵即可。輸入值超出範圍時套用按鈕會停用並提示。
+5、快捷鍵：在「控制設定」中為「開啟 Auto Window Size 設定」、「置中視窗」、「切換無邊框」、「循環視窗狀態」、「切換視窗置頂」綁定快捷鍵，預設未綁定。
+6、指令：輸入 /aws help 查看分頁的完整指令列表（共3頁，每頁8條）。
+7、設定檔：config/AutoWindowSize/config.toml（主設定）和 config/AutoWindowSize/window.json（儲存的視窗位置）。
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
-- GitHub:
+【指令】
+所有指令均以 /aws 開頭，在遊戲內輸入 /aws help 可查看分頁的完整指令列表。
+常用指令：
+· /aws help [頁碼] - 顯示指令列表（共3頁，每頁8條）
+· /aws gui - 開啟視窗管理與解析度設定介面
+· /aws about - 開啟關於頁面
+· /aws info - 顯示目前視窗、設定與解析度資訊
+· /aws version - 顯示模組版本資訊
+· /aws config - 開啟設定檔資料夾
+· /aws status - 查看最小尺寸鎖定狀態
+· /aws toggle [true/false] - 切換最小尺寸鎖定
+· /aws fixed [true/false] - 切換固定視窗大小
+· /aws center - 在目前顯示器上置中視窗
+· /aws fullscreen [true/false] - 切換目前全螢幕狀態
+· /aws maximize [true/false] - 切換目前最大化狀態
+· /aws remember [true/false] - 切換視窗位置記憶
+· /aws top [off/normal/force] - 循環或直接切換視窗置頂模式
+· /aws debug [true/false] - 切換除錯日誌
+· /aws borderless [true/false] - 切換無邊框模式
+· /aws borderless auto [true/false] - 切換啟動自動無邊框
+· /aws resolution [比例] <預設> - 套用解析度並置中，支援 Tab 自動補全
+
+【快捷鍵】
+所有快捷鍵預設未綁定，在「選項 → 控制 → Auto Window Size」中設定。按下時都會在聊天框給予回饋。
+· 開啟 Auto Window Size 設定 - 開啟視窗管理與解析度設定介面
+· 置中視窗 - 在目前顯示器上置中視窗
+· 切換無邊框 - 切換無邊框模式開/關
+· 循環視窗狀態 - 在視窗化 → 最大化 → 全螢幕之間循環
+· 切換視窗置頂 - 循環切換視窗置頂模式（關閉→標準置頂→強制置頂）
+
+【下載渠道】
+推薦優先從 GitHub 下載最新版本，其他平台可能因審核或同步延遲而慢幾天。
+- GitHub：
   https://github.com/3270728922/AutoWindowSize
-- CurseForge:
+- CurseForge：
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
-- Modrinth:
+- Modrinth：
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MC百科：
   https://www.mcmod.cn/class/30769.html
-- MCBBS:
+- MCBBS：
   https://www.mcbbs.co/thread-6322-1-1.html
-- BBSMC:
+- BBSMC：
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- 苦力怕論壇：
   https://klpbbs.com/thread-173769-1-1.html
-- HIMCBBS:
+- HIMCBBS：
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
-- GitHub Issues:
+【回饋渠道】
+遇到 bug 或有功能建議，歡迎透過以下渠道回饋：
+- GitHub Issues：
   https://github.com/3270728922/AutoWindowSize/issues
-- GitHub Discussions:
+- GitHub Discussions：
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- 苦力怕論壇帖子：
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- MCBBS 帖子：
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+回饋時請附上遊戲版本、Forge 版本、模組版本、崩潰日誌（如有）和重現步驟。
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【注意事項】
+· 設定自動遷移：從 v1.1.1 開始，升級時模組會在首次啟動時自動偵測並遷移舊設定檔，無需手動刪除設定檔資料夾，進入世界後聊天框會提示遷移完成。
+· 純用戶端模組：僅需安裝在用戶端，無需安裝在伺服端。
+· 平台支援：僅支援桌面 Java 版（Windows / macOS / Linux），不支援手機版 / 基岩版。
+· 視窗化無邊框與 Windows 分屏：目前版本視窗化無邊框模式下，Windows 分屏（Snap）功能可能存在相容性問題。臨時解決方法：先取消最小尺寸鎖定，使用 Windows 分屏調整視窗後再重新開啟鎖定。
+· 強制置頂說明：強制置頂模式在同級置頂視窗中始終保持在最前，不會被同級置頂視窗覆蓋，但不會高於系統級置頂視窗（如工作管理員）。
+
+【作者資訊】
+作者：JujuMLQwQ, ML
+電子郵件：jujuawa@qq.com (點擊複製)
+GitHub 主頁：https://github.com/3270728922
+授權條款：MIT License
+目前版本：v1.1.2
+預設解析度 1280x720；硬編碼最小解析度 856x482；最大 7680x4320。

@@ -20,6 +20,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.InputStream;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class ConfigScreen extends Screen {
     private final Screen parent;
@@ -42,9 +44,11 @@ public class ConfigScreen extends Screen {
     private Button aboutButton;
     private Button centerButton;
     // 比例 / 分辨率预设
-    private Button cycleAspectButton;
-    private Button[] presetButtons = new Button[12];
-    private int[][] presetRes = new int[12][2];
+    private Button aspectLeftButton;
+    private Button aspectCenterButton;
+    private Button aspectRightButton;
+    private Button[] presetButtons = new Button[16];
+    private int[][] presetRes = new int[16][2];
     private int currentGroup = 0;
     private int currentPreset = -1;
     private EditBox customWidthField;
@@ -108,7 +112,6 @@ public class ConfigScreen extends Screen {
         this.fixedButton = Button.builder(getFixedButtonText(), btn -> {
             if (AutoWindowSize.canFixed()) { AutoWindowSize.toggleFixed(); }
             syncButtonStates();
-            syncButtonStates();
         }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.fixed.tooltip"))).build();
 
         this.autoFsButton = Button.builder(getAutoFsButtonText(), btn -> {
@@ -171,19 +174,32 @@ public class ConfigScreen extends Screen {
             this.initialized = true;
         }
 
-        // 比例循环按钮：和主按钮同宽，显示"当前 → 下一个"
-        this.cycleAspectButton = Button.builder(cycleAspectText(), btn -> {
+        // 比例切换：左箭头（上一个）+ 中间信息显示 + 右箭头（下一个）
+        this.aspectLeftButton = Button.builder(Component.literal("◀"), btn -> {
+            this.currentGroup = (this.currentGroup - 1 + AutoWindowSize.ASPECT_NAMES.length) % AutoWindowSize.ASPECT_NAMES.length;
+            if (this.currentGroup >= AutoWindowSize.PRESETS.length && customWidthField != null) {
+                customWidthField.setValue(String.valueOf(gameWidth));
+                customHeightField.setValue(String.valueOf(gameHeight));
+            }
+            rebuildPresetButtons();
+            this.list.safeSetupEntries();
+            syncButtonStates();
+        }).bounds(0, 0, 20, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.aspect.prev"))).build();
+
+        this.aspectCenterButton = Button.builder(cycleAspectText(), btn -> {
+            // 中间仅显示信息，不做切换
+        }).bounds(0, 0, 260, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.aspect.center_tooltip"))).build();
+
+        this.aspectRightButton = Button.builder(Component.literal("▶"), btn -> {
             this.currentGroup = (this.currentGroup + 1) % AutoWindowSize.ASPECT_NAMES.length;
             if (this.currentGroup >= AutoWindowSize.PRESETS.length && customWidthField != null) {
                 customWidthField.setValue(String.valueOf(gameWidth));
                 customHeightField.setValue(String.valueOf(gameHeight));
             }
-            btn.setMessage(cycleAspectText());
             rebuildPresetButtons();
-            // 自定义↔预设的条目结构不同，必须重建条目；safeSetupEntries 自动保存恢复滚动位置
             this.list.safeSetupEntries();
             syncButtonStates();
-        }).bounds(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT).build();
+        }).bounds(0, 0, 20, BUTTON_HEIGHT).tooltip(Tooltip.create(Component.translatable("gui.autowindowsize.aspect.next"))).build();
 
         // 分辨率预设按钮
         for (int i = 0; i < this.presetButtons.length; i++) {
@@ -271,20 +287,20 @@ public class ConfigScreen extends Screen {
             addEntry(new TwoButtonEntry(debugButton, aboutButton));
             addEntry(new InfoEntry());
             addEntry(new SpacerEntry()); // InfoEntry 现为3行文字，需要额外条目高度容纳溢出
-            addEntry(new ButtonEntry(cycleAspectButton));
+            addEntry(new AspectRowEntry(aspectLeftButton, aspectCenterButton, aspectRightButton));
             // 自定义模式：显示输入框；否则显示预设按钮
             if (currentGroup == AutoWindowSize.ASPECT_NAMES.length - 1) {
                 addEntry(new CustomEntry());
-                // 占位符补齐到3行高度
-                for (int r = 1; r < 3; r++) addEntry(new SpacerEntry());
+                // 占位符补齐到4行高度
+                for (int r = 1; r < 4; r++) addEntry(new SpacerEntry());
             } else {
                 int resCount = AutoWindowSize.PRESETS[currentGroup].length;
                 int rows = (resCount + 3) / 4;
                 for (int r = 0; r < rows; r++) {
                     addEntry(new RowEntry(presetButtons, r * 4, false));
                 }
-                // 占位符补齐到3行高度，确保切换比例时列表内容高度不变、滚动位置不跳
-                for (int r = rows; r < 3; r++) {
+                // 占位符补齐到4行高度，确保切换比例时列表内容高度不变、滚动位置不跳
+                for (int r = rows; r < 4; r++) {
                     addEntry(new SpacerEntry());
                 }
                 customWidthField.visible = false;
@@ -400,6 +416,52 @@ public class ConfigScreen extends Screen {
             }
         }
 
+        // 比例切换行：左箭头 + 中间信息 + 右箭头，总宽 310 居中
+        class AspectRowEntry extends Entry {
+            private final Button left, center, right;
+            AspectRowEntry(Button l, Button c, Button r) { this.left = l; this.center = c; this.right = r; }
+            @Override
+            public void render(GuiGraphics g, int index, int top, int leftX, int width, int height,
+                               int mouseX, int mouseY, boolean hovered, float partialTick) {
+                int arrowW = 20;
+                int gap = 5;
+                int centerW = width - arrowW * 2 - gap * 2;
+                left.setX(leftX);
+                left.setY(top);
+                left.setWidth(arrowW);
+                left.setHeight(BUTTON_HEIGHT);
+                left.setFocused(false);
+                center.setX(leftX + arrowW + gap);
+                center.setY(top);
+                center.setWidth(centerW);
+                center.setHeight(BUTTON_HEIGHT);
+                center.setFocused(false);
+                right.setX(leftX + arrowW + gap + centerW + gap);
+                right.setY(top);
+                right.setWidth(arrowW);
+                right.setHeight(BUTTON_HEIGHT);
+                right.setFocused(false);
+                syncButtonStates();
+                left.render(g, mouseX, mouseY, partialTick);
+                center.render(g, mouseX, mouseY, partialTick);
+                right.render(g, mouseX, mouseY, partialTick);
+            }
+            @Override
+            public boolean mouseClicked(double mx, double my, int button) {
+                boolean a = left.active && left.visible && left.isMouseOver(mx, my) && left.mouseClicked(mx, my, button);
+                boolean b = center.active && center.visible && center.isMouseOver(mx, my) && center.mouseClicked(mx, my, button);
+                boolean c = right.active && right.visible && right.isMouseOver(mx, my) && right.mouseClicked(mx, my, button);
+                return a || b || c;
+            }
+            @Override
+            public boolean mouseReleased(double mx, double my, int button) {
+                left.mouseReleased(mx, my, button);
+                center.mouseReleased(mx, my, button);
+                right.mouseReleased(mx, my, button);
+                return false;
+            }
+        }
+
         // 一行最多 4 个按钮（分辨率预设行）
         class RowEntry extends Entry {
             private final Button[] btns;
@@ -487,8 +549,7 @@ public class ConfigScreen extends Screen {
                 customWidthField.render(g, mouseX, mouseY, partialTick);
                 customHeightField.render(g, mouseX, mouseY, partialTick);
                 customApplyButton.render(g, mouseX, mouseY, partialTick);
-                // 输入框下方常驻两行提示：第一行边界值，第二行输入要求
-                // 输入不合法时整体变为黄色警告色
+                // 输入框下方常驻三行提示：第一行边界值+输入要求，第二行锁定解锁提示，第三行快捷键提示
                 boolean invalid = combineErrors(getCustomInvalidReasons()) != null;
                 int hintColor = invalid ? 0xFFAA00 : 0xAAAAAA;
                 g.drawCenteredString(font,
@@ -497,8 +558,11 @@ public class ConfigScreen extends Screen {
                                 Config.HARD_MIN_HEIGHT, screenHeight),
                         left + width / 2, top + 24, hintColor);
                 g.drawCenteredString(font,
-                        Component.translatable("gui.autowindowsize.custom_input_hint"),
-                        left + width / 2, top + 38, hintColor);
+                        Component.translatable("gui.autowindowsize.custom_lock_hint"),
+                        left + width / 2, top + 38, 0xAAAAAA);
+                g.drawCenteredString(font,
+                        Component.translatable("gui.autowindowsize.custom_enter_hint"),
+                        left + width / 2, top + 52, 0xAAAAAA);
             }
         }
 
@@ -590,7 +654,9 @@ public class ConfigScreen extends Screen {
         this.centerButton.active = AutoWindowSize.canCenter();
         updatePresetButtonStates();
         boolean canPreset = AutoWindowSize.canApplyPreset() && !AutoWindowSize.isFixedEnabled();
-        this.cycleAspectButton.active = canPreset;
+        this.aspectLeftButton.active = canPreset;
+        this.aspectCenterButton.active = canPreset;
+        this.aspectRightButton.active = canPreset;
         if (customApplyButton != null) customApplyButton.active = canPreset;
         if (customWidthField != null) customWidthField.active = canPreset;
         if (customHeightField != null) customHeightField.active = canPreset;
@@ -674,35 +740,39 @@ public class ConfigScreen extends Screen {
                 : Component.translatable("gui.autowindowsize.debug.button.off");
     }
 
-    /** 逐个判断预设按钮是否可用：小于硬编码最小值、小于配置值、大于屏幕分辨率都禁用 */
+    /** 逐个判断预设按钮是否可用：锁定开启时低于硬编码最小值/配置值禁用，大于屏幕分辨率、等于当前窗口分辨率始终禁用 */
     private void updatePresetButtonStates() {
         if (this.currentGroup >= AutoWindowSize.PRESETS.length) return;
         int resCount = AutoWindowSize.PRESETS[this.currentGroup].length;
         boolean canPresetGlobal = AutoWindowSize.canApplyPreset() && !AutoWindowSize.isFixedEnabled();
+        boolean lockEnabled = AutoWindowSize.isLockEnabled();
         long hwnd = AutoWindowSize.getWindowHandle();
         int[] screenRes = AutoWindowSize.getCurrentMonitorResolutionStatic(hwnd);
         int configW = Config.WINDOW_WIDTH.get();
         int configH = Config.WINDOW_HEIGHT.get();
         if (Config.DEBUG.get()) {
-            LOGGER.info("[AWS DEBUG] configW={} configH={} hardMinW={} hardMinH={} screenW={} screenH={} canPresetGlobal={}",
-                    configW, configH, Config.HARD_MIN_WIDTH, Config.HARD_MIN_HEIGHT, screenRes[0], screenRes[1], canPresetGlobal);
+            LOGGER.info("[AWS DEBUG] configW={} configH={} hardMinW={} hardMinH={} screenW={} screenH={} canPresetGlobal={} lockEnabled={}",
+                    configW, configH, Config.HARD_MIN_WIDTH, Config.HARD_MIN_HEIGHT, screenRes[0], screenRes[1], canPresetGlobal, lockEnabled);
         }
         for (int i = 0; i < this.presetButtons.length; i++) {
             if (i < resCount) {
                 int[] p = AutoWindowSize.PRESETS[this.currentGroup][i];
                 boolean available = canPresetGlobal;
-                boolean belowHard = (p[0] < Config.HARD_MIN_WIDTH || p[1] < Config.HARD_MIN_HEIGHT);
-                boolean belowConfig = (p[0] < configW || p[1] < configH);
                 boolean aboveScreen = (p[0] > screenRes[0] || p[1] > screenRes[1]);
                 boolean alreadyMatch = (p[0] == this.gameWidth && p[1] == this.gameHeight);
-                if (belowHard) available = false;
-                if (belowConfig) available = false;
+                // 仅在锁定开启时检查低于配置值/硬编码最小值；锁定关闭时玩家可自由选择任意不超过屏幕的分辨率
+                if (lockEnabled) {
+                    boolean belowHard = (p[0] < Config.HARD_MIN_WIDTH || p[1] < Config.HARD_MIN_HEIGHT);
+                    boolean belowConfig = (p[0] < configW || p[1] < configH);
+                    if (belowHard) available = false;
+                    if (belowConfig) available = false;
+                }
                 if (aboveScreen) available = false;
                 if (alreadyMatch) available = false;
                 this.presetButtons[i].active = available;
                 if (Config.DEBUG.get()) {
-                    LOGGER.info("[AWS DEBUG PRESET] i={} p={}x{} belowHard={} belowConfig={} aboveScreen={} alreadyMatch={} available={}",
-                            i, p[0], p[1], belowHard, belowConfig, aboveScreen, alreadyMatch, available);
+                    LOGGER.info("[AWS DEBUG PRESET] i={} p={}x{} aboveScreen={} alreadyMatch={} available={}",
+                            i, p[0], p[1], aboveScreen, alreadyMatch, available);
                 }
             }
         }
@@ -738,15 +808,15 @@ public class ConfigScreen extends Screen {
         Component result = Component.translatable("gui.autowindowsize.aspect.current", cur);
         if (this.currentGroup < AutoWindowSize.PRESETS.length) {
             result = result.copy()
-                    .append(Component.literal("   ["))
+                    .append(Component.literal(" | "))
                     .append(Component.translatable("gui.autowindowsize.aspect.window_resolution"))
-                    .append(Component.literal(gameWidth + "×" + gameHeight + "]"));
+                    .append(Component.literal(gameWidth + "×" + gameHeight));
         }
         return result;
     }
 
     private void markActiveButtons() {
-        this.cycleAspectButton.setMessage(cycleAspectText());
+        this.aspectCenterButton.setMessage(cycleAspectText());
         if (this.currentGroup >= AutoWindowSize.PRESETS.length) return;
         int resCount = AutoWindowSize.PRESETS[this.currentGroup].length;
         for (int i = 0; i < resCount; i++) {
@@ -911,8 +981,8 @@ public class ConfigScreen extends Screen {
         // 每帧记录滚动位置，供 init() 重建列表后恢复（窗口大小变化、子界面返回都会触发重建）
         if (this.list != null) this.lastScroll = this.list.getScrollAmount();
         // 每帧更新比例按钮上的实时分辨率显示，确保拖动/切换状态时总是最新
-        if (this.cycleAspectButton != null) {
-            this.cycleAspectButton.setMessage(cycleAspectText());
+        if (this.aspectCenterButton != null) {
+            this.aspectCenterButton.setMessage(cycleAspectText());
         }
         // 每帧清除所有按钮的焦点状态，避免点击后保持焦点导致白色高亮边框异常
         // （Screen.mouseClicked 会在按钮点击后把焦点设回按钮，必须在渲染前清除）
@@ -935,9 +1005,10 @@ public class ConfigScreen extends Screen {
         if (this.debugButton != null) this.debugButton.setFocused(false);
         if (this.aboutButton != null) this.aboutButton.setFocused(false);
         if (this.centerButton != null) this.centerButton.setFocused(false);
-        if (this.cycleAspectButton != null) this.cycleAspectButton.setFocused(false);
-        if (this.customWidthField != null) this.customWidthField.setFocused(false);
-        if (this.customHeightField != null) this.customHeightField.setFocused(false);
+        if (this.aspectLeftButton != null) this.aspectLeftButton.setFocused(false);
+        if (this.aspectCenterButton != null) this.aspectCenterButton.setFocused(false);
+        if (this.aspectRightButton != null) this.aspectRightButton.setFocused(false);
+        // 注意：不清除 customWidthField / customHeightField 的焦点，否则输入框无法输入文字
         if (this.customApplyButton != null) this.customApplyButton.setFocused(false);
         for (Button b : this.presetButtons) {
             if (b != null) b.setFocused(false);
@@ -958,11 +1029,28 @@ public class ConfigScreen extends Screen {
         return super.mouseScrolled(mouseX, mouseY, delta);
     }
 
+    /** 回车键快速应用自定义分辨率（输入框获得焦点时生效） */
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
+            if (customWidthField != null && customHeightField != null) {
+                if (customWidthField.isFocused() || customHeightField.isFocused()) {
+                    if (customApplyButton != null && customApplyButton.active) {
+                        applyCustomResolution();
+                        return true;
+                    }
+                }
+            }
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
     // ============ 关于页面：显示 mods.toml description 内容 ============
 
     public static class AboutScreen extends Screen {
         private final Screen parent;
         private TextList textList;
+        private double lastScroll = 0;
 
         public AboutScreen(Screen parent) {
             super(Component.translatable("gui.autowindowsize.about.title"));
@@ -973,12 +1061,14 @@ public class ConfigScreen extends Screen {
         protected void init() {
             this.textList = new TextList(this.minecraft, this.width, this.height, 32, this.height - 32, 12);
             this.addWidget(this.textList);
+            this.textList.setScrollAmount(this.lastScroll);
             this.addRenderableWidget(Button.builder(Component.translatable("gui.back"), btn ->
                     this.minecraft.setScreen(this.parent)).bounds(this.width / 2 - 100, this.height - 26, 200, 20).build());
         }
 
         @Override
         public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            if (this.textList != null) this.lastScroll = this.textList.getScrollAmount();
             this.renderBackground(guiGraphics);
             this.textList.render(guiGraphics, mouseX, mouseY, partialTick);
             guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xFFFFFF);
@@ -998,32 +1088,59 @@ public class ConfigScreen extends Screen {
             return false;
         }
 
-        /** 可滚动的文字列表，每行显示 mods.toml description 的一行 */
+        /** 可滚动的文字列表，支持 URL 和邮箱点击跳转 */
         private static class TextList extends AbstractSelectionList<TextList.TextEntry> {
+            private static final Pattern LINK_PATTERN = Pattern.compile("https?://[^\\s]+|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}");
+
             public TextList(Minecraft mc, int width, int height, int y0, int y1, int itemHeight) {
                 super(mc, width, height, y0, y1, itemHeight);
                 String content = loadAboutContent(mc);
-                int maxWidth = width - 28; // 列表宽度 - 滚动条 - 左右边距
+                int maxWidth = width - 28;
                 for (String line : content.split("\n")) {
                     if (line.isEmpty()) {
-                        this.addEntry(new TextEntry(""));
+                        this.addEntry(new TextEntry(FormattedCharSequence.EMPTY));
                     } else {
-                        // 用 Font.split 按可用宽度自动换行，长行拆成多个单行条目
-                        for (FormattedCharSequence seg : mc.font.split(Component.literal(line), maxWidth)) {
-                            this.addEntry(new TextEntry(formattedToString(seg)));
+                        for (FormattedCharSequence seg : mc.font.split(parseClickableText(line), maxWidth)) {
+                            this.addEntry(new TextEntry(seg));
                         }
                     }
                 }
             }
 
-            /** 把 FormattedCharSequence 还原为纯字符串（Font.split 的结果需要手动收集字符） */
-            private static String formattedToString(FormattedCharSequence seq) {
-                StringBuilder sb = new StringBuilder();
-                seq.accept((index, style, codePoint) -> {
-                    sb.appendCodePoint(codePoint);
+            /** 重写滚轮滚动，提高滚动速度（原版太慢，这里改成3倍） */
+            @Override
+            public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+                if (this.isMouseOver(mouseX, mouseY)) {
+                    this.setScrollAmount(this.getScrollAmount() - delta * this.itemHeight * 3);
                     return true;
-                });
-                return sb.toString();
+                }
+                return false;
+            }
+
+            /** 把文本中的 URL 和邮箱解析成带 ClickEvent 的可点击组件（蓝色下划线） */
+            private static net.minecraft.network.chat.MutableComponent parseClickableText(String text) {                net.minecraft.network.chat.MutableComponent result = net.minecraft.network.chat.Component.literal("");
+                Matcher matcher = LINK_PATTERN.matcher(text);
+                int lastEnd = 0;
+                while (matcher.find()) {
+                    if (matcher.start() > lastEnd) {
+                        result.append(net.minecraft.network.chat.Component.literal(text.substring(lastEnd, matcher.start())));
+                    }
+                    String matched = matcher.group();
+                    net.minecraft.network.chat.Style style = net.minecraft.network.chat.Style.EMPTY
+                            .withUnderlined(true)
+                            .withColor(net.minecraft.ChatFormatting.AQUA);
+                    if (matched.startsWith("http")) {
+                        style = style.withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.OPEN_URL, matched));
+                    } else {
+                        style = style.withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.OPEN_URL, "mailto:" + matched));
+                    }
+                    result.append(net.minecraft.network.chat.Component.literal(matched).setStyle(style));
+                    lastEnd = matcher.end();
+                }
+                if (lastEnd < text.length()) {
+                    result.append(net.minecraft.network.chat.Component.literal(text.substring(lastEnd)));
+                }
+                return result;
             }
 
             /** 根据当前游戏语言加载关于页面内容：优先语言文件，回退英文，最后回退 mods.toml description */
@@ -1068,17 +1185,59 @@ public class ConfigScreen extends Screen {
             }
 
             private static class TextEntry extends AbstractSelectionList.Entry<TextEntry> {
-                private final String text;
+                private final FormattedCharSequence text;
+                private int renderX;
 
-                public TextEntry(String text) {
+                public TextEntry(FormattedCharSequence text) {
                     this.text = text;
                 }
 
                 @Override
                 public void render(GuiGraphics guiGraphics, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float partialTick) {
-                    if (text != null && !text.isEmpty()) {
-                        guiGraphics.drawString(Minecraft.getInstance().font, text, x + 4, y + 2, 0xCCCCCC, false);
+                    this.renderX = x + 4;
+                    if (text != null && !text.equals(FormattedCharSequence.EMPTY)) {
+                        guiGraphics.drawString(Minecraft.getInstance().font, text, this.renderX, y + 2, 0xCCCCCC, false);
                     }
+                }
+
+                @Override
+                public boolean mouseClicked(double mouseX, double mouseY, int button) {
+                    if (text == null || text.equals(FormattedCharSequence.EMPTY)) return false;
+                    net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
+                    int relativeX = (int) mouseX - this.renderX;
+                    if (relativeX < 0) return false;
+                    // 遍历字符，累加宽度，找到鼠标位置对应的字符的 Style
+                    final int[] currentWidth = {0};
+                    final net.minecraft.network.chat.Style[] clickedStyle = {null};
+                    text.accept((index, style, codePoint) -> {
+                        int charWidth = font.width(String.valueOf(Character.toChars(codePoint)));
+                        if (relativeX >= currentWidth[0] && relativeX < currentWidth[0] + charWidth) {
+                            clickedStyle[0] = style;
+                            return false;
+                        }
+                        currentWidth[0] += charWidth;
+                        return true;
+                    });
+                    if (clickedStyle[0] != null && clickedStyle[0].getClickEvent() != null) {
+                        String value = clickedStyle[0].getClickEvent().getValue();
+                        if (value.startsWith("mailto:")) {
+                            // 邮箱：点击自动复制到剪贴板
+                            String email = value.substring(7);
+                            Minecraft.getInstance().keyboardHandler.setClipboard(email);
+                            if (Minecraft.getInstance().player != null) {
+                                Minecraft.getInstance().player.displayClientMessage(
+                                        Component.translatable("message.autowindowsize.email_copied", email), false);
+                            }
+                        } else {
+                            // URL：用原版处理（弹确认框后打开浏览器）
+                            Screen screen = Minecraft.getInstance().screen;
+                            if (screen != null) {
+                                screen.handleComponentClicked(clickedStyle[0]);
+                            }
+                        }
+                    }
+                    // 始终返回 false，避免条目被选中显示白色高亮背景框
+                    return false;
                 }
             }
         }

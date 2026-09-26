@@ -1,55 +1,93 @@
 Auto Window Size
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+[Purpose]
+When making modpacks, you spend hours tuning GUIs, HUDs and interfaces. But when players launch on different monitors or resolutions, the window size changes and all layouts break. This mod solves that: turns "game window size" from a random event into a controllable, repeatable, constrained choice. It only manipulates the OS-level window itself, never changes GUI scale, never touches in-game rendering or logic, so it almost never conflicts with other mods.
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+[About]
+A lightweight client mod that auto-resizes, centers and locks the Minecraft game window, keeping carefully tuned modpack UI layouts consistent on every player's PC.
+Features: auto window size on launch, 128 resolution presets (grouped by 8 aspect ratios), minimum-size lock, fixed window size, one-click center, auto fullscreen/maximize/borderless on launch, window position memory, always-on-top (3 modes: off/normal/force), borderless mode (windowed/maximized/fullscreen), window state cycle button, 17 /aws client commands, 5 customizable keybinds, multi-monitor awareness, real-time resolution display, debug log mode. Supports 20 languages.
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+[Usage]
+1. Install and launch. Click "Window Management & Resolution Settings" in Accessibility Settings, or use /aws gui.
+2. Adjust settings: window size, minimum-size lock, fixed size, auto fullscreen/maximize/borderless, always-on-top, borderless mode.
+3. Resolution presets: use left/right arrows to switch between 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16, Custom. Center shows current ratio and real-time window resolution. Below are 16 preset buttons, click to resize and center.
+4. Custom resolution: switch to "Custom" ratio, enter width and height, click "Apply" or press Enter. Apply button disables when out of range.
+5. Keybinds: bind in Controls Settings for "Open Auto Window Size Settings", "Center Window", "Toggle Borderless", "Cycle Window State", "Toggle Always-on-Top". Unbound by default.
+6. Commands: type /aws help for paginated command list (3 pages, 8 per page).
+7. Config files: config/AutoWindowSize/config.toml (main) and config/AutoWindowSize/window.json (saved window position).
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
+[Commands]
+All commands start with /aws. Type /aws help for full paginated list.
+Common commands:
+- /aws help [page] - Show command list (3 pages, 8 per page)
+- /aws gui - Open Window Management & Resolution Settings
+- /aws about - Open About page
+- /aws info - Show current window, config and resolution info
+- /aws version - Show mod version info
+- /aws config - Open config folder
+- /aws status - Check minimum-size lock status
+- /aws toggle [true/false] - Toggle minimum-size lock
+- /aws fixed [true/false] - Toggle fixed window size
+- /aws center - Center window on current monitor
+- /aws fullscreen [true/false] - Toggle current fullscreen state
+- /aws maximize [true/false] - Toggle current maximized state
+- /aws remember [true/false] - Toggle window position memory
+- /aws top [off/normal/force] - Cycle or set always-on-top mode
+- /aws debug [true/false] - Toggle debug log
+- /aws borderless [true/false] - Toggle borderless mode
+- /aws borderless auto [true/false] - Toggle auto borderless on launch
+- /aws resolution [ratio] <preset> - Apply resolution and center, Tab-completion supported
+
+[Keybinds]
+All unbound by default. Set in Options > Controls > Auto Window Size. Pressing gives chat feedback.
+- Open Auto Window Size Settings - Open settings screen
+- Center Window - Center on current monitor
+- Toggle Borderless - Toggle borderless mode on/off
+- Cycle Window State - Cycle windowed > maximized > fullscreen
+- Toggle Always-on-Top - Cycle always-on-top (off > normal > force)
+
+[Download]
+Recommended to download latest from GitHub first. Other platforms may be delayed by review or sync.
 - GitHub:
   https://github.com/3270728922/AutoWindowSize
 - CurseForge:
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - Modrinth:
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MCMod:
   https://www.mcmod.cn/class/30769.html
 - MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
 - BBSMC:
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- KLPBBS:
   https://klpbbs.com/thread-173769-1-1.html
 - HIMCBBS:
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
+[Feedback]
+Found bugs or have suggestions? Feedback via:
 - GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 - GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- KLPBBS Thread:
   https://klpbbs.com/thread-173769-1-1.html
 - MCBBS Thread:
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+Please include game version, Forge version, mod version, crash log (if any) and reproduction steps.
 
-【Author】
+[Notes]
+- Config auto-migration: Since v1.1.1, the mod auto-detects and migrates old config on first launch after upgrade. No need to manually delete config folder. Chat will notify when migration completes.
+- Client-only mod: Only needs to be installed on client, not server.
+- Platform support: Desktop Java Edition only (Windows / macOS / Linux). No mobile / Bedrock.
+- Windowed borderless & Windows Snap: Current version may have compatibility issues with Windows Snap in windowed borderless mode. Workaround: disable minimum-size lock first, use Windows Snap to adjust, then re-enable lock.
+- Force always-on-top: Force mode stays on top among same-level always-on-top windows, but will not be higher than system-level always-on-top windows (e.g. Task Manager).
+
+[Author]
 Author: JujuMLQwQ, ML
+Email: jujuawa@qq.com (click to copy)
 GitHub: https://github.com/3270728922
 License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+Current version: v1.1.2
+Default resolution 1280x720; hard-coded minimum 856x482; maximum 7680x4320.

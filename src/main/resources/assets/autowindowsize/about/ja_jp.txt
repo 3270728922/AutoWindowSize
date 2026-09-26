@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size（自動ウィンドウサイズ）
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【制作目的】
+モッドパックを作るとき、GUI、HUD、インターフェースを完璧に調整するのに多くの時間を費やします。しかし、プレイヤーが異なるモニターや解像度でゲームを起動すると、ウィンドウサイズが変わってレイアウトがすべて崩れてしまいます。このモッドはその問題を解決するためのものです：「ゲームウィンドウサイズ」をランダムなイベントから、制御可能で再現可能で制約された選択肢に変えます。機能範囲は意図的に最小限に抑えられており、OSレベルのウィンドウ自体のみを操作し、GUIスケールを変更せず、ゲーム内レンダリングやゲームロジックには一切触れないため、他のモッドと競合することはほとんどありません。
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【MOD 紹介】
+Minecraft ゲームウィンドウを自動的にリサイズ、センタリング、ロックする軽量なクライアント側モッドで、慎重に調整されたモッドパックの UI レイアウトをすべてのプレイヤーのコンピュータで一貫して保ちます。
+主な機能：起動時の自動ウィンドウサイズ調整、128個の解像度プリセット（8種類のアスペクト比でグループ化）、最小サイズロック、ウィンドウサイズ固定、ワンクリックセンタリング、起動時の自動フルスクリーン/最大化/ボーダーレス、ウィンドウ位置記憶、ウィンドウ最前面（オフ/標準最前面/強制最前面の3段階）、ボーダーレスウィンドウモード（ウィンドウ/最大化/フルスクリーンの3状態）、ウィンドウ状態サイクルボタン、17個の /aws クライアントコマンド、5個のカスタマイズ可能なキーバインド、マルチモニター対応、リアルタイム解像度表示、デバッグログモードなど。20言語に対応。
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【使用方法】
+1、モッドをインストールしてゲームを起動し、「アクセシビリティ設定」の「ウィンドウ管理と解像度設定」ボタンをクリックして設定画面を開くか、/aws gui コマンドを使用します。
+2、設定画面で各種設定を調整：ウィンドウサイズ、最小サイズロック、ウィンドウサイズ固定、自動フルスクリーン/最大化/ボーダーレス、ウィンドウ最前面、ボーダーレスモードなど。
+3、解像度プリセット：アスペクト比セレクターの左右矢印で 16:9、16:10、4:3、5:4、21:9、3:2、2:1、9:16、カスタム を切り替え、中央に現在の比率とウィンドウのリアルタイム解像度が表示され、下に対応する比率の16個のプリセットボタンが表示されます。クリックするとワンクリックでウィンドウサイズを調整してセンタリングします。
+4、カスタム解像度：「カスタム」比率に切り替えた後、入力ボックスに幅と高さを入力し、「適用」ボタンをクリックするか Enter キーを押します。入力値が範囲外の場合、適用ボタンは無効になりヒントが表示されます。
+5、キーバインド：「コントロール設定」で「Auto Window Size 設定を開く」、「ウィンドウをセンタリング」、「ボーダーレスを切り替え」、「ウィンドウ状態をサイクル」、「ウィンドウ最前面を切り替え」にキーを割り当てます。デフォルトでは未割り当てです。
+6、コマンド：/aws help と入力すると、ページ分割された完全なコマンドリストが表示されます（全3ページ、各ページ8件）。
+7、設定ファイル：config/AutoWindowSize/config.toml（メイン設定）と config/AutoWindowSize/window.json（保存されたウィンドウ位置）。
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
-- GitHub:
+【コマンド】
+すべてのコマンドは /aws で始まります。ゲーム内で /aws help と入力すると、ページ分割された完全なコマンドリストが表示されます。
+よく使うコマンド：
+· /aws help [ページ] - コマンドリストを表示（全3ページ、各ページ8件）
+· /aws gui - ウィンドウ管理と解像度設定画面を開く
+· /aws about - バージョン情報ページを開く
+· /aws info - 現在のウィンドウ、設定、解像度情報を表示
+· /aws version - モッドのバージョン情報を表示
+· /aws config - 設定フォルダを開く
+· /aws status - 最小サイズロックの状態を確認
+· /aws toggle [true/false] - 最小サイズロックを切り替え
+· /aws fixed [true/false] - ウィンドウサイズ固定を切り替え
+· /aws center - 現在のモニターでウィンドウをセンタリング
+· /aws fullscreen [true/false] - 現在のフルスクリーン状態を切り替え
+· /aws maximize [true/false] - 現在の最大化状態を切り替え
+· /aws remember [true/false] - ウィンドウ位置記憶を切り替え
+· /aws top [off/normal/force] - ウィンドウ最前面モードをサイクルまたは直接切り替え
+· /aws debug [true/false] - デバッグログを切り替え
+· /aws borderless [true/false] - ボーダーレスモードを切り替え
+· /aws borderless auto [true/false] - 起動時の自動ボーダーレスを切り替え
+· /aws resolution [比率] <プリセット> - 解像度を適用してセンタリング、Tab 自動補完に対応
+
+【キーバインド】
+すべてのキーバインドはデフォルトで未割り当てです。「オプション → コントロール → Auto Window Size」で設定します。押すとチャット欄にフィードバックが表示されます。
+· Auto Window Size 設定を開く - ウィンドウ管理と解像度設定画面を開く
+· ウィンドウをセンタリング - 現在のモニターでウィンドウをセンタリング
+· ボーダーレスを切り替え - ボーダーレスモードのオン/オフを切り替え
+· ウィンドウ状態をサイクル - ウィンドウ → 最大化 → フルスクリーン をサイクル
+· ウィンドウ最前面を切り替え - ウィンドウ最前面モードをサイクル（オフ→標準最前面→強制最前面）
+
+【ダウンロード先】
+最新バージョンは GitHub からダウンロードすることを推奨します。他のプラットフォームは審査や同期の遅れで数日遅れる場合があります。
+- GitHub：
   https://github.com/3270728922/AutoWindowSize
-- CurseForge:
+- CurseForge：
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
-- Modrinth:
+- Modrinth：
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MC百科：
   https://www.mcmod.cn/class/30769.html
-- MCBBS:
+- MCBBS：
   https://www.mcbbs.co/thread-6322-1-1.html
-- BBSMC:
+- BBSMC：
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- Creeper Forum：
   https://klpbbs.com/thread-173769-1-1.html
-- HIMCBBS:
+- HIMCBBS：
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
-- GitHub Issues:
+【フィードバック先】
+バグを見つけたり機能の提案がある場合は、以下のチャンネルからお気軽にフィードバックしてください：
+- GitHub Issues：
   https://github.com/3270728922/AutoWindowSize/issues
-- GitHub Discussions:
+- GitHub Discussions：
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- Creeper Forum スレッド：
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- MCBBS スレッド：
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+フィードバックの際は、ゲームバージョン、Forge バージョン、モッドバージョン、クラッシュログ（ある場合）、再現手順を添付してください。
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【注意事項】
+· 設定の自動移行：v1.1.1 以降、アップグレード時にモッドが初回起動時に古い設定ファイルを自動的に検出して移行します。設定フォルダを手動で削除する必要はなく、ワールドに入るとチャット欄に移行完了が通知されます。
+· クライアント専用モッド：クライアントへのインストールのみが必要で、サーバーへのインストールは不要です。
+· プラットフォーム対応：デスクトップ Java 版（Windows / macOS / Linux）のみ対応し、モバイル版 / 統合版には対応しません。
+· ウィンドウボーダーレスと Windows スナップ：現在のバージョンでは、ウィンドウボーダーレスモードで Windows スナップ（ウィンドウスナップ）機能に互換性の問題が生じる可能性があります。一時的な解決方法：まず最小サイズロックを解除し、Windows スナップでウィンドウを調整してからロックを再び有効にします。
+· 強制最前面の説明：強制最前面モードは同レベルの最前面ウィンドウの中で常に最前に保たれ、同レベルの最前面ウィンドウに覆われることはありませんが、システムレベルの最前面ウィンドウ（タスクマネージャーなど）より上になることはありません。
+
+【作者情報】
+作者：JujuMLQwQ, ML
+メール：jujuawa@qq.com (クリックしてコピー)
+GitHub ホーム：https://github.com/3270728922
+ライセンス：MIT License
+現在のバージョン：v1.1.2
+デフォルト解像度 1280x720；ハードコードされた最小解像度 856x482；最大 7680x4320。

@@ -151,6 +151,9 @@ dependencies {
 // When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
 // See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
 tasks.named('processResources', ProcessResources).configure {
+    // 确保资源文件使用UTF-8编码，避免中文在Windows上被损坏
+    filteringCharset = 'UTF-8'
+
     var replaceProperties = [
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
             forge_version: forge_version, forge_version_range: forge_version_range,
@@ -167,6 +170,9 @@ tasks.named('processResources', ProcessResources).configure {
 
 // Example for how to get properties into the manifest for reading at runtime.
 tasks.named('jar', Jar).configure {
+    // 自定义 jar 文件名：AutoWindowSize-1.20.1-1.1.2.jar
+    archiveFileName = "AutoWindowSize-${minecraft_version}-${mod_version}.jar"
+
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,

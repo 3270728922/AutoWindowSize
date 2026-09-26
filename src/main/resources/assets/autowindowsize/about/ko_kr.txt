@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size（자동 창 크기）
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【제작 목적】
+모드팩을 만들 때 GUI, HUD, 인터페이스를 완벽하게 조정하는 데 많은 시간을 소비합니다. 하지만 플레이어가 다른 모니터나 해상도에서 게임을 실행하면 창 크기가 바뀌어 모든 레이아웃이 깨집니다. 이 모드는 이러한 문제를 해결하기 위한 것입니다: "게임 창 크기"를 무작위 이벤트에서 제어 가능하고 재현 가능하며 제약된 선택으로 바꿉니다. 기능 범위는 의도적으로 최소한으로 유지되며, OS 수준의 창 자체만 조작하고 GUI 스케일을 변경하지 않으며 게임 내 렌더링이나 게임 로직에 전혀 손대지 않으므로 다른 모드와 충돌하는 경우가 거의 없습니다.
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【MOD 소개】
+Minecraft 게임 창을 자동으로 크기 조정, 중앙 정렬, 잠금하는 가벼운 클라이언트 측 모드로, 세심하게 조정된 모드팩 UI 레이아웃을 모든 플레이어의 컴퓨터에서 일관되게 유지합니다.
+주요 기능: 실행 시 자동 창 크기 조정, 128개의 해상도 프리셋(8가지 화면비로 그룹화), 최소 크기 잠금, 창 크기 고정, 원클릭 중앙 정렬, 실행 시 자동 전체화면/최대화/테두리 없음, 창 위치 기억, 창 항상 위(끄기/표준 항상 위/강제 항상 위 3단계), 테두리 없는 창 모드(창/최대화/전체화면 3가지 상태), 창 상태 순환 버튼, 17개의 /aws 클라이언트 명령어, 5개의 사용자 정의 가능한 단축키, 멀티 모니터 인식, 실시간 해상도 표시, 디버그 로그 모드 등. 20개 언어를 지원합니다.
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【사용 방법】
+1、모드를 설치한 후 게임을 실행하고 "접근성 설정"에서 "창 관리 및 해상도 설정" 버튼을 클릭하여 설정 화면을 열거나 /aws gui 명령어를 사용합니다.
+2、설정 화면에서 다양한 설정을 조정: 창 크기, 최소 크기 잠금, 창 크기 고정, 자동 전체화면/최대화/테두리 없음, 창 항상 위, 테두리 없는 모드 등.
+3、해상도 프리셋: 화면비 선택기의 좌우 화살표로 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16, 사용자 정의 를 전환하고, 중앙에 현재 비율과 창의 실시간 해상도가 표시되며, 아래에 해당 비율의 16개 프리셋 버튼이 표시됩니다. 클릭하면 원클릭으로 창 크기를 조정하고 중앙 정렬합니다.
+4、사용자 정의 해상도: "사용자 정의" 비율로 전환한 후 입력 상자에 너비와 높이를 입력하고 "적용" 버튼을 클릭하거나 Enter 키를 누릅니다. 입력 값이 범위를 벗어나면 적용 버튼이 비활성화되고 힌트가 표시됩니다.
+5、단축키: "컨트롤 설정"에서 "Auto Window Size 설정 열기", "창 중앙 정렬", "테두리 없음 전환", "창 상태 순환", "창 항상 위 전환"에 키를 할당합니다. 기본적으로 할당되지 않았습니다.
+6、명령어: /aws help 를 입력하면 페이지로 나뉜 전체 명령어 목록이 표시됩니다(총 3페이지, 페이지당 8개).
+7、설정 파일: config/AutoWindowSize/config.toml(기본 설정)과 config/AutoWindowSize/window.json(저장된 창 위치).
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
+【명령어】
+모든 명령어는 /aws 로 시작합니다. 게임 내에서 /aws help 를 입력하면 페이지로 나뉜 전체 명령어 목록을 볼 수 있습니다.
+자주 사용하는 명령어:
+· /aws help [페이지] - 명령어 목록 표시(총 3페이지, 페이지당 8개)
+· /aws gui - 창 관리 및 해상도 설정 화면 열기
+· /aws about - 정보 페이지 열기
+· /aws info - 현재 창, 설정, 해상도 정보 표시
+· /aws version - 모드 버전 정보 표시
+· /aws config - 설정 폴더 열기
+· /aws status - 최소 크기 잠금 상태 확인
+· /aws toggle [true/false] - 최소 크기 잠금 전환
+· /aws fixed [true/false] - 창 크기 고정 전환
+· /aws center - 현재 모니터에서 창 중앙 정렬
+· /aws fullscreen [true/false] - 현재 전체화면 상태 전환
+· /aws maximize [true/false] - 현재 최대화 상태 전환
+· /aws remember [true/false] - 창 위치 기억 전환
+· /aws top [off/normal/force] - 창 항상 위 모드를 순환 또는 직접 전환
+· /aws debug [true/false] - 디버그 로그 전환
+· /aws borderless [true/false] - 테두리 없는 모드 전환
+· /aws borderless auto [true/false] - 실행 시 자동 테두리 없음 전환
+· /aws resolution [비율] <프리셋> - 해상도를 적용하고 중앙 정렬, Tab 자동 완성 지원
+
+【단축키】
+모든 단축키는 기본적으로 할당되지 않았습니다. "옵션 → 컨트롤 → Auto Window Size"에서 설정합니다. 누르면 채팅창에 피드백이 표시됩니다.
+· Auto Window Size 설정 열기 - 창 관리 및 해상도 설정 화면 열기
+· 창 중앙 정렬 - 현재 모니터에서 창 중앙 정렬
+· 테두리 없음 전환 - 테두리 없는 모드 켜기/끄기 전환
+· 창 상태 순환 - 창 → 최대화 → 전체화면 순환
+· 창 항상 위 전환 - 창 항상 위 모드 순환(끄기→표준 항상 위→강제 항상 위)
+
+【다운로드 채널】
+최신 버전은 GitHub에서 먼저 다운로드하는 것을 권장합니다. 다른 플랫폼은 심사나 동기화 지연으로 며칠 늦을 수 있습니다.
 - GitHub:
   https://github.com/3270728922/AutoWindowSize
 - CurseForge:
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - Modrinth:
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MC 백과:
   https://www.mcmod.cn/class/30769.html
 - MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
 - BBSMC:
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- Creeper Forum:
   https://klpbbs.com/thread-173769-1-1.html
 - HIMCBBS:
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
+【피드백 채널】
+버그를 발견하거나 기능 제안이 있는 경우 다음 채널을 통해 피드백해 주세요:
 - GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 - GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- Creeper Forum 게시글:
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- MCBBS 게시글:
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+피드백 시 게임 버전, Forge 버전, 모드 버전, 크래시 로그(있는 경우), 재현 단계를 첨부해 주세요.
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【주의사항】
+· 설정 자동 마이그레이션: v1.1.1 부터 업그레이드 시 모드가 첫 실행 시 이전 설정 파일을 자동으로 감지하고 마이그레이션합니다. 설정 폴더를 수동으로 삭제할 필요가 없으며, 월드에 들어가면 채팅창에 마이그레이션 완료가 알림됩니다.
+· 클라이언트 전용 모드: 클라이언트에만 설치하면 되며 서버에는 설치할 필요가 없습니다.
+· 플랫폼 지원: 데스크톱 Java Edition(Windows / macOS / Linux)만 지원하며 모바일 / 베드락 에디션은 지원하지 않습니다.
+· 창 테두리 없음과 Windows 스냅: 현재 버전에서는 창 테두리 없는 모드에서 Windows 스냅(창 스냅) 기능에 호환성 문제가 발생할 수 있습니다. 임시 해결 방법: 먼저 최소 크기 잠금을 해제하고 Windows 스냅으로 창을 조정한 후 잠금을 다시 활성화합니다.
+· 강제 항상 위 설명: 강제 항상 위 모드는 같은 수준의 항상 위 창 중에서 항상 가장 앞에 유지되며 같은 수준의 항상 위 창에 가려지지 않지만, 시스템 수준의 항상 위 창(작업 관리자 등)보다 위에 있지는 않습니다.
+
+【작성자 정보】
+작성자: JujuMLQwQ, ML
+이메일: jujuawa@qq.com (클릭하여 복사)
+GitHub 홈: https://github.com/3270728922
+라이선스: MIT License
+현재 버전: v1.1.2
+기본 해상도 1280x720; 하드코딩된 최소 해상도 856x482; 최대 7680x4320.

@@ -11,6 +11,7 @@ import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.AccessibilityOptionsScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -23,6 +24,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.event.GameShuttingDownEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -65,6 +67,7 @@ public class AutoWindowSize {
 
     // 配置迁移标记：启动时若检测到旧版本配置，自动迁移并在进入世界时提示玩家
     private static boolean configMigrated = false;
+    private static boolean configFileExistedBefore = false;
     private static boolean configMigrationNoticeShown = false;
 
     // 锁定最小窗口的开关（默认开启，运行时状态，不写入配置文件）
@@ -135,6 +138,9 @@ public class AutoWindowSize {
     );
 
     public AutoWindowSize() {
+        // 在Forge创建配置文件之前，检查配置文件是否已存在（区分全新安装 vs 旧版本升级）
+        java.io.File cfgFile = new java.io.File("config/AutoWindowSize/config.toml");
+        configFileExistedBefore = cfgFile.exists();
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.SPEC, "AutoWindowSize/config.toml");
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onRegisterKeyMappings);
@@ -163,6 +169,16 @@ public class AutoWindowSize {
     private static void migrateConfig() {
         try {
             int version = Config.CONFIG_VERSION.get();
+
+            // 全新安装：配置文件是本次新创建的，直接把版本号设为最新，不弹迁移提示
+            if (!configFileExistedBefore) {
+                if (version < Config.CURRENT_CONFIG_VERSION) {
+                    Config.CONFIG_VERSION.set(Config.CURRENT_CONFIG_VERSION);
+                }
+                return;
+            }
+
+            // 旧版本升级：配置文件在本次运行前就存在，按版本号判断是否需要迁移
             if (version >= Config.CURRENT_CONFIG_VERSION) {
                 return; // 已经是最新版本，无需迁移
             }
@@ -458,13 +474,24 @@ public class AutoWindowSize {
     }
 
     /** 常用分辨率预设：按宽高比分组。比例按钮选组，分辨率按钮在组内选具体值。 */
-    public static final String[] ASPECT_NAMES = {"16:9", "16:10", "4:3", "5:4", "21:9", "自定义"};
+    public static final String[] ASPECT_NAMES = {"16:9", "16:10", "4:3", "5:4", "21:9", "3:2", "2:1", "9:16", "自定义"};
     public static final int[][][] PRESETS = {
-            {{856, 482}, {960, 540}, {1024, 576}, {1152, 648}, {1280, 720}, {1366, 768}, {1440, 810}, {1600, 900}, {1760, 990}, {1920, 1080}, {2560, 1440}, {3840, 2160}},
-            {{1024, 640}, {1152, 720}, {1200, 750}, {1280, 800}, {1344, 840}, {1440, 900}, {1600, 1000}, {1680, 1050}, {1920, 1200}, {2048, 1280}, {2560, 1600}, {3840, 2400}},
-            {{640, 480}, {720, 540}, {800, 600}, {960, 720}, {1024, 768}, {1152, 864}, {1280, 960}, {1400, 1050}, {1440, 1080}, {1600, 1200}, {1920, 1440}, {2048, 1536}},
-            {{800, 640}, {1000, 800}, {1100, 880}, {1200, 960}, {1280, 1024}, {1400, 1120}, {1440, 1152}, {1600, 1280}, {1680, 1344}, {1800, 1440}, {1920, 1536}, {2560, 2048}},
-            {{1920, 800}, {2048, 858}, {2280, 960}, {2400, 1000}, {2560, 1080}, {2880, 1200}, {3000, 1260}, {3200, 1350}, {3440, 1440}, {3840, 1600}, {4320, 1800}, {5120, 2160}},
+            // 16:9
+            {{856, 482}, {960, 540}, {1024, 576}, {1152, 648}, {1280, 720}, {1366, 768}, {1440, 810}, {1600, 900}, {1760, 990}, {1920, 1080}, {2048, 1152}, {2240, 1260}, {2560, 1440}, {3200, 1800}, {3840, 2160}, {4096, 2304}},
+            // 16:10
+            {{1024, 640}, {1152, 720}, {1200, 750}, {1280, 800}, {1344, 840}, {1440, 900}, {1600, 1000}, {1680, 1050}, {1920, 1200}, {2048, 1280}, {2240, 1400}, {2560, 1600}, {2880, 1800}, {3200, 2000}, {3840, 2400}, {4096, 2560}},
+            // 4:3
+            {{640, 480}, {720, 540}, {800, 600}, {832, 624}, {960, 720}, {1024, 768}, {1152, 864}, {1280, 960}, {1344, 1008}, {1400, 1050}, {1440, 1080}, {1600, 1200}, {1680, 1260}, {1920, 1440}, {2048, 1536}, {2560, 1920}},
+            // 5:4
+            {{800, 640}, {900, 720}, {1000, 800}, {1100, 880}, {1200, 960}, {1280, 1024}, {1400, 1120}, {1440, 1152}, {1500, 1200}, {1600, 1280}, {1680, 1344}, {1800, 1440}, {1920, 1536}, {2000, 1600}, {2560, 2048}, {2880, 2304}},
+            // 21:9（超宽屏）
+            {{1920, 800}, {2048, 858}, {2280, 960}, {2400, 1000}, {2520, 1080}, {2560, 1080}, {2880, 1200}, {2940, 1260}, {3000, 1260}, {3200, 1350}, {3440, 1440}, {3780, 1620}, {3840, 1600}, {4320, 1800}, {4620, 1980}, {5120, 2160}},
+            // 3:2（Surface 等笔记本常用）
+            {{960, 640}, {1080, 720}, {1200, 800}, {1350, 900}, {1440, 960}, {1500, 1000}, {1620, 1080}, {1800, 1200}, {1920, 1280}, {2160, 1440}, {2400, 1600}, {2640, 1760}, {2880, 1920}, {3000, 2000}, {3240, 2160}, {3600, 2400}},
+            // 2:1（平板/部分超宽屏）
+            {{1024, 512}, {1152, 576}, {1200, 600}, {1280, 640}, {1440, 720}, {1536, 768}, {1600, 800}, {1680, 840}, {1920, 960}, {2048, 1024}, {2160, 1080}, {2400, 1200}, {2560, 1280}, {2880, 1440}, {3200, 1600}, {3840, 1920}},
+            // 9:16（竖屏/手机直播/竖屏显示器）
+            {{540, 960}, {630, 1120}, {720, 1280}, {810, 1440}, {900, 1600}, {990, 1760}, {1080, 1920}, {1170, 2080}, {1260, 2240}, {1350, 2400}, {1440, 2560}, {1620, 2880}, {1800, 3200}, {2160, 3840}, {2430, 4320}, {2700, 4800}},
     };
 
     /** 所有预设的扁平化列表（去重），用于指令补全时建议常用宽度/高度 */
@@ -923,20 +950,49 @@ public class AutoWindowSize {
                             (HELP_LINES.length - 1 + HELP_COMMANDS_PER_PAGE - 1) / HELP_COMMANDS_PER_PAGE))
                             .executes(CommandHandler::cmdHelpPage)));
             aws.then(Commands.literal("gui").executes(CommandHandler::cmdGui));
+            aws.then(Commands.literal("about").executes(CommandHandler::cmdAbout));
+            aws.then(Commands.literal("info").executes(CommandHandler::cmdInfo));
+            aws.then(Commands.literal("version").executes(CommandHandler::cmdVersion));
+            aws.then(Commands.literal("config").executes(CommandHandler::cmdConfig));
             aws.then(Commands.literal("status").executes(CommandHandler::cmdStatus));
-            aws.then(Commands.literal("toggle").executes(CommandHandler::cmdToggle));
-            aws.then(Commands.literal("lock").executes(CommandHandler::cmdLock));
-            aws.then(Commands.literal("unlock").executes(CommandHandler::cmdUnlock));
-            aws.then(Commands.literal("fixed").executes(CommandHandler::cmdFixed));
+            aws.then(Commands.literal("toggle")
+                    .executes(CommandHandler::cmdToggle)
+                    .then(Commands.argument("value", BoolArgumentType.bool())
+                            .executes(CommandHandler::cmdToggle)));
+            aws.then(Commands.literal("fixed")
+                    .executes(CommandHandler::cmdFixed)
+                    .then(Commands.argument("value", BoolArgumentType.bool())
+                            .executes(CommandHandler::cmdFixed)));
             aws.then(Commands.literal("center").executes(CommandHandler::cmdCenter));
-            aws.then(Commands.literal("fullscreen").executes(CommandHandler::cmdFullscreen));
-            aws.then(Commands.literal("maximize").executes(CommandHandler::cmdMaximize));
-            aws.then(Commands.literal("remember").executes(CommandHandler::cmdRemember));
-            aws.then(Commands.literal("top").executes(CommandHandler::cmdTop));
-            aws.then(Commands.literal("debug").executes(CommandHandler::cmdDebug));
+            aws.then(Commands.literal("fullscreen")
+                    .executes(CommandHandler::cmdFullscreen)
+                    .then(Commands.argument("value", BoolArgumentType.bool())
+                            .executes(CommandHandler::cmdFullscreen)));
+            aws.then(Commands.literal("maximize")
+                    .executes(CommandHandler::cmdMaximize)
+                    .then(Commands.argument("value", BoolArgumentType.bool())
+                            .executes(CommandHandler::cmdMaximize)));
+            aws.then(Commands.literal("remember")
+                    .executes(CommandHandler::cmdRemember)
+                    .then(Commands.argument("value", BoolArgumentType.bool())
+                            .executes(CommandHandler::cmdRemember)));
+            aws.then(Commands.literal("top")
+                    .executes(CommandHandler::cmdTop)
+                    .then(Commands.literal("off").executes(ctx -> cmdTopWithMode(ctx, 0)))
+                    .then(Commands.literal("normal").executes(ctx -> cmdTopWithMode(ctx, 1)))
+                    .then(Commands.literal("force").executes(ctx -> cmdTopWithMode(ctx, 2))));
+            aws.then(Commands.literal("debug")
+                    .executes(CommandHandler::cmdDebug)
+                    .then(Commands.argument("value", BoolArgumentType.bool())
+                            .executes(CommandHandler::cmdDebug)));
             aws.then(Commands.literal("borderless")
                     .executes(CommandHandler::cmdBorderless)
-                    .then(Commands.literal("auto").executes(CommandHandler::cmdAutoBorderless)));
+                    .then(Commands.argument("value", BoolArgumentType.bool())
+                            .executes(CommandHandler::cmdBorderless))
+                    .then(Commands.literal("auto")
+                            .executes(CommandHandler::cmdAutoBorderless)
+                            .then(Commands.argument("value", BoolArgumentType.bool())
+                                    .executes(CommandHandler::cmdAutoBorderless))));
             // /aws resolution 支持两种格式：
             //   比例模式：/aws resolution <比例> <预设>，如 /aws resolution 16:9 1920x1080
             //   自定义模式：/aws resolution <宽> <高>，如 /aws resolution 1920 1080
@@ -955,10 +1011,12 @@ public class AutoWindowSize {
         private static final String[] HELP_LINES = {
                 "message.autowindowsize.help.header",
                 "message.autowindowsize.help.gui",
+                "message.autowindowsize.help.about",
+                "message.autowindowsize.help.info",
+                "message.autowindowsize.help.version",
+                "message.autowindowsize.help.config",
                 "message.autowindowsize.help.status",
                 "message.autowindowsize.help.toggle",
-                "message.autowindowsize.help.lock",
-                "message.autowindowsize.help.unlock",
                 "message.autowindowsize.help.fixed",
                 "message.autowindowsize.help.center",
                 "message.autowindowsize.help.fullscreen",
@@ -970,10 +1028,19 @@ public class AutoWindowSize {
                 "message.autowindowsize.help.autoborderless",
                 "message.autowindowsize.help.resolution"
         };
-        // HELP_LINES[0]是标题，HELP_LINES[1..16]是16个命令
+        // HELP_LINES[0]是标题，HELP_LINES[1..18]是18个命令
         private static final int HELP_COMMANDS_PER_PAGE = 8;
         private static final int HELP_TOTAL_PAGES = (HELP_LINES.length - 1 + HELP_COMMANDS_PER_PAGE - 1) / HELP_COMMANDS_PER_PAGE;
 
+        /** 判断指令是否带有 true/false 参数 */
+        private static boolean hasBoolArg(CommandContext<CommandSourceStack> context) {
+            try {
+                BoolArgumentType.getBool(context, "value");
+                return true;
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+        }
         private static int cmdHelp(CommandContext<CommandSourceStack> context) {
             return showHelpPage(context, 1);
         }
@@ -996,9 +1063,9 @@ public class AutoWindowSize {
             for (int i = cmdStart; i < cmdEnd; i++) {
                 player.displayClientMessage(Component.translatable(HELP_LINES[i]), false);
             }
-            // 第10行：页码提示（每页都显示）
+            // 第10行：页码提示（每页都显示，全蓝色）
             player.displayClientMessage(Component.translatable(
-                    "message.autowindowsize.help.page", page, HELP_TOTAL_PAGES), false);
+                    "message.autowindowsize.help.page", page, HELP_TOTAL_PAGES).withStyle(ChatFormatting.AQUA), false);
             return 1;
         }
 
@@ -1008,6 +1075,13 @@ public class AutoWindowSize {
             if (!canAutoFullscreen()) {
                 player.displayClientMessage(Component.translatable("message.autowindowsize.autofs_unavailable"), false);
                 return 0;
+            }
+            if (hasBoolArg(context)) {
+                boolean target = BoolArgumentType.getBool(context, "value");
+                if (target == Config.AUTO_FULLSCREEN.get()) {
+                    player.displayClientMessage(Component.translatable(target ? "message.autowindowsize.autofs_already_on" : "message.autowindowsize.autofs_already_off"), false);
+                    return 1;
+                }
             }
             boolean now = toggleAutoFullscreenPref();
             player.displayClientMessage(Component.translatable(
@@ -1022,6 +1096,13 @@ public class AutoWindowSize {
                 player.displayClientMessage(Component.translatable("message.autowindowsize.automax_unavailable"), false);
                 return 0;
             }
+            if (hasBoolArg(context)) {
+                boolean target = BoolArgumentType.getBool(context, "value");
+                if (target == Config.AUTO_MAXIMIZED.get()) {
+                    player.displayClientMessage(Component.translatable(target ? "message.autowindowsize.automax_already_on" : "message.autowindowsize.automax_already_off"), false);
+                    return 1;
+                }
+            }
             boolean now = toggleAutoMaximizedPref();
             player.displayClientMessage(Component.translatable(
                     now ? "message.autowindowsize.automax_on" : "message.autowindowsize.automax_off"), false);
@@ -1031,13 +1112,20 @@ public class AutoWindowSize {
         private static int cmdRemember(CommandContext<CommandSourceStack> context) {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player == null) return 0;
+            if (hasBoolArg(context)) {
+                boolean target = BoolArgumentType.getBool(context, "value");
+                if (target == Config.REMEMBER_POSITION.get()) {
+                    player.displayClientMessage(Component.translatable(target ? "message.autowindowsize.remember_already_on" : "message.autowindowsize.remember_already_off"), false);
+                    return 1;
+                }
+            }
             boolean now = toggleRememberPosition();
             player.displayClientMessage(Component.translatable(
                     now ? "message.autowindowsize.remember_on" : "message.autowindowsize.remember_off"), false);
             return 1;
         }
 
-        /** /aws top：切换窗口置顶 */
+        /** /aws top：循环切换窗口置顶 */
         private static int cmdTop(CommandContext<CommandSourceStack> context) {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player == null) return 0;
@@ -1051,10 +1139,45 @@ public class AutoWindowSize {
             return 1;
         }
 
+        /** /aws top <off|normal|force>：直接设置窗口置顶模式 */
+        private static int cmdTopWithMode(CommandContext<CommandSourceStack> context, int targetMode) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            int current = Config.ALWAYS_ON_TOP_MODE.get();
+            if (current == targetMode) {
+                String key = switch (targetMode) {
+                    case 1 -> "message.autowindowsize.top_normal";
+                    case 2 -> "message.autowindowsize.top_force";
+                    default -> "message.autowindowsize.top_off";
+                };
+                player.displayClientMessage(Component.translatable(key), false);
+                return 1;
+            }
+            // 循环切换直到达到目标模式
+            int mode = current;
+            while (mode != targetMode) {
+                mode = toggleAlwaysOnTop();
+            }
+            String key = switch (mode) {
+                case 1 -> "message.autowindowsize.top_normal";
+                case 2 -> "message.autowindowsize.top_force";
+                default -> "message.autowindowsize.top_off";
+            };
+            player.displayClientMessage(Component.translatable(key), false);
+            return 1;
+        }
+
         /** /aws debug：切换调试模式 */
         private static int cmdDebug(CommandContext<CommandSourceStack> context) {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player == null) return 0;
+            if (hasBoolArg(context)) {
+                boolean target = BoolArgumentType.getBool(context, "value");
+                if (target == Config.DEBUG.get()) {
+                    player.displayClientMessage(Component.translatable(target ? "message.autowindowsize.debug_already_on" : "message.autowindowsize.debug_already_off"), false);
+                    return 1;
+                }
+            }
             boolean enabled = toggleDebug();
             String key = enabled ? "message.autowindowsize.debug_on" : "message.autowindowsize.debug_off";
             player.displayClientMessage(Component.translatable(key), false);
@@ -1064,6 +1187,13 @@ public class AutoWindowSize {
         private static int cmdBorderless(CommandContext<CommandSourceStack> context) {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player == null) return 0;
+            if (hasBoolArg(context)) {
+                boolean target = BoolArgumentType.getBool(context, "value");
+                if (target == Config.BORDERLESS.get()) {
+                    player.displayClientMessage(Component.translatable(target ? "message.autowindowsize.borderless_already_on" : "message.autowindowsize.borderless_already_off"), false);
+                    return 1;
+                }
+            }
             boolean enabled = toggleBorderless();
             String key = enabled ? "message.autowindowsize.borderless_on" : "message.autowindowsize.borderless_off";
             player.displayClientMessage(Component.translatable(key), false);
@@ -1073,6 +1203,13 @@ public class AutoWindowSize {
         private static int cmdAutoBorderless(CommandContext<CommandSourceStack> context) {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player == null) return 0;
+            if (hasBoolArg(context)) {
+                boolean target = BoolArgumentType.getBool(context, "value");
+                if (target == Config.AUTO_BORDERLESS.get()) {
+                    player.displayClientMessage(Component.translatable(target ? "message.autowindowsize.autoborderless_already_on" : "message.autowindowsize.autoborderless_already_off"), false);
+                    return 1;
+                }
+            }
             boolean enabled = toggleAutoBorderlessPref();
             String key = enabled ? "message.autowindowsize.autoborderless_on" : "message.autowindowsize.autoborderless_off";
             player.displayClientMessage(Component.translatable(key), false);
@@ -1248,6 +1385,13 @@ public class AutoWindowSize {
                 player.displayClientMessage(Component.translatable("message.autowindowsize.fixed_maximized"), false);
                 return 0;
             }
+            if (hasBoolArg(context)) {
+                boolean target = BoolArgumentType.getBool(context, "value");
+                if (target == fixedEnabled) {
+                    player.displayClientMessage(Component.translatable(target ? "message.autowindowsize.fixed_already_on" : "message.autowindowsize.fixed_already_off"), false);
+                    return 1;
+                }
+            }
             boolean nowFixed = toggleFixed();
             if (nowFixed) {
                 player.displayClientMessage(Component.translatable("message.autowindowsize.fixed_on"), false);
@@ -1268,6 +1412,13 @@ public class AutoWindowSize {
                 player.displayClientMessage(Component.translatable("message.autowindowsize.lock_fullscreen_disabled"), false);
                 return 0;
             }
+            if (hasBoolArg(context)) {
+                boolean target = BoolArgumentType.getBool(context, "value");
+                if (target == lockEnabled) {
+                    player.displayClientMessage(Component.translatable(target ? "message.autowindowsize.lock_already_on" : "message.autowindowsize.lock_already_off"), false);
+                    return 1;
+                }
+            }
             boolean nowLocked = toggleLock();
             if (nowLocked) {
                 player.displayClientMessage(Component.translatable("message.autowindowsize.lock_on"), false);
@@ -1276,62 +1427,18 @@ public class AutoWindowSize {
             }
             return 1;
         }
-
-        private static int cmdLock(CommandContext<CommandSourceStack> context) {
-            LocalPlayer player = Minecraft.getInstance().player;
-            if (player == null) return 0;
-            if (lockDisabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.lock_disabled"), false);
-                return 0;
-            }
-            if (fullscreenTempDisabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.lock_fullscreen_disabled"), false);
-                return 0;
-            }
-            if (lockEnabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.lock_already_on"), false);
-                return 1;
-            }
-            enableLock();
-            player.displayClientMessage(Component.translatable("message.autowindowsize.lock_on"), false);
-            return 1;
-        }
-
-        private static int cmdUnlock(CommandContext<CommandSourceStack> context) {
-            LocalPlayer player = Minecraft.getInstance().player;
-            if (player == null) return 0;
-            if (lockDisabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.lock_disabled"), false);
-                return 0;
-            }
-            if (fullscreenTempDisabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.lock_fullscreen_disabled"), false);
-                return 0;
-            }
-            if (!lockEnabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.lock_already_off"), false);
-                return 1;
-            }
-            disableLock();
-            player.displayClientMessage(Component.translatable("message.autowindowsize.lock_off"), false);
-            return 1;
-        }
-
         private static int cmdStatus(CommandContext<CommandSourceStack> context) {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player == null) return 0;
-            long hwnd = Minecraft.getInstance().getWindow().getWindow();
-            int[] res = getCurrentMonitorResolutionStatic(hwnd);
-            String screenRes = res[0] + "×" + res[1];
 
             if (lockDisabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.status_disabled", screenRes), false);
+                player.displayClientMessage(Component.translatable("message.autowindowsize.status_disabled"), false);
             } else if (fullscreenTempDisabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.status_fullscreen", screenRes), false);
+                player.displayClientMessage(Component.translatable("message.autowindowsize.status_fullscreen"), false);
             } else if (lockEnabled) {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.status_on", screenRes), false);
+                player.displayClientMessage(Component.translatable("message.autowindowsize.status_on"), false);
             } else {
-                player.displayClientMessage(Component.translatable("message.autowindowsize.status_off", screenRes), false);
+                player.displayClientMessage(Component.translatable("message.autowindowsize.status_off"), false);
             }
             return 1;
         }
@@ -1339,6 +1446,12 @@ public class AutoWindowSize {
         private static int cmdGui(CommandContext<CommandSourceStack> context) {
             Minecraft mc = Minecraft.getInstance();
             mc.setScreen(new ConfigScreen(mc.screen));
+            return 1;
+        }
+
+        private static int cmdAbout(CommandContext<CommandSourceStack> context) {
+            Minecraft mc = Minecraft.getInstance();
+            mc.setScreen(new ConfigScreen.AboutScreen(mc.screen));
             return 1;
         }
 
@@ -1353,6 +1466,66 @@ public class AutoWindowSize {
             }
             centerWindow();
             player.displayClientMessage(Component.translatable("message.autowindowsize.center_done"), false);
+            return 1;
+        }
+
+        private static int cmdInfo(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            long hwnd = getWindowHandle();
+            int[] screenRes = getCurrentMonitorResolutionStatic(hwnd);
+            int winW = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+            int winH = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+            // 用实际窗口大小（不是GUI缩放后的）
+            winW = Minecraft.getInstance().getWindow().getWidth();
+            winH = Minecraft.getInstance().getWindow().getHeight();
+
+            boolean isFs = GLFW.glfwGetWindowMonitor(hwnd) != 0;
+            String windowStateKey = isFs ? "message.autowindowsize.state_fullscreen" : (isMaximized() ? "message.autowindowsize.state_maximized" : "message.autowindowsize.state_windowed");
+            String lockStateKey = lockDisabled ? "message.autowindowsize.state_disabled_low_res" : (fullscreenTempDisabled ? "message.autowindowsize.state_disabled_fullscreen" : (lockEnabled ? "message.autowindowsize.state_enabled" : "message.autowindowsize.state_disabled"));
+            int topMode = Config.ALWAYS_ON_TOP_MODE.get();
+            String topStateKey = topMode == 0 ? "message.autowindowsize.state_off" : (topMode == 1 ? "message.autowindowsize.state_normal" : "message.autowindowsize.state_forced");
+            String borderlessStateKey = Config.BORDERLESS.get() ? "message.autowindowsize.state_enabled" : "message.autowindowsize.state_disabled";
+            String fixedStateKey = fixedEnabled ? "message.autowindowsize.state_enabled" : "message.autowindowsize.state_disabled";
+            String rememberStateKey = Config.REMEMBER_POSITION.get() ? "message.autowindowsize.state_enabled" : "message.autowindowsize.state_disabled";
+            String debugStateKey = Config.DEBUG.get() ? "message.autowindowsize.state_enabled" : "message.autowindowsize.state_disabled";
+
+            player.displayClientMessage(Component.translatable("message.autowindowsize.info_title"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.info_resolution", winW, winH, screenRes[0], screenRes[1]), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.info_window_state", Component.translatable(windowStateKey), Component.translatable(borderlessStateKey)), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.info_lock", Component.translatable(lockStateKey), Component.translatable(fixedStateKey)), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.info_top", Component.translatable(topStateKey), Component.translatable(rememberStateKey), Component.translatable(debugStateKey)), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.info_footer"), false);
+            return 1;
+        }
+
+        private static int cmdVersion(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_title"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_name"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_number", "1.1.2"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_author"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_license"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_supported"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_email"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_footer"), false);
+            return 1;
+        }
+
+        private static int cmdConfig(CommandContext<CommandSourceStack> context) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return 0;
+            try {
+                java.io.File configDir = new java.io.File(Minecraft.getInstance().gameDirectory, "config/AutoWindowSize");
+                if (!configDir.exists()) {
+                    configDir.mkdirs();
+                }
+                net.minecraft.Util.getPlatform().openFile(configDir);
+                player.displayClientMessage(Component.translatable("message.autowindowsize.config_opened", configDir.getAbsolutePath()), false);
+            } catch (Exception e) {
+                player.displayClientMessage(Component.translatable("message.autowindowsize.config_open_failed", e.getMessage()), false);
+            }
             return 1;
         }
     }
@@ -1372,8 +1545,8 @@ public class AutoWindowSize {
 
             // 配置迁移提示：进入世界后提示玩家配置已自动更新，无需手动删除配置文件
             if (configMigrated && !configMigrationNoticeShown && mc.player != null) {
-                mc.player.displayClientMessage(Component.literal(
-                        "§e[AutoWindowSize] 配置已自动更新到新版本，无需手动删除配置文件。"), false);
+                mc.player.displayClientMessage(Component.translatable("message.autowindowsize.config_migrated"), false);
+
                 configMigrationNoticeShown = true;
                 LOGGER.info("[AutoWindowSize] Config migration notice shown to player.");
             }

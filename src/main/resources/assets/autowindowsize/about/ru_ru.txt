@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size (Автоматический размер окна)
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【Назначение】
+При создании модпака вы тратите много времени на идеальную настройку GUI, HUD и интерфейсов. Но когда игроки запускают игру на разных мониторах или разрешениях, размер окна меняется и все макеты ломаются. Этот мод решает эту проблему: превращает "размер игрового окна" из случайного события в управляемый, воспроизводимый и ограниченный выбор. Его функциональность намеренно минимальна — он работает только с окном на уровне операционной системы, не изменяет масштаб GUI и не затрагивает никакой внутриигровой рендеринг или игровую логику, поэтому почти никогда не конфликтует с другими модами.
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【Описание MOD】
+Лёгкий клиентский мод, который автоматически изменяет размер, центрирует и блокирует игровое окно Minecraft, сохраняя тщательно настроенные макеты UI модпака согласованными на компьютере каждого игрока.
+Основные функции: автоматическое изменение размера окна при запуске, 128 предустановок разрешения (сгруппированы по 8 соотношениям сторон), блокировка минимального размера, фиксированный размер окна, центрирование в один клик, автоматический полноэкранный/развёрнутый/безрамочный режим при запуске, запоминание позиции окна, окно всегда поверх (3 режима: выкл/стандартный/принудительный), безрамочный режим окна (3 состояния: оконный/развёрнутый/полноэкранный), кнопка цикла состояния окна, 17 клиентских команд /aws, 5 настраиваемых горячих клавиш, поддержка нескольких мониторов, отображение разрешения в реальном времени, режим отладочного журнала и т.д. Поддерживает 20 языков.
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【Способ использования】
+1、После установки мода и запуска игры нажмите кнопку "Управление окнами и настройка разрешения" в "Настройках специальных возможностей", чтобы открыть интерфейс конфигурации, или используйте команду /aws gui.
+2、Настройте различные параметры в интерфейсе конфигурации: размер окна, блокировка минимального размера, фиксированный размер окна, автоматический полноэкранный/развёрнутый/безрамочный режим, окно всегда поверх, безрамочный режим и т.д.
+3、Предустановки разрешения: используйте стрелки влево/вправо селектора соотношения сторон для переключения между 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16 и Пользовательское. В центре отображается текущее соотношение и разрешение окна в реальном времени, а ниже отображаются 16 кнопок предустановок для соответствующего соотношения. Нажмите, чтобы одним кликом изменить размер окна и центрировать его.
+4、Пользовательское разрешение: после переключения на соотношение "Пользовательское" введите ширину и высоту в поля ввода, нажмите кнопку "Применить" или клавишу Enter. Кнопка "Применить" отключается с подсказкой, когда введённое значение выходит за пределы диапазона.
+5、Горячие клавиши: назначьте клавиши для "Открыть настройки Auto Window Size", "Центрировать окно", "Переключить безрамочный режим", "Цикл состояния окна" и "Переключить окно всегда поверх" в "Настройках управления". По умолчанию не назначены.
+6、Команды: введите /aws help, чтобы просмотреть постраничный полный список команд (всего 3 страницы, по 8 команд на странице).
+7、Файлы конфигурации: config/AutoWindowSize/config.toml (основная конфигурация) и config/AutoWindowSize/window.json (сохранённая позиция окна).
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
+【Команды】
+Все команды начинаются с /aws. Введите /aws help в игре, чтобы просмотреть постраничный полный список команд.
+Распространённые команды:
+· /aws help [страница] - Показать список команд (3 страницы, по 8 на странице)
+· /aws gui - Открыть интерфейс управления окнами и настройки разрешения
+· /aws about - Открыть страницу "О моде"
+· /aws info - Показать текущую информацию об окне, конфигурации и разрешении
+· /aws version - Показать информацию о версии мода
+· /aws config - Открыть папку конфигурации
+· /aws status - Проверить статус блокировки минимального размера
+· /aws toggle [true/false] - Переключить блокировку минимального размера
+· /aws fixed [true/false] - Переключить фиксированный размер окна
+· /aws center - Центрировать окно на текущем мониторе
+· /aws fullscreen [true/false] - Переключить текущий полноэкранный режим
+· /aws maximize [true/false] - Переключить текущее развёрнутое состояние
+· /aws remember [true/false] - Переключить запоминание позиции окна
+· /aws top [off/normal/force] - Цикл или прямое переключение режима "всегда поверх"
+· /aws debug [true/false] - Переключить отладочный журнал
+· /aws borderless [true/false] - Переключить безрамочный режим
+· /aws borderless auto [true/false] - Переключить автоматический безрамочный режим при запуске
+· /aws resolution [соотношение] <пресет> - Применить разрешение и центрировать, поддерживает автодополнение Tab
+
+【Горячие клавиши】
+Все горячие клавиши по умолчанию не назначены. Настройте их в "Параметры → Управление → Auto Window Size". При нажатии любой горячей клавиши в чате появляется обратная связь.
+· Открыть настройки Auto Window Size - Открыть интерфейс управления окнами и настройки разрешения
+· Центрировать окно - Центрировать окно на текущем мониторе
+· Переключить безрамочный режим - Включить/выключить безрамочный режим
+· Цикл состояния окна - Цикл между оконным → развёрнутым → полноэкранным
+· Переключить окно всегда поверх - Цикл режима "всегда поверх" (выкл → стандартный → принудительный)
+
+【Каналы загрузки】
+Рекомендуется сначала загрузить последнюю версию с GitHub. На других платформах может быть задержка в несколько дней из-за модерации или синхронизации.
 - GitHub:
   https://github.com/3270728922/AutoWindowSize
 - CurseForge:
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - Modrinth:
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MC Энциклопедия:
   https://www.mcmod.cn/class/30769.html
 - MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
 - BBSMC:
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- Форум Creeper:
   https://klpbbs.com/thread-173769-1-1.html
 - HIMCBBS:
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
+【Каналы обратной связи】
+Если вы обнаружили баги или у вас есть предложения по функциям, не стесняйтесь оставлять обратную связь через следующие каналы:
 - GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 - GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- Тема на форуме Creeper:
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- Тема на MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+При обратной связи, пожалуйста, укажите версию игры, версию Forge, версию мода, журнал краша (если есть) и шаги воспроизведения.
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【Примечания】
+· Автоматическая миграция конфигурации: начиная с v1.1.1, при обновлении мод автоматически обнаруживает и переносит старые файлы конфигурации при первом запуске. Не нужно вручную удалять папку конфигурации. После входа в мир в чате появится уведомление о завершении миграции.
+· Мод только для клиента: нужно устанавливать только на клиент, не нужно на сервер.
+· Поддержка платформ: поддерживается только настольная Java Edition (Windows / macOS / Linux), не поддерживается мобильная / Bedrock Edition.
+· Безрамочное окно и Windows Snap: в текущей версии функция Windows Snap (прикрепление окон) может иметь проблемы совместимости в безрамочном оконном режиме. Временное решение: сначала отключите блокировку минимального размера, используйте Windows Snap для настройки окна, затем снова включите блокировку.
+· Примечание о принудительном режиме "всегда поверх": принудительный режим всегда остаётся поверх окон "всегда поверх" того же уровня и не перекрывается ими, но не будет выше окон "всегда поверх" на системном уровне (например, диспетчер задач).
+
+【Информация об авторе】
+Автор: JujuMLQwQ, ML
+Эл. почта: jujuawa@qq.com (Нажмите, чтобы скопировать)
+Страница GitHub: https://github.com/3270728922
+Лицензия: MIT License
+Текущая версия: v1.1.2
+Разрешение по умолчанию 1280x720; жёстко закодированное минимальное разрешение 856x482; максимальное 7680x4320.

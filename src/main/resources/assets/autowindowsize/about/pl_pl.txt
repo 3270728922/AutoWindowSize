@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size (Automatyczny rozmiar okna)
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【Cel】
+Podczas tworzenia modpacka spędzasz dużo czasu na idealnym dopasowywaniu GUI, HUD i interfejsów. Ale kiedy gracze uruchamiają grę na różnych monitorach lub rozdzielczościach, rozmiar okna się zmienia i wszystkie układy się psują. Ten mod rozwiązuje ten problem: zamienia "rozmiar okna gry" z losowego zdarzenia w sterowalny, powtarzalny i ograniczony wybór. Jego zakres jest celowo minimalny — działa tylko na oknie na poziomie systemu operacyjnego, nie zmienia skali GUI i nie dotyka żadnego renderowania w grze ani logiki gry, dlatego prawie nigdy nie wchodzi w konflikt z innymi modami.
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【Prezentacja MOD】
+Lekki mod po stronie klienta, który automatycznie zmienia rozmiar, centruje i blokuje okno gry Minecraft, utrzymując starannie dopasowane układy UI modpacka spójne na komputerze każdego gracza.
+Główne funkcje: automatyczna zmiana rozmiaru okna przy uruchomieniu, 128 ustawień wstępnych rozdzielczości (pogrupowanych według 8 proporcji obrazu), blokada minimalnego rozmiaru, stały rozmiar okna, centrowanie jednym kliknięciem, automatyczny pełny ekran/maksymalizacja/bezramkowy tryb przy uruchomieniu, pamięć pozycji okna, okno zawsze na wierzchu (3 tryby: wył/standardowy/wymuszony), bezramkowy tryb okna (3 stany: okno/maksymalizowane/pełny ekran), przycisk cyklu stanu okna, 17 poleceń klienta /aws, 5 konfigurowalnych skrótów klawiszowych, obsługa wielu monitorów, wyświetlanie rozdzielczości w czasie rzeczywistym, tryb dziennika debugowania itp. Obsługuje 20 języków.
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【Sposób użycia】
+1、Po zainstalowaniu moda i uruchomieniu gry kliknij przycisk "Zarządzanie oknami i ustawienia rozdzielczości" w "Ustawieniach dostępności", aby otworzyć interfejs konfiguracji, lub użyj polecenia /aws gui.
+2、Dostosuj różne ustawienia w interfejsie konfiguracji: rozmiar okna, blokada minimalnego rozmiaru, stały rozmiar okna, automatyczny pełny ekran/maksymalizacja/bezramkowy tryb, okno zawsze na wierzchu, bezramkowy tryb itp.
+3、Ustawienia wstępne rozdzielczości: użyj strzałek lewo/prawo selektora proporcji obrazu, aby przełączać się między 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16 i Niestandardowe. Na środku wyświetlana jest bieżąca proporcja i rozdzielczość okna w czasie rzeczywistym, a poniżej wyświetlanych jest 16 przycisków ustawień wstępnych dla odpowiedniej proporcji. Kliknij, aby jednym kliknięciem zmienić rozmiar okna i wycentrować je.
+4、Niestandardowa rozdzielczość: po przełączeniu na proporcję "Niestandardowe" wprowadź szerokość i wysokość w polach wprowadzania, kliknij przycisk "Zastosuj" lub naciśnij klawisz Enter. Przycisk Zastosuj jest wyłączony z podpowiedzią, gdy wprowadzona wartość jest poza zakresem.
+5、Skróty klawiszowe: przypisz klawisze dla "Otwórz ustawienia Auto Window Size", "Wyśrodkuj okno", "Przełącz bezramkowy", "Cykl stanu okna" i "Przełącz okno zawsze na wierzchu" w "Ustawieniach sterowania". Domyślnie nieprzypisane.
+6、Polecenia: wpisz /aws help, aby wyświetlić podzieloną na strony pełną listę poleceń (łącznie 3 strony, 8 poleceń na stronę).
+7、Pliki konfiguracyjne: config/AutoWindowSize/config.toml (konfiguracja główna) i config/AutoWindowSize/window.json (zapisana pozycja okna).
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
+【Polecenia】
+Wszystkie polecenia zaczynają się od /aws. Wpisz /aws help w grze, aby wyświetlić podzieloną na strony pełną listę poleceń.
+Częste polecenia:
+· /aws help [strona] - Pokaż listę poleceń (3 strony, 8 na stronę)
+· /aws gui - Otwórz interfejs zarządzania oknami i ustawienia rozdzielczości
+· /aws about - Otwórz stronę O modzie
+· /aws info - Pokaż bieżące informacje o oknie, konfiguracji i rozdzielczości
+· /aws version - Pokaż informacje o wersji moda
+· /aws config - Otwórz folder konfiguracji
+· /aws status - Sprawdź stan blokady minimalnego rozmiaru
+· /aws toggle [true/false] - Przełącz blokadę minimalnego rozmiaru
+· /aws fixed [true/false] - Przełącz stały rozmiar okna
+· /aws center - Wyśrodkuj okno na bieżącym monitorze
+· /aws fullscreen [true/false] - Przełącz bieżący stan pełnego ekranu
+· /aws maximize [true/false] - Przełącz bieżący stan maksymalizacji
+· /aws remember [true/false] - Przełącz pamięć pozycji okna
+· /aws top [off/normal/force] - Cykluj lub ustaw bezpośrednio tryb zawsze na wierzchu
+· /aws debug [true/false] - Przełącz dziennik debugowania
+· /aws borderless [true/false] - Przełącz bezramkowy tryb
+· /aws borderless auto [true/false] - Przełącz automatyczny bezramkowy tryb przy uruchomieniu
+· /aws resolution [proporcja] <ustawienie wstępne> - Zastosuj rozdzielczość i wyśrodkuj, obsługuje autouzupełnianie Tab
+
+【Skróty klawiszowe】
+Wszystkie skróty klawiszowe są domyślnie nieprzypisane. Skonfiguruj je w "Opcje → Sterowanie → Auto Window Size". Po naciśnięciu dowolnego skrótu wyświetlana jest informacja zwrotna na czacie.
+· Otwórz ustawienia Auto Window Size - Otwórz interfejs zarządzania oknami i ustawienia rozdzielczości
+· Wyśrodkuj okno - Wyśrodkuj okno na bieżącym monitorze
+· Przełącz bezramkowy - Włącz/wyłącz bezramkowy tryb
+· Cykl stanu okna - Cykluj między okno → maksymalizowane → pełny ekran
+· Przełącz okno zawsze na wierzchu - Cykluj tryb zawsze na wierzchu (wył → standardowy → wymuszony)
+
+【Kanały pobierania】
+Zaleca się najpierw pobrać najnowszą wersję z GitHub. Inne platformy mogą mieć kilkudniowe opóźnienie z powodu moderacji lub synchronizacji.
 - GitHub:
   https://github.com/3270728922/AutoWindowSize
 - CurseForge:
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - Modrinth:
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- Encyklopedia MC:
   https://www.mcmod.cn/class/30769.html
 - MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
 - BBSMC:
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- Forum Creeper:
   https://klpbbs.com/thread-173769-1-1.html
 - HIMCBBS:
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
+【Kanały opinii】
+Jeśli napotkasz błędy lub masz propozycje funkcji, nie wahaj się przekazać opinii przez następujące kanały:
 - GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 - GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- Wątek na Forum Creeper:
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- Wątek na MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+Przekazując opinię, proszę podać wersję gry, wersję Forge, wersję moda, dziennik crash (jeśli jest) i kroki odtworzenia.
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【Uwagi】
+· Automatyczna migracja konfiguracji: od v1.1.1, podczas aktualizacji mod automatycznie wykrywa i migruje stare pliki konfiguracyjne przy pierwszym uruchomieniu. Nie musisz ręcznie usuwać folderu konfiguracji. Po wejściu do świata czat powiadomi o zakończeniu migracji.
+· Mod tylko po stronie klienta: musi być zainstalowany tylko na kliencie, nie na serwerze.
+· Obsługa platform: obsługuje tylko desktopową Java Edition (Windows / macOS / Linux), nie obsługuje mobilnej / Bedrock Edition.
+· Bezramkowe okno i Windows Snap: w bieżącej wersji funkcja Windows Snap (przyciąganie okien) może mieć problemy z kompatybilnością w bezramkowym trybie okna. Tymczasowe rozwiązanie: najpierw wyłącz blokadę minimalnego rozmiaru, użyj Windows Snap do dostosowania okna, a następnie ponownie włącz blokadę.
+· Uwaga o wymuszonym zawsze na wierzchu: tryb wymuszony zawsze pozostaje na wierzchu wśród okien zawsze na wierzchu tego samego poziomu i nie jest przez nie zasłaniany, ale nie będzie wyższy niż okna zawsze na wierzchu na poziomie systemu (np. Menedżer zadań).
+
+【Informacje o autorze】
+Autor: JujuMLQwQ, ML
+E-mail: jujuawa@qq.com (Kliknij, aby skopiować)
+Strona GitHub: https://github.com/3270728922
+Licencja: MIT License
+Bieżąca wersja: v1.1.2
+Domyślna rozdzielczość 1280x720; zakodowana na stałe minimalna rozdzielczość 856x482; maksymalna 7680x4320.

@@ -1,6 +1,6 @@
 # Auto Window Size
 
-> A Minecraft 1.20.1 / Forge client-side mod — auto window sizing, centering, minimum-size lock, fixed window size, borderless mode, always-on-top (3 modes), window state cycle, 5 keybinds, 60 resolution presets, and auto-fullscreen/maximize/borderless on launch.
+> A Minecraft 1.20.1 / Forge client-side mod — auto window sizing, centering, minimum-size lock, fixed window size, borderless mode, always-on-top (3 modes), window state cycle, 5 keybinds, 128 resolution presets (8 ratios × 16), 17 commands (18 including borderless auto subcommand), and auto-fullscreen/maximize/borderless on launch.
 
 > **⚠ Platform notice: this mod only supports desktop Minecraft (Windows / macOS / Linux). It does not work on mobile / Bedrock. Windows is fully tested; macOS / Linux are experimental and may have edge-case issues with borderless mode, always-on-top, and window state detection.**
 
@@ -15,7 +15,7 @@
 When building a modpack you spend ages arranging mod GUIs exactly right — then a player launches on a different resolution, the window resizes, and every layout breaks. Auto Window Size turns "game window size" from a lucky accident into a deliberate choice: on launch it sizes the window to your resolution and centers it, can lock a minimum size, fully freeze the window size, center it in one click, and even start fullscreen. It only touches the OS-level window and almost never conflicts with other mods.
 
 - **Auto window sizing on launch**: after a configurable delay (default 1.5s) it sets the window to your configured resolution (default 1280×720) and centers it, without stretching the loading screen.
-- **Resolution presets**: grouped by aspect ratio (16:9 / 16:10 / 4:3 / 5:4 / 21:9) with 12 one-click presets per ratio, plus a custom resolution input; presets larger than your screen, smaller than the configured minimum, or matching the current size are auto-disabled.
+- **Resolution presets**: grouped by 8 aspect ratios (16:9 / 16:10 / 4:3 / 5:4 / 21:9 / 3:2 / 2:1 / 9:16) with 16 one-click presets per ratio (128 total), plus a custom resolution input; presets larger than your screen, smaller than the configured minimum, or matching the current size are auto-disabled.
 - **Minimum size lock**: the window can grow freely but cannot shrink below the configured size, keeping tuned UI layouts intact.
 - **Fixed window size**: freezes the window at its current size; the maximize button is disabled at the OS level, so a "fake maximized" state is impossible.
 - **Center window**: one-click centering on whichever monitor the window is on.
@@ -24,7 +24,7 @@ When building a modpack you spend ages arranging mod GUIs exactly right — then
 - **Auto-fullscreen / auto-maximize / auto-borderless on launch**: players can persistently toggle "start fullscreen", "start maximized", or "start borderless" on next launch; modpack authors can set a one-time onboarding flag.
 - **Window position memory**: optionally save and restore the window position and size across launches instead of forcing center; compatible with auto-fullscreen / auto-maximize.
 - **Cycle window state**: one button / keybind to cycle through windowed → maximized → fullscreen.
-- **Native entry point**: a "Window Settings" button in Options → Accessibility Settings (moved from Video Settings to stay compatible with mods like Embeddium that replace the video settings screen).
+- **Native entry point**: a "Window Management & Resolution Settings" button in Options → Accessibility Settings (moved from Video Settings to stay compatible with mods like Embeddium that replace the video settings screen).
 - **Client-side only**, no server install; works out of the box at 1280×720.
 
 <details>
@@ -32,7 +32,7 @@ When building a modpack you spend ages arranging mod GUIs exactly right — then
 
 <br>
 
-**1. Settings entry** — Options → Accessibility Settings → Window Settings
+**1. Settings entry** — Options → Accessibility Settings → Window Management & Resolution Settings
 ![Window Settings button in Accessibility Settings](docs/en-accessibility-entry.png)
 
 **2. Main settings screen** — all toggles, info area, and 16:9 resolution presets
@@ -60,9 +60,9 @@ When building a modpack you spend ages arranging mod GUIs exactly right — then
 ## Quick Start
 
 1. Install Minecraft 1.20.1 with Forge (47.x or newer).
-2. Drop `autowindowsize-1.1.1.jar` into your `.minecraft/mods/` folder.
+2. Drop `AutoWindowSize-1.20.1-1.1.2.jar` into your `.minecraft/mods/` folder.
 3. Launch the game. The window will automatically resize to 1280×720 and center after 1.5 seconds.
-4. Open **Options → Accessibility Settings → Window Settings** to configure everything.
+4. Open **Options → Accessibility Settings → Window Management & Resolution Settings** to configure everything.
 
 ---
 
@@ -70,7 +70,7 @@ When building a modpack you spend ages arranging mod GUIs exactly right — then
 
 ### Opening the settings screen
 
-Go to **Options → Accessibility Settings**, then click the **Window Settings** button at the top of the list.
+Go to **Options → Accessibility Settings**, then click the **Window Management & Resolution Settings** button at the top of the list.
 
 ### Core features at a glance
 
@@ -83,7 +83,7 @@ Go to **Options → Accessibility Settings**, then click the **Window Settings**
 | Borderless mode | Removes window decorations (title bar + borders) |
 | Always-on-top | Keeps the window above other windows (3 modes) |
 | Remember position | Saves/restores window position and size across launches |
-| Resolution presets | 60 presets across 5 aspect ratios, plus custom input |
+| Resolution presets | 128 presets across 8 aspect ratios, plus custom input |
 | Cycle state | Cycles windowed → maximized → fullscreen |
 
 > 💡 **Tip**: Hover over any button in the settings screen for a detailed tooltip explaining what it does.
@@ -96,23 +96,26 @@ All commands use the `/aws` prefix. Type `/aws help` in-game for the full list w
 
 | Command | Description |
 |---------|-------------|
-| `/aws help [page]` | Show the command list (2 pages, 8 commands per page) |
-| `/aws gui` | Open the Window Settings screen |
+| `/aws help [page]` | Show the command list (3 pages, 8 commands per page) |
+| `/aws gui` | Open the Window Management & Resolution Settings screen |
+| `/aws about` | Open the About page |
+| `/aws info` | Show detailed window info (resolution, state, lock, top, borderless, etc.) |
+| `/aws version` | Show mod version, author, license, and contact info |
+| `/aws config` | Open the config folder in file explorer |
 | `/aws status` | Show current window state, config status, and resolution |
-| `/aws toggle` | Toggle minimum size lock on/off |
-| `/aws lock` | Enable minimum size lock |
-| `/aws unlock` | Disable minimum size lock |
-| `/aws fixed` | Toggle fixed window size on/off |
+| `/aws toggle [true/false]` | Toggle minimum size lock on/off (optional explicit value) |
+| `/aws fixed [true/false]` | Toggle fixed window size on/off |
 | `/aws center` | Center the window on the current monitor |
-| `/aws fullscreen` | Toggle fullscreen on/off |
-| `/aws maximize` | Toggle maximized on/off |
-| `/aws remember` | Toggle window position memory on/off |
-| `/aws top` | Cycle always-on-top mode (off → normal → force) |
-| `/aws debug` | Toggle debug logging on/off |
-| `/aws borderless [auto]` | Toggle borderless mode; `auto` subcommand toggles auto-borderless on launch |
-| `/aws resolution [ratio] <width> <height>` | Set window resolution; supports ratio+preset (e.g. `16:9 1920x1080`) or custom width/height |
+| `/aws fullscreen [true/false]` | Toggle fullscreen mode on/off |
+| `/aws maximize [true/false]` | Toggle maximized mode on/off |
+| `/aws remember [true/false]` | Toggle window position memory on/off |
+| `/aws top [off/normal/force]` | Cycle always-on-top mode, or set directly by name |
+| `/aws debug [true/false]` | Toggle debug logging on/off |
+| `/aws borderless [true/false]` | Toggle borderless mode on/off |
+| `/aws borderless auto [true/false]` | Toggle auto-borderless on next launch on/off |
+| `/aws resolution [ratio] <preset>` | Set window resolution and center; supports ratio+preset (e.g. `16:9 1920x1080`) with tab-completion |
 
-> 💡 **Tip**: `/aws resolution` supports tab-completion. Type a ratio (e.g. `16:9`) and press Tab to see available presets.
+> 💡 **Tip**: All toggle commands accept optional `true`/`false` for explicit on/off. `/aws top` accepts `off`/`normal`/`force`. `/aws resolution` supports tab-completion.
 
 ---
 
@@ -122,7 +125,7 @@ All keybinds are **unbound by default**. Set them in **Options → Controls → 
 
 | Keybind | Default | Description |
 |---------|---------|-------------|
-| Open Window Settings | None | Open the Window Settings screen |
+| Open Window Settings | None | Open the Window Management & Resolution Settings screen |
 | Center Window | None | Center the window on the current monitor |
 | Toggle Borderless | None | Toggle borderless mode on/off |
 | Cycle Window State | None | Cycle windowed → maximized → fullscreen |
@@ -180,8 +183,14 @@ All config files live in **`.minecraft/config/AutoWindowSize/`**:
 
 ## Notes
 
+### Known Issues
+- **Windows Snap (split-screen)**: when minimum size lock is enabled, Windows Snap (window tiling / split screen) may not work correctly — the window may be forced to a fixed aspect ratio instead of snapping to half screen. **Workaround**: temporarily disable minimum size lock, arrange the window with Snap, then re-enable the lock. This is a known limitation and will be improved in a future version.
+- **Windowed borderless mode**: has some edge-case bugs with window resizing and position. Maximized borderless and fullscreen borderless work correctly.
+
+### General
 - **Config auto-migration (since v1.1.1)**: when upgrading from an older version, the mod automatically detects the old config and migrates it on first launch — no need to manually delete the config folder. A chat notice confirms the migration when you enter a world. If upgrading from pre-1.0.9, the old `autowindowsize-client.toml` is detected and a warning is logged (you may delete it manually).
 - Client-side only; desktop Minecraft (Windows/macOS/Linux), not mobile.
+- **Version plan**: ports to Minecraft 1.21.1, 26.2, and 26.3 are planned for future releases (separate branches/builds).
 
 ## Wiki
 
@@ -198,7 +207,17 @@ Detailed feature explanations, design decisions, and troubleshooting live in the
 
 ---
 
-## Latest: v1.1.1
+## Latest: v1.1.2
+
+- **More presets**: 3 new aspect ratios (3:2, 2:1, 9:16) — now 8 ratios total, 16 presets each (128 total).
+- **Aspect ratio split button**: left/right arrows + center info display, no more cycling all the way around.
+- **Command overhaul**: 4 new commands (`/aws about`, `/aws info`, `/aws version`, `/aws config`); all toggle commands accept `true`/`false`; `/aws top` accepts `off`/`normal`/`force`; removed redundant `/aws lock`/`/aws unlock`.
+- **Enter-to-apply**: press Enter in custom resolution fields to apply immediately.
+- **About page improvements**: clickable links (URL opens browser, email copies to clipboard), scroll position restore, 3x faster scrolling.
+- **UI polish**: settings entry renamed to "Window Management & Resolution Settings", unified button state text (On/Off), improved tooltips with manual line breaks.
+- **Bug fixes**: preset disable logic when lock is off, input field focus loss, language file JSON parse error, config migration false positive on fresh installs.
+
+### Previous: v1.1.1
 
 - **Config auto-migration**: no more manual config deletion when upgrading! The mod detects old config versions and automatically migrates them on first launch, with a chat confirmation.
 - **Fixed license**: root `LICENSE.txt` is now the actual MIT text (was Forge MDK LGPL template), so GitHub correctly recognizes the license.

@@ -1,6 +1,6 @@
 # Auto Window Size · English Wiki
 
-> A Minecraft 1.20.1 / Forge client-side mod — auto window sizing, centering, minimum-size lock, fixed window size and auto-fullscreen on launch.
+> A Minecraft 1.20.1 / Forge client-side mod — auto window sizing, centering, minimum-size lock, fixed window size, borderless mode, always-on-top (3 modes), 128 resolution presets, 17 commands (18 including subcommand), and auto-fullscreen/maximize/borderless on launch.
 
 > **⚠ Platform notice: this mod only supports desktop Minecraft (Windows / macOS / Linux). It does not work on mobile / Bedrock.**
 
@@ -11,7 +11,7 @@
 
 <br>
 
-**1. Settings entry** — Options → Accessibility Settings → Window Settings
+**1. Settings entry** — Options → Accessibility Settings → Window Management & Resolution Settings
 ![Window Settings button in Accessibility Settings](docs/en-accessibility-entry.png)
 
 **2. Main settings screen** — all toggles, info area, and 16:9 resolution presets
@@ -119,7 +119,7 @@ This is the author's first Minecraft mod, so it stays focused for now:
 ## Features
 
 - **Auto window sizing on launch**: after a configurable delay (default 1.5s) it sets the window to the configured resolution and centers it.
-- **Resolution presets**: 5 aspect ratios (16:9 / 16:10 / 4:3 / 5:4 / 21:9) with 12 one-click presets each, plus a custom width/height input with live boundary validation.
+- **Resolution presets**: 8 aspect ratios (16:9 / 16:10 / 4:3 / 5:4 / 21:9 / 3:2 / 2:1 / 9:16) with 12 one-click presets each, plus a custom width/height input with live boundary validation.
 - **Minimum size lock**: grow as big as you like, never shrink below the configured resolution.
 - **Fixed window size**: freezes the window at its current size (min = max = size at toggle time). No jump to the config value, no forced recenter. The maximize button is disabled at the OS level (GLFW_RESIZABLE=false), so a "fake maximized" state is impossible; the toggle itself is disabled while maximized or fullscreen. Fullscreen still works and returns to the fixed size on exit.
 - **Center window button**: centers the window on its current monitor in one click; disabled with a reason while fullscreen, maximized, minimized or already centered.
@@ -128,12 +128,12 @@ This is the author's first Minecraft mod, so it stays focused for now:
 - **Cycle window state**: one button / keybind to cycle through windowed → maximized → fullscreen.
 - **Auto-fullscreen / auto-maximize / auto-borderless on launch**: players can persistently toggle "start fullscreen", "start maximized", or "start borderless" on next launch; modpack authors can set a one-time onboarding flag for the first launch.
 - **Window position memory**: optionally save and restore the window position and size across launches instead of forcing center; compatible with auto-fullscreen / auto-maximize.
-- **Native entry point**: a "Window Settings" button in Options → Accessibility Settings (moved from Video Settings for Embeddium compatibility).
+- **Native entry point**: a "Window Management & Resolution Settings" button in Options → Accessibility Settings (moved from Video Settings for Embeddium compatibility).
 - **Window Settings screen**: toggles for minimum-size lock / fixed window size / auto-fullscreen / auto-maximize / auto-borderless / borderless / always-on-top / remember position / debug, a center button, a cycle-state button, resolution presets, custom resolution input, an About page, and a four-line live info area (screen resolution / window state + config status / detailed status / input bounds).
 - **5 keybinds** (all unbound by default): Open Settings, Center, Toggle Borderless, Cycle State, Toggle Always-on-Top. All give chat feedback.
 - **About page**: in-game info screen with 6 sections (Purpose, About, Usage, Downloads, Feedback, Author) in 20 languages.
 - **Debug mode**: outputs detailed diagnostic info (preset availability, borderless transitions, window state changes) to the game log.
-- **Client commands**: 15 commands — `/aws help` (paginated), `gui`, `status`, `toggle`, `lock`, `unlock`, `fixed`, `center`, `fullscreen`, `maximize`, `remember`, `top`, `debug`, `borderless` (with `auto` subcommand), `resolution`.
+- **Client commands**: 17 top-level commands (18 including `borderless auto` subcommand) — `/aws help` (paginated, 3 pages), `gui`, `about`, `info`, `version`, `config`, `status`, `toggle`, `fixed`, `center`, `fullscreen`, `maximize`, `remember`, `top`, `debug`, `borderless` (with `auto` subcommand), `resolution`. All toggle commands accept `true`/`false`; `/aws top` accepts state names.
 - **Fullscreen support**: the lock and fixed size are suspended in fullscreen and restored on exit.
 - **Too-low resolution fallback**: only the minimum-size lock is disabled; fixed size, centering and auto-fullscreen keep working.
 - **A short chat status message every time you enter a world.**
@@ -339,27 +339,30 @@ All keybinds are **unbound by default**. Set them in **Options → Controls → 
 
 ## Commands
 
-All commands start with `/aws` (client-side, in-game only). Type `/aws help [page]` for the paginated list (2 pages, 8 commands per page).
+All commands start with `/aws` (client-side, in-game only). Type `/aws help [page]` for the paginated list (3 pages, 8 commands per page).
 
 | Command | Description |
 |---------|-------------|
 | `/aws help [page]` | Show the command list (paginated, 8 per page) |
-| `/aws gui` | Open the Window Settings screen |
+| `/aws gui` | Open the Window Management & Resolution Settings screen |
+| `/aws about` | Open the About page |
+| `/aws info` | Show detailed window info (resolution, state, lock, top, borderless, etc.) |
+| `/aws version` | Show mod version, author, license, and contact info |
+| `/aws config` | Open the config folder in file explorer |
 | `/aws status` | Show current window state, config status, and resolution |
-| `/aws toggle` | Toggle the minimum-size lock |
-| `/aws lock` | Enable the minimum-size lock |
-| `/aws unlock` | Disable the minimum-size lock |
-| `/aws fixed` | Toggle fixed window size |
+| `/aws toggle [true/false]` | Toggle the minimum-size lock (optional explicit value) |
+| `/aws fixed [true/false]` | Toggle fixed window size |
 | `/aws center` | Center the window on its monitor (with reason if unavailable) |
-| `/aws fullscreen` | Toggle fullscreen |
-| `/aws maximize` | Toggle maximize |
-| `/aws remember` | Toggle window position memory |
-| `/aws top` | Cycle always-on-top mode (off → normal → force) |
-| `/aws debug` | Toggle debug logging |
-| `/aws borderless` | Toggle borderless mode |
-| `/aws borderless auto` | Toggle auto-borderless on next launch |
-| `/aws resolution <ratio> <preset>` | Set resolution by ratio and preset (e.g. `/aws resolution 16:9 1920x1080`) |
-| `/aws resolution <width> <height>` | Set a custom resolution (e.g. `/aws resolution 1280 720`) |
+| `/aws fullscreen [true/false]` | Toggle fullscreen mode on/off |
+| `/aws maximize [true/false]` | Toggle maximized mode on/off |
+| `/aws remember [true/false]` | Toggle window position memory |
+| `/aws top [off/normal/force]` | Cycle always-on-top mode, or set directly by name |
+| `/aws debug [true/false]` | Toggle debug logging |
+| `/aws borderless [true/false]` | Toggle borderless mode |
+| `/aws borderless auto [true/false]` | Toggle auto-borderless on next launch |
+| `/aws resolution [ratio] <preset>` | Set window resolution and center; supports ratio+preset (e.g. `/aws resolution 16:9 1920x1080`) with tab-completion |
+
+> 💡 All toggle commands accept optional `true`/`false` for explicit on/off. `/aws top` accepts `off`/`normal`/`force`. `/aws resolution` supports tab-completion.
 
 When the lock is disabled (too-low resolution or fullscreen), related commands show a red reason. The `/aws resolution` command validates input against the screen resolution and clamps out-of-range values. Tab-completion is supported for ratio and preset arguments.
 
@@ -378,7 +381,7 @@ Each time you enter a world, the chat shows one message about the current lock s
 
 ---
 
-## Window Settings screen
+## Window Management & Resolution Settings screen
 
 ### How to open
 
@@ -474,7 +477,7 @@ A second file `config/AutoWindowSize/window.json` stores the saved window positi
 
 Config option names and descriptions are translated: when opened via a config-screen mod, they follow the game language (20 languages supported).
 
-- **Config auto-migration (since v1.1.1)**: when upgrading, the mod automatically detects old config versions and migrates them on first launch — no need to manually delete the config folder. A chat notice confirms the migration when you enter a world. If upgrading from pre-1.0.9, the old `autowindowsize-client.toml` is detected and a warning is logged (you may delete it manually).
+- **Config auto-migration (since v1.1.2)**: when upgrading, the mod automatically detects old config versions and migrates them on first launch — no need to manually delete the config folder. A chat notice confirms the migration when you enter a world. If upgrading from pre-1.0.9, the old `autowindowsize-client.toml` is detected and a warning is logged (you may delete it manually).
 - The config is read at launch; editing it while running requires a restart. (The in-game toggles persist immediately.)
 - The lower bounds are bound to the hardcoded minimum (856×482), so you can never configure a smaller value.
 - If the config resolution exceeds the screen, the lock is auto-disabled.
@@ -507,6 +510,14 @@ Unbound by default. Bind it via `Options…` → `Controls…` → search "Auto 
 | Default resolution | 1280×720 |
 | License | MIT |
 | Language | Java |
+
+---
+
+## Known Issues
+
+- **Windows Snap (split-screen)**: when minimum size lock is enabled, Windows Snap (window tiling / split screen) may not work correctly — the window may be forced to a fixed aspect ratio instead of snapping to half screen. **Workaround**: temporarily disable minimum size lock, arrange the window with Snap, then re-enable the lock.
+- **Windowed borderless mode**: has some edge-case bugs with window resizing and position. Maximized borderless and fullscreen borderless work correctly.
+- **Version plan**: ports to Minecraft 1.21.1, 26.2, and 26.3 are planned for future releases.
 
 ---
 

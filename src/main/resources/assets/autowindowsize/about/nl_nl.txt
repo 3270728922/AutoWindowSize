@@ -1,55 +1,93 @@
-Auto Window Size
+Auto Window Size (Automatische venstergrootte)
 
-【Purpose】
-When making a modpack, you spend a lot of time fine-tuning the GUI, HUD, and interface layout. But when players launch the game on different monitors or resolutions, the window size changes and everything breaks. This mod solves that problem: turning "game window size" from a random event into a controllable, repeatable, constrained choice. Its scope is deliberately kept minimal — it only operates on the OS-level window itself, does not change GUI scaling, and does not touch any in-game rendering or game logic, so it almost never conflicts with other mods.
+【Doel】
+Bij het maken van een modpack besteed je veel tijd aan het perfect afstellen van GUI's, HUD's en interfaces. Maar wanneer spelers het spel starten op verschillende monitors of resoluties, verandert de venstergrootte en breken alle lay-outs. Deze mod lost dit probleem op: het verandert de "spelvenstergrootte" van een willekeurige gebeurtenis in een beheersbare, reproduceerbare en beperkte keuze. Het toepassingsgebied is bewust minimaal gehouden — het werkt alleen op het venster op besturingssysteemniveau, verandert de GUI-schaal niet en raakt geen enkele in-game rendering of spellogica aan, daarom komt het bijna nooit in conflict met andere mods.
 
-【About】
-A lightweight client-side mod that automatically resizes, centers, and locks the Minecraft game window, keeping your carefully tuned modpack UI layout consistent on every player's computer.
-Core features include: automatic window resizing on launch, resolution presets (grouped by aspect ratio), minimum-size lock, fixed window size, window centering, auto-fullscreen/auto-maximize/auto-borderless on launch, window position memory, always-on-top (normal/forced), borderless window mode (including pseudo-fullscreen), window state cycle button, /aws client commands, keybindings, multi-monitor awareness, live resolution display, and more. Supports 20 languages.
+【MOD-presentatie】
+Een lichtgewicht client-side mod die het Minecraft-spelvenster automatisch vergroot/verkleint, centreert en vergrendelt, waardoor de zorgvuldig afgestelde modpack UI-lay-outs consistent blijven op de computer van elke speler.
+Belangrijkste functies: automatische venstergrootte bij opstarten, 128 resolutie-voorkeuzen (gegroepeerd op 8 beeldverhoudingen), minimumgroottevergrendeling, vaste venstergrootte, centreren met één klik, automatisch volledig scherm/maximaliseren/randloos bij opstarten, geheugen voor vensterpositie, venster altijd op voorgrond (3 modi: uit/standaard/geforceerd), randloze venstermodus (3 statussen: venster/gemaximaliseerd/volledig scherm), vensterstatus-cyclusknop, 17 /aws client-opdrachten, 5 aanpasbare sneltoetsen, ondersteuning voor meerdere monitors, realtime resolutieweergave, debug-logmodus, enz. Ondersteunt 20 talen.
 
-【Usage】
-1. After installing the mod, launch the game and click the "Window Settings" button in "Accessibility Settings" to open the config screen, or use the /aws gui command.
-2. Adjust various settings in the config screen: window size, minimum-size lock, fixed window size, auto-fullscreen/auto-maximize/auto-borderless, always-on-top, borderless mode, etc.
-3. Resolution presets: Click the "Cycle Aspect" button to cycle through 16:9, 16:10, 4:3, 5:4, 21:9, and Custom. Select a preset to resize and center the window in one click.
-4. Custom resolution: After switching to "Custom" aspect, enter width and height in the input fields and click "Apply". The Apply button is disabled with a tooltip when input values are out of range.
-5. Keybindings: Bind keys for "Center Window", "Switch to Windowed", "Cycle Window State", and "Toggle Always On Top" in Controls Settings. Unbound by default.
-6. Commands: Type /aws help to see all available commands.
-7. Config files: config/AutoWindowSize/config.toml (main config) and config/AutoWindowSize/window.json (saved window position).
+【Gebruik】
+1、Na het installeren van de mod en het starten van het spel, klik je op de knop "Vensterbeheer en resolutie-instellingen" in "Toegankelijkheidsinstellingen" om het configuratiescherm te openen, of gebruik je de opdracht /aws gui.
+2、Pas verschillende instellingen aan in het configuratiescherm: venstergrootte, minimumgroottevergrendeling, vaste venstergrootte, automatisch volledig scherm/maximaliseren/randloos, venster altijd op voorgrond, randloze modus, enz.
+3、Resolutie-voorkeuzen: gebruik de linker/rechter pijlen van de beeldverhoudingskiezer om te schakelen tussen 16:9, 16:10, 4:3, 5:4, 21:9, 3:2, 2:1, 9:16 en Aangepast. In het midden wordt de huidige verhouding en de realtime vensterresolutie weergegeven, en hieronder worden 16 voorkeuzenknoppen voor de bijbehorende verhouding weergegeven. Klik om de venstergrootte met één klik aan te passen en te centreren.
+4、Aangepaste resolutie: na het schakelen naar de verhouding "Aangepast", voer je de breedte en hoogte in de invoervelden in, klik je op de knop "Toepassen" of druk je op Enter. De knop Toepassen wordt uitgeschakeld met een tooltip wanneer de ingevoerde waarde buiten het bereik ligt.
+5、Sneltoetsen: wijs toetsen toe voor "Open Auto Window Size-instellingen", "Centreer venster", "Schakel randloos", "Cycle vensterstatus" en "Schakel venster altijd op voorgrond" in "Bedieningsinstellingen". Standaard niet toegewezen.
+6、Opdrachten: typ /aws help om de gepagineerde volledige opdrachtenlijst te bekijken (3 pagina's, 8 opdrachten per pagina).
+7、Configuratiebestanden: config/AutoWindowSize/config.toml (hoofdconfiguratie) en config/AutoWindowSize/window.json (opgeslagen vensterpositie).
 
-【Download】
-It is recommended to download the latest version from GitHub first. Other platforms may be delayed by a few days due to review or sync lag.
+【Opdrachten】
+Alle opdrachten beginnen met /aws. Typ /aws help in het spel om de gepagineerde volledige opdrachtenlijst te bekijken.
+Veelvoorkomende opdrachten:
+· /aws help [pagina] - Toon opdrachtenlijst (3 pagina's, 8 per pagina)
+· /aws gui - Open vensterbeheer en resolutie-instellingen
+· /aws about - Open Over-pagina
+· /aws info - Toon huidige venster-, configuratie- en resolutie-informatie
+· /aws version - Toon mod-versie-informatie
+· /aws config - Open configuratiemap
+· /aws status - Controleer status van minimumgroottevergrendeling
+· /aws toggle [true/false] - Schakel minimumgroottevergrendeling
+· /aws fixed [true/false] - Schakel vaste venstergrootte
+· /aws center - Centreer venster op huidige monitor
+· /aws fullscreen [true/false] - Schakel huidige volledig-schermstatus
+· /aws maximize [true/false] - Schakel huidige gemaximaliseerde status
+· /aws remember [true/false] - Schakel geheugen voor vensterpositie
+· /aws top [off/normal/force] - Cycle of stel direct altijd-op-voorgrondmodus in
+· /aws debug [true/false] - Schakel debug-log
+· /aws borderless [true/false] - Schakel randloze modus
+· /aws borderless auto [true/false] - Schakel automatisch randloos bij opstarten
+· /aws resolution [verhouding] <voorkeursinstelling> - Pas resolutie toe en centreer, ondersteunt Tab-auto-aanvulling
+
+【Sneltoetsen】
+Alle sneltoetsen zijn standaard niet toegewezen. Stel ze in onder "Opties → Bediening → Auto Window Size". Bij het indrukken van een sneltoets wordt feedback gegeven in de chat.
+· Open Auto Window Size-instellingen - Open vensterbeheer en resolutie-instellingen
+· Centreer venster - Centreer venster op huidige monitor
+· Schakel randloos - Schakel randloze modus aan/uit
+· Cycle vensterstatus - Cycle tussen venster → gemaximaliseerd → volledig scherm
+· Schakel venster altijd op voorgrond - Cycle altijd-op-voorgrondmodus (uit → standaard → geforceerd)
+
+【Downloadkanalen】
+Het wordt aanbevolen om eerst de nieuwste versie van GitHub te downloaden. Andere platforms kunnen enkele dagen achterlopen vanwege moderatie of synchronisatie.
 - GitHub:
   https://github.com/3270728922/AutoWindowSize
 - CurseForge:
   https://www.curseforge.com/minecraft/mc-mods/auto-window-size
 - Modrinth:
   https://modrinth.com/mod/autowindowsize
-- MC Mod Wiki:
+- MC Encyclopedie:
   https://www.mcmod.cn/class/30769.html
 - MCBBS:
   https://www.mcbbs.co/thread-6322-1-1.html
 - BBSMC:
   https://bbsmc.net/mod/autowindowsize
-- KlpBBS:
+- Creeper-forum:
   https://klpbbs.com/thread-173769-1-1.html
 - HIMCBBS:
   https://www.himcbbs.com/resources/1499/
 
-【Feedback】
-If you encounter bugs or have feature suggestions, feel free to reach out through:
+【Feedbackkanalen】
+Als je bugs tegenkomt of functievoorstellen hebt, geef dan gerust feedback via de volgende kanalen:
 - GitHub Issues:
   https://github.com/3270728922/AutoWindowSize/issues
 - GitHub Discussions:
   https://github.com/3270728922/AutoWindowSize/discussions
-- KlpBBS Thread:
+- Creeper-forum topic:
   https://klpbbs.com/thread-173769-1-1.html
-- MCBBS Thread:
+- MCBBS topic:
   https://www.mcbbs.co/thread-6322-1-1.html
-When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
+Bij feedback, voeg alstublieft de spelversie, Forge-versie, mod-versie, crash-log (indien aanwezig) en reproductiestappen toe.
 
-【Author】
-Author: JujuMLQwQ, ML
-GitHub: https://github.com/3270728922
-License: MIT License
-Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.
-Default resolution 1280x720; hardcoded minimum 856x482; maximum 7680x4320.
+【Opmerkingen】
+· Automatische configuratiemigratie: vanaf v1.1.1 detecteert en migreert de mod bij een update automatisch oude configuratiebestanden bij de eerste opstart. Je hoeft de configuratiemap niet handmatig te verwijderen. Na het betreden van een wereld meldt de chat de voltooiing van de migratie.
+· Alleen client-side mod: hoeft alleen op de client te worden geïnstalleerd, niet op de server.
+· Platformondersteuning: ondersteunt alleen desktop Java Edition (Windows / macOS / Linux), niet mobiel / Bedrock Edition.
+· Randloos venster en Windows Snap: in de huidige versie kan de Windows Snap (venster vastmaken) functie compatibiliteitsproblemen hebben in de randloze venstermodus. Tijdelijke oplossing: schakel eerst de minimumgroottevergrendeling uit, gebruik Windows Snap om het venster aan te passen en schakel vervolgens de vergrendeling weer in.
+· Opmerking over geforceerd altijd op voorgrond: de geforceerde modus blijft altijd vooraan tussen altijd-op-voorgrondvensters van hetzelfde niveau en wordt niet door hen bedekt, maar is niet hoger dan altijd-op-voorgrondvensters op systeemniveau (bijv. Taakbeheer).
+
+【Auteursinformatie】
+Auteur: JujuMLQwQ, ML
+E-mail: jujuawa@qq.com (Klik om te kopiëren)
+GitHub-pagina: https://github.com/3270728922
+Licentie: MIT License
+Huidige versie: v1.1.2
+Standaardresolutie 1280x720; hardgecodeerde minimumresolutie 856x482; maximum 7680x4320.
