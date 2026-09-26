@@ -4,7 +4,7 @@
 
 > **⚠ Platform notice: this mod only supports desktop Minecraft (Windows / macOS / Linux). It does not work on mobile / Bedrock.**
 
-> **📮 About the source: the author is new to GitHub / Git and once caused some messy repository state during an update. If the source you downloaded does not match the released jar, email 3270728922@qq.com for the correct source.**
+> **📮 About the source: the author is new to GitHub / Git and once caused some messy repository state during an update. If the source you downloaded does not match the released jar, email jujuawa@qq.com for the correct source.**
 
 <details>
 <summary><strong>📸 Screenshots</strong> (click to expand — 7 images)</summary>
@@ -52,7 +52,7 @@
 ## Feedback
 
 - **Issues / Bug reports**: https://github.com/3270728922/AutoWindowSize/issues
-- **Author email**: 3270728922@qq.com
+- **Author email**: jujuawa@qq.com
 
 ---
 
@@ -474,7 +474,7 @@ A second file `config/AutoWindowSize/window.json` stores the saved window positi
 
 Config option names and descriptions are translated: when opened via a config-screen mod, they follow the game language (20 languages supported).
 
-- **When upgrading this mod, delete the old config folder** `.minecraft/config/AutoWindowSize/` (and the old `.minecraft/config/autowindowsize-client.toml` if upgrading from pre-1.0.9) first. Due to changes in config entries and file layout, Forge won't rewrite an existing file; deleting it and launching generates a fresh one.
+- **Config auto-migration (since v1.1.1)**: when upgrading, the mod automatically detects old config versions and migrates them on first launch — no need to manually delete the config folder. A chat notice confirms the migration when you enter a world. If upgrading from pre-1.0.9, the old `autowindowsize-client.toml` is detected and a warning is logged (you may delete it manually).
 - The config is read at launch; editing it while running requires a restart. (The in-game toggles persist immediately.)
 - The lower bounds are bound to the hardcoded minimum (856×482), so you can never configure a smaller value.
 - If the config resolution exceeds the screen, the lock is auto-disabled.

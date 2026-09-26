@@ -7,6 +7,34 @@
 ---
 
 <details open>
+<summary><strong>v1.1.1</strong> — 配置自动迁移、许可证修复、包名重命名与质量改进</summary>
+
+### 新增
+- **配置自动迁移**：升级时模组会在首次启动自动检测旧配置版本并迁移，再也不用手动删除配置文件夹了！新增 `[meta]` 分组下的 `configVersion` 字段（仅内部使用，请勿修改）。进入世界后聊天框会提示迁移完成。
+- **配置版本多语言支持**：新增的 `configVersion` 配置项及其悬停提示在全部20种语言中都有翻译，通过配置界面模组（Configured、Cloth Config 等）查看时会随游戏语言切换。
+
+### 变更
+- **包名规范化**：从 `com.example.autowindowsize`（Forge MDK 模板残留）改为 `com.jujumlqwq.autowindowsize`。所有 Java 源文件、`gradle.properties`（`mod_group_id`）和编译后的 class 路径均已更新。
+- **修正作者信息**：所有地方（`mods.toml` 描述、全部20个关于页面文本文件）的作者名统一为 `JujuMLQwQ, ML`。（`mods.toml` 的 `authors` 字段和 `gradle.properties` 的 `mod_authors` 之前已经是正确的。）
+- **更新联系邮箱**：README 和 WIKI（中英文）中的邮箱从 `3270728922@qq.com` 改为 `jujuawa@qq.com`。
+- **更新 README 描述**：简介现在包含所有主要功能（无边框、三档窗口置顶、窗口状态循环、5个快捷键、60个预设、启动自动全屏/最大化/无边框）。
+- **README 配置表格**：新增 `configVersion` 行和自动迁移说明。
+- **README "最新版本"部分**：v1.1.1 现在是最新版本；v1.1.0 移到"上一个版本"。
+- **WIKI 升级说明**：中英文 WIKI 中的"手动删除配置文件夹"已替换为"配置自动迁移"。
+
+### 修复
+- **许可证文件**：根目录 `LICENSE.txt` 之前是 Forge MDK 的 LGPL-2.1 模板（27KB），与 `mods.toml` 和 `gradle.properties` 中声明的 `license="MIT"` 矛盾。已替换为标准 MIT 许可证文本（1KB），版权归 JujuMLQwQ。GitHub 现在能正确识别许可证了。
+- **Issue 模板死链接**：`.github/ISSUE_TEMPLATE/config.yml` 中的"常见问题"链接之前指向 `#常见问题`（README 中不存在的锚点），已改为实际存在的 `#notes` 章节。
+- **1.0.9 之前旧配置检测**：如果存在旧的 `config/autowindowsize-client.toml` 文件，现在会在日志中输出警告（之前会被静默忽略）。
+
+### 备注
+- 这是一个以质量改进为主的版本，没有新增或移除任何面向玩家的功能。
+- Mod ID 仍为 `autowindowsize`（未变），因此配置文件路径、语言文件路径和指令前缀（`/aws`）全部保持不变。
+- 完全向后兼容：现有配置会在首次启动时自动迁移。
+
+</details>
+
+<details>
 <summary><strong>v1.1.0</strong> — 无边框模式、窗口置顶、快捷键、关于页面与大规模界面重构</summary>
 
 ### 新增

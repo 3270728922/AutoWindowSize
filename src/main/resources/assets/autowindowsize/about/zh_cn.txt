@@ -48,7 +48,7 @@ Auto Window Size（自动窗口大小）
 反馈时请附上游戏版本、Forge 版本、模组版本、崩溃日志（如有）和复现步骤。
 
 【作者信息】
-作者：3270728922
+作者：JujuMLQwQ, ML
 GitHub 主页：https://github.com/3270728922
 许可证：MIT License
 仅客户端，无需安装服务端。仅支持桌面 Java 版（Windows / macOS / Linux），不支持手机版 / 基岩版。

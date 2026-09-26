@@ -7,6 +7,34 @@ Full release history for this mod. The latest version is expanded by default; ol
 ---
 
 <details open>
+<summary><strong>v1.1.1</strong> — Config auto-migration, license fix, package rename & quality improvements</summary>
+
+### Added
+- **Config auto-migration**: the mod now automatically detects old config versions and migrates them on first launch — no more manual config deletion when upgrading! A `configVersion` field was added to the new `[meta]` group (internal use only, do not modify). A chat notice confirms the migration when you enter a world.
+- **Config version multi-language support**: the new `configVersion` config option and its tooltip are fully translated in all 20 languages when viewed via a config-screen mod (Configured, Cloth Config, etc.).
+
+### Changed
+- **Package name normalized**: changed from `com.example.autowindowsize` (Forge MDK template leftover) to `com.jujumlqwq.autowindowsize`. All Java source files, `gradle.properties` (`mod_group_id`), and compiled class paths updated.
+- **Author info corrected**: author name is now `JujuMLQwQ, ML` everywhere — `mods.toml` description, all 20 about-page text files. (The `authors` field in `mods.toml` and `mod_authors` in `gradle.properties` were already correct.)
+- **Contact email updated**: changed from `3270728922@qq.com` to `jujuawa@qq.com` in README and WIKI (both languages).
+- **README description updated**: the tagline now mentions all major features (borderless, always-on-top 3 modes, window state cycle, 5 keybinds, 60 presets, auto-fullscreen/maximize/borderless).
+- **README config table**: added `configVersion` row and an auto-migration note.
+- **README "Latest" section**: v1.1.1 is now the latest; v1.1.0 moved to "Previous".
+- **WIKI upgrade notes**: replaced "manually delete config folder" with "config auto-migration" in both English and Chinese WIKI.
+
+### Fixed
+- **License file**: root `LICENSE.txt` was the Forge MDK LGPL-2.1 template (27KB), contradicting the `license="MIT"` declared in `mods.toml` and `gradle.properties`. Replaced with the standard MIT license text (1KB), copyright JujuMLQwQ. GitHub now correctly recognizes the license.
+- **Issue template dead link**: the "FAQ / 常见问题" contact link in `.github/ISSUE_TEMPLATE/config.yml` pointed to `#常见问题` (a non-existent anchor in README). Changed to `#notes`, which actually exists.
+- **Pre-1.0.9 old config detection**: if the legacy `config/autowindowsize-client.toml` file exists, a warning is now logged (previously silently ignored).
+
+### Notes
+- This is a quality-focused release. No gameplay-facing features were added or removed.
+- The mod ID remains `autowindowsize` (unchanged), so config paths, language file paths, and command prefixes (`/aws`) all stay the same.
+- Full backward compatibility: existing configs are automatically migrated on first launch.
+
+</details>
+
+<details>
 <summary><strong>v1.1.0</strong> — Borderless mode, always-on-top, keybinds, about page & massive UI overhaul</summary>
 
 ### Added

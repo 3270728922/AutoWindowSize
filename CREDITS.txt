@@ -1,3 +1,39 @@
+================================================================================
+Auto Window Size — Credits / Acknowledgements
+================================================================================
+
+This file contains two sections:
+  1. Auto Window Size (this mod) — original code credits
+  2. Minecraft Forge MDK — template credits (included with the Forge MDK)
+
+The mod's original source code is licensed under MIT (see LICENSE.txt).
+The Forge MDK template files retain their original Forge license.
+
+================================================================================
+1. Auto Window Size (this mod)
+================================================================================
+
+Author: JujuMLQwQ, ML
+GitHub: https://github.com/3270728922/AutoWindowSize
+Email: jujuawa@qq.com
+
+All original Java source code (AutoWindowSize.java, Config.java,
+ConfigScreen.java), language files, about-page text, and configuration
+design are original work by the author, assisted by AI (Doubao) for
+code generation, translation, and documentation.
+
+Third-party references studied during development (no code copied):
+  - WindowFix (huanmeng-qwq)
+  - Cubes Without Borders (Kira-NT)
+  - borderless (nimueller)
+  - Fullscreen Windowed Minecraft (hancin)
+  - Concentration (DeeChael)
+  - Mica (LemonCaramel)
+
+================================================================================
+2. Minecraft Forge MDK (template credits — included with MDK)
+================================================================================
+
 Minecraft Forge: Credits/Thank You
 
 Forge is a set of tools and modifications to the Minecraft base game code to assist 

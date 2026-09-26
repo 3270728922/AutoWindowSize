@@ -211,5 +211,8 @@
   "config.autowindowsize.startup.autoBorderless": "启动自动无边框",
   "config.autowindowsize.startup.autoBorderless.tooltip": "下次启动是否自动开启无边框模式。不与自动全屏/最大化互斥。",
   "config.autowindowsize.window.debug": "调试模式",
-  "config.autowindowsize.window.debug.tooltip": "开启后，将详细的预设可用性检查和其他诊断信息输出到日志。用于排查问题。可在游戏内或使用 /aws debug 切换。默认关闭。"
+  "config.autowindowsize.window.debug.tooltip": "开启后，将详细的预设可用性检查和其他诊断信息输出到日志。用于排查问题。可在游戏内或使用 /aws debug 切换。默认关闭。",
+  "config.autowindowsize.meta": "元数据",
+  "config.autowindowsize.meta.configVersion": "配置版本",
+  "config.autowindowsize.meta.configVersion.tooltip": "内部配置版本号，用于自动迁移。请勿手动修改。"
 }

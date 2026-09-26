@@ -211,5 +211,8 @@
   "config.autowindowsize.startup.autoBorderless": "Auto Borderless on Launch",
   "config.autowindowsize.startup.autoBorderless.tooltip": "Whether to automatically enable borderless window on next launch. Not mutually exclusive with auto fullscreen/maximize.",
   "config.autowindowsize.window.debug": "Debug Mode",
-  "config.autowindowsize.window.debug.tooltip": "When enabled, outputs detailed preset availability checks and other diagnostic info to the log. Useful for troubleshooting. Toggle in-game or with /aws debug. Default false."
+  "config.autowindowsize.window.debug.tooltip": "When enabled, outputs detailed preset availability checks and other diagnostic info to the log. Useful for troubleshooting. Toggle in-game or with /aws debug. Default false.",
+  "config.autowindowsize.meta": "元数据",
+  "config.autowindowsize.meta.configVersion": "配置版本",
+  "config.autowindowsize.meta.configVersion.tooltip": "内部配置版本号，用于自动迁移。请勿手动修改。"
 }

@@ -48,7 +48,7 @@ If you encounter bugs or have feature suggestions, feel free to reach out throug
 When reporting, please include game version, Forge version, mod version, crash log (if any), and reproduction steps.
 
 【Author】
-Author: 3270728922
+Author: JujuMLQwQ, ML
 GitHub: https://github.com/3270728922
 License: MIT License
 Client-side only, no server installation required. Desktop Java Edition only (Windows / macOS / Linux). Not supported on mobile / Bedrock Edition.

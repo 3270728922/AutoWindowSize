@@ -1,10 +1,10 @@
 # Auto Window Size
 
-> A Minecraft 1.20.1 / Forge client-side mod — auto window sizing, centering, minimum-size lock, fixed window size, borderless mode, always-on-top, and auto-fullscreen on launch.
+> A Minecraft 1.20.1 / Forge client-side mod — auto window sizing, centering, minimum-size lock, fixed window size, borderless mode, always-on-top (3 modes), window state cycle, 5 keybinds, 60 resolution presets, and auto-fullscreen/maximize/borderless on launch.
 
-> **⚠ Platform notice: this mod only supports desktop Minecraft (Windows / macOS / Linux). It does not work on mobile / Bedrock.**
+> **⚠ Platform notice: this mod only supports desktop Minecraft (Windows / macOS / Linux). It does not work on mobile / Bedrock. Windows is fully tested; macOS / Linux are experimental and may have edge-case issues with borderless mode, always-on-top, and window state detection.**
 
-> **📮 About the source: the author is new to GitHub / Git and once caused some messy repository state during an update. If the source you downloaded does not match the released jar, email 3270728922@qq.com for the correct source.**
+> **📮 About the source: the author is new to GitHub / Git and once caused some messy repository state during an update. If the source you downloaded does not match the released jar, email jujuawa@qq.com for the correct source.**
 
 [中文](README_ZH-CN.md)
 
@@ -60,7 +60,7 @@ When building a modpack you spend ages arranging mod GUIs exactly right — then
 ## Quick Start
 
 1. Install Minecraft 1.20.1 with Forge (47.x or newer).
-2. Drop `autowindowsize-1.1.0.jar` into your `.minecraft/mods/` folder.
+2. Drop `autowindowsize-1.1.1.jar` into your `.minecraft/mods/` folder.
 3. Launch the game. The window will automatically resize to 1280×720 and center after 1.5 seconds.
 4. Open **Options → Accessibility Settings → Window Settings** to configure everything.
 
@@ -145,6 +145,7 @@ All config files live in **`.minecraft/config/AutoWindowSize/`**:
 
 | Option | Default | Range | Description |
 |--------|---------|-------|-------------|
+| `configVersion` | 1 | 1–999 | Internal config version for automatic migration. Do not modify manually. |
 | `windowWidth` | 1280 | 856–7680 | Default window width on launch |
 | `windowHeight` | 720 | 482–4320 | Default window height on launch |
 | `startupDelay` | 1.5 | 0.5–10.0 | Seconds to wait before applying window size on launch |
@@ -159,6 +160,8 @@ All config files live in **`.minecraft/config/AutoWindowSize/`**:
 | `debug` | false | — | Enable debug logging |
 
 > 💡 You can also edit these in-game via a config-screen mod (e.g. Configured, Cloth Config). Config option names and tooltips follow the game language.
+>
+> 🔄 **Auto config migration**: Since v1.1.1, the mod automatically migrates old config files on first launch — no need to manually delete the config folder when upgrading. A chat notice confirms the migration when you enter a world.
 
 ---
 
@@ -177,7 +180,8 @@ All config files live in **`.minecraft/config/AutoWindowSize/`**:
 
 ## Notes
 
-- **When upgrading this mod, manually delete the old config folder**: `.minecraft/config/AutoWindowSize/` (and the old `.minecraft/config/autowindowsize-client.toml` if upgrading from pre-1.0.9). Due to changes in config entries and file layout, Forge won't rewrite an existing file; deleting it and launching generates a fresh one. Client-side only; desktop Minecraft (Windows/macOS/Linux), not mobile.
+- **Config auto-migration (since v1.1.1)**: when upgrading from an older version, the mod automatically detects the old config and migrates it on first launch — no need to manually delete the config folder. A chat notice confirms the migration when you enter a world. If upgrading from pre-1.0.9, the old `autowindowsize-client.toml` is detected and a warning is logged (you may delete it manually).
+- Client-side only; desktop Minecraft (Windows/macOS/Linux), not mobile.
 
 ## Wiki
 
@@ -190,11 +194,22 @@ Detailed feature explanations, design decisions, and troubleshooting live in the
 
 - **Issues / Bug reports**: https://github.com/3270728922/AutoWindowSize/issues
 - **Discussions**: https://github.com/3270728922/AutoWindowSize/discussions
-- **Author email**: 3270728922@qq.com
+- **Author email**: jujuawa@qq.com
 
 ---
 
-## Latest: v1.1.0
+## Latest: v1.1.1
+
+- **Config auto-migration**: no more manual config deletion when upgrading! The mod detects old config versions and automatically migrates them on first launch, with a chat confirmation.
+- **Fixed license**: root `LICENSE.txt` is now the actual MIT text (was Forge MDK LGPL template), so GitHub correctly recognizes the license.
+- **Package name normalized**: `com.example.autowindowsize` → `com.jujumlqwq.autowindowsize` (Forge MDK template leftover removed).
+- **Config version field**: new `configVersion` in `[meta]` group (internal use only) with full multi-language support in config screens.
+- **Issue template dead link fixed**: "FAQ" link now points to the existing `#notes` section.
+- **README platform notice**: macOS / Linux explicitly marked as experimental support.
+- **Author info corrected**: `JujuMLQwQ, ML` everywhere (mods.toml description, about pages).
+- **Email updated**: `jujuawa@qq.com`.
+
+### Previous: v1.1.0
 
 - **Borderless mode**: removes window title bar and borders; supports windowed, maximized, and fullscreen (pseudo-fullscreen) states; auto-borderless on launch option.
 - **Always-on-top**: three modes — off, normal (GLFW floating), and force (re-claims focus every frame, can override other always-on-top windows).
