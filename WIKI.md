@@ -12,7 +12,7 @@
 <br>
 
 **1. Settings entry** — Options → Accessibility Settings → Window Management & Resolution Settings
-![Window Settings button in Accessibility Settings](docs/en-accessibility-entry.png)
+![Window Management & Resolution Settings button in Accessibility Settings](docs/en-accessibility-entry.png)
 
 **2. Main settings screen** — all toggles, info area, and 16:9 resolution presets
 ![Main settings screen with resolution presets](docs/en-settings-main.png)
@@ -68,7 +68,7 @@
 - [Fullscreen behaviour](#fullscreen-behaviour)
 - [Commands](#commands)
 - [Status message on world join](#status-message-on-world-join)
-- [Window Settings screen](#window-settings-screen)
+- [Window Management & Resolution Settings screen](#window-management--resolution-settings-screen)
 - [Installation](#installation)
 - [Config file](#config-file)
 - [Key binding](#key-binding)
@@ -119,7 +119,7 @@ This is the author's first Minecraft mod, so it stays focused for now:
 ## Features
 
 - **Auto window sizing on launch**: after a configurable delay (default 1.5s) it sets the window to the configured resolution and centers it.
-- **Resolution presets**: 8 aspect ratios (16:9 / 16:10 / 4:3 / 5:4 / 21:9 / 3:2 / 2:1 / 9:16) with 12 one-click presets each, plus a custom width/height input with live boundary validation.
+- **Resolution presets**: 8 aspect ratios (16:9 / 16:10 / 4:3 / 5:4 / 21:9 / 3:2 / 2:1 / 9:16) with 16 one-click presets each (128 total), plus a custom width/height input with live boundary validation and Enter-to-apply.
 - **Minimum size lock**: grow as big as you like, never shrink below the configured resolution.
 - **Fixed window size**: freezes the window at its current size (min = max = size at toggle time). No jump to the config value, no forced recenter. The maximize button is disabled at the OS level (GLFW_RESIZABLE=false), so a "fake maximized" state is impossible; the toggle itself is disabled while maximized or fullscreen. Fullscreen still works and returns to the fixed size on exit.
 - **Center window button**: centers the window on its current monitor in one click; disabled with a reason while fullscreen, maximized, minimized or already centered.
@@ -129,9 +129,9 @@ This is the author's first Minecraft mod, so it stays focused for now:
 - **Auto-fullscreen / auto-maximize / auto-borderless on launch**: players can persistently toggle "start fullscreen", "start maximized", or "start borderless" on next launch; modpack authors can set a one-time onboarding flag for the first launch.
 - **Window position memory**: optionally save and restore the window position and size across launches instead of forcing center; compatible with auto-fullscreen / auto-maximize.
 - **Native entry point**: a "Window Management & Resolution Settings" button in Options → Accessibility Settings (moved from Video Settings for Embeddium compatibility).
-- **Window Settings screen**: toggles for minimum-size lock / fixed window size / auto-fullscreen / auto-maximize / auto-borderless / borderless / always-on-top / remember position / debug, a center button, a cycle-state button, resolution presets, custom resolution input, an About page, and a four-line live info area (screen resolution / window state + config status / detailed status / input bounds).
+- **Window Management & Resolution Settings screen**: toggles for minimum-size lock / fixed window size / auto-fullscreen / auto-maximize / auto-borderless / borderless / always-on-top / remember position / debug, a center button, a cycle-state button, resolution presets, custom resolution input, an About page, and a four-line live info area (screen resolution / window state + config status / detailed status / input bounds).
 - **5 keybinds** (all unbound by default): Open Settings, Center, Toggle Borderless, Cycle State, Toggle Always-on-Top. All give chat feedback.
-- **About page**: in-game info screen with 6 sections (Purpose, About, Usage, Downloads, Feedback, Author) in 20 languages.
+- **About page**: in-game info screen with 9 sections (Purpose, About, Usage, Commands, Keybinds, Downloads, Feedback, Notes, Author), clickable links and email copy, in 20 languages.
 - **Debug mode**: outputs detailed diagnostic info (preset availability, borderless transitions, window state changes) to the game log.
 - **Client commands**: 17 top-level commands (18 including `borderless auto` subcommand) — `/aws help` (paginated, 3 pages), `gui`, `about`, `info`, `version`, `config`, `status`, `toggle`, `fixed`, `center`, `fullscreen`, `maximize`, `remember`, `top`, `debug`, `borderless` (with `auto` subcommand), `resolution`. All toggle commands accept `true`/`false`; `/aws top` accepts state names.
 - **Fullscreen support**: the lock and fixed size are suspended in fullscreen and restored on exit.
@@ -176,7 +176,7 @@ Player manual dragging (only when the lock is off)
 | Priority | Source | Default | Note |
 |----------|--------|---------|------|
 | 1 (highest) | Hardcoded | 856×482 | Wired into the code; never below it |
-| 2 | Config file | 1280×720 | Read at launch from `config/autowindowsize-client.toml` |
+| 2 | Config file | 1280×720 | Read at launch from `config/AutoWindowSize/config.toml` |
 | 3 (lowest) | Player drag | — | Only when the minimum-size lock is off |
 
 The config lower bound is bound to the hardcoded minimum, so you can never configure a value smaller than the mod actually supports.
@@ -219,11 +219,11 @@ New in v1.0.7. It works on two levels. **Auto-fullscreen and auto-maximize are m
 
 ### Player level: start fullscreen / maximized next launch
 
-In the Window Settings screen, click "Auto-fullscreen on next launch" or "Auto-maximized on next launch" to toggle the preference. It does **not** change the current window — it only remembers your choice so that **the next launch** starts in fullscreen or maximized. The two are mutually exclusive: enabling fullscreen greys out the maximize button and vice versa. The choice is persisted in the config file.
+In the Window Management & Resolution Settings screen, click "Auto-fullscreen on next launch" or "Auto-maximized on next launch" to toggle the preference. It does **not** change the current window — it only remembers your choice so that **the next launch** starts in fullscreen or maximized. The two are mutually exclusive: enabling fullscreen greys out the maximize button and vice versa. The choice is persisted in the config file.
 
 ### Modpack-author level: one-time onboarding
 
-If you are making a modpack and want players to enter fullscreen or maximized on first launch (and afterwards let them decide), set in `config/autowindowsize-client.toml` under `[startup]`:
+If you are making a modpack and want players to enter fullscreen or maximized on first launch (and afterwards let them decide), set in `config/AutoWindowSize/config.toml` under `[startup]`:
 
 - `applyStartupGuide = true`;
 - `startFullscreen = true` (fullscreen) or `startMaximized = true` (maximized) — **not both**;
@@ -329,7 +329,7 @@ All keybinds are **unbound by default**. Set them in **Options → Controls → 
 
 | Keybind | Action | Chat feedback |
 |---------|--------|---------------|
-| Open Window Settings | Opens the settings screen | — |
+| Open Auto Window Size Settings | Opens the settings screen | — |
 | Center Window | Centers the window on the current monitor | "Window centered" / "Already centered" / reason if unavailable |
 | Toggle Borderless | Toggles borderless mode on/off | "Borderless mode enabled" / "Borderless mode disabled" |
 | Cycle Window State | Cycles windowed → maximized → fullscreen | "Window state: [state]" |
@@ -385,8 +385,8 @@ Each time you enter a world, the chat shows one message about the current lock s
 
 ### How to open
 
-1. Main menu: `Options…` → `Accessibility Settings…` → `Window Settings`.
-2. In-game: `Esc` → `Options…` → `Accessibility Settings…` → `Window Settings`.
+1. Main menu: `Options…` → `Accessibility Settings…` → `Window Management & Resolution Settings`.
+2. In-game: `Esc` → `Options…` → `Accessibility Settings…` → `Window Management & Resolution Settings`.
 3. Press your bound key (unbound by default).
 4. Chat: `/aws gui`.
 
@@ -405,18 +405,27 @@ Each time you enter a world, the chat shows one message about the current lock s
 | Auto-maximize on launch button | Toggle the persistent preference; mutually exclusive with auto-fullscreen |
 | Remember position button | Toggle window position memory (save/restore position across launches) |
 | Center Window button | Center on the current monitor |
-| Aspect ratio button | Cycles through 16:9 / 16:10 / 4:3 / 5:4 / 21:9 / Custom; shows current ratio + live window resolution |
-| Resolution preset buttons | 4 per row, 12 per ratio; click to apply instantly and center; presets larger than the screen or matching current size are disabled |
-| Custom input fields | Width + height + Apply button (shown when ratio is Custom); live boundary validation |
+| Aspect ratio split button | Three parts: left arrow (◀), center info display (current ratio + live window resolution), right arrow (▶); cycles through 8 ratios + Custom |
+| Resolution preset buttons | 4 per row, 16 per ratio (128 total); click to apply instantly and center; presets larger than screen, matching current size, or below minimum (when lock on) are disabled |
+| Custom input fields | Width + height + Apply button (shown when ratio is Custom); live boundary validation, Enter-to-apply |
 | Info line 4 | Custom input boundary values + input requirement (always visible below input fields) |
 | Done button | Back to Accessibility Settings |
 
 ### Resolution presets
 
-- Groups: 16:9 (12 presets from 856×482 to 3840×2160), 16:10 (12 presets from 1024×640 to 3840×2400), 4:3 (12 presets from 640×480 to 2048×1536), 5:4 (12 presets from 800×640 to 2560×2048), 21:9 (12 presets from 1920×800 to 5120×2160).
+- 8 groups with 16 presets each (128 total):
+  - **16:9**: 16 presets from 856×482 to 4096×2304
+  - **16:10**: 16 presets from 1024×640 to 4096×2560
+  - **4:3**: 16 presets from 640×480 to 2560×1920
+  - **5:4**: 16 presets from 800×640 to 2880×2304
+  - **21:9 (ultrawide)**: 16 presets from 1920×800 to 5120×2160
+  - **3:2**: 16 presets from 960×640 to 3600×2400 (common on Surface-style laptops)
+  - **2:1**: 16 presets from 1024×512 to 3840×1920 (tablets / some ultrawide)
+  - **9:16 (portrait)**: 16 presets from 540×960 to 2700×4800 (portrait / mobile streaming / portrait monitors)
 - Click a preset to switch window resolution and center it.
 - Presets larger than the current screen are auto-disabled.
 - Presets matching the current window resolution are auto-disabled.
+- Presets below the configured/hardcoded minimum are auto-disabled while minimum size lock is enabled.
 - The screen resolution is re-checked live; changing the system resolution updates the enabled state automatically.
 - When the window is dragged to a non-preset size, the ratio automatically switches to "Custom".
 
@@ -477,7 +486,7 @@ A second file `config/AutoWindowSize/window.json` stores the saved window positi
 
 Config option names and descriptions are translated: when opened via a config-screen mod, they follow the game language (20 languages supported).
 
-- **Config auto-migration (since v1.1.2)**: when upgrading, the mod automatically detects old config versions and migrates them on first launch — no need to manually delete the config folder. A chat notice confirms the migration when you enter a world. If upgrading from pre-1.0.9, the old `autowindowsize-client.toml` is detected and a warning is logged (you may delete it manually).
+- **Config auto-migration (since v1.1.1)**: when upgrading, the mod automatically detects old config versions and migrates them on first launch — no need to manually delete the config folder. A chat notice confirms the migration when you enter a world. If upgrading from pre-1.0.9, the old `autowindowsize-client.toml` is detected and a warning is logged (you may delete it manually).
 - The config is read at launch; editing it while running requires a restart. (The in-game toggles persist immediately.)
 - The lower bounds are bound to the hardcoded minimum (856×482), so you can never configure a smaller value.
 - If the config resolution exceeds the screen, the lock is auto-disabled.
@@ -486,7 +495,7 @@ Config option names and descriptions are translated: when opened via a config-sc
 
 ## Key binding
 
-Unbound by default. Bind it via `Options…` → `Controls…` → search "Auto Window Size" → "Open Window Settings".
+Unbound by default. Bind it via `Options…` → `Controls…` → search "Auto Window Size" → "Open Auto Window Size Settings".
 
 ---
 

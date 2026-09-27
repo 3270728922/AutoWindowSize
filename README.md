@@ -33,7 +33,7 @@ When building a modpack you spend ages arranging mod GUIs exactly right — then
 <br>
 
 **1. Settings entry** — Options → Accessibility Settings → Window Management & Resolution Settings
-![Window Settings button in Accessibility Settings](docs/en-accessibility-entry.png)
+![Window Management & Resolution Settings button in Accessibility Settings](docs/en-accessibility-entry.png)
 
 **2. Main settings screen** — all toggles, info area, and 16:9 resolution presets
 ![Main settings screen with resolution presets](docs/en-settings-main.png)
@@ -125,7 +125,7 @@ All keybinds are **unbound by default**. Set them in **Options → Controls → 
 
 | Keybind | Default | Description |
 |---------|---------|-------------|
-| Open Window Settings | None | Open the Window Management & Resolution Settings screen |
+| Open Auto Window Size Settings | None | Open the Window Management & Resolution Settings screen |
 | Center Window | None | Center the window on the current monitor |
 | Toggle Borderless | None | Toggle borderless mode on/off |
 | Cycle Window State | None | Cycle windowed → maximized → fullscreen |
@@ -148,7 +148,7 @@ All config files live in **`.minecraft/config/AutoWindowSize/`**:
 
 | Option | Default | Range | Description |
 |--------|---------|-------|-------------|
-| `configVersion` | 1 | 1–999 | Internal config version for automatic migration. Do not modify manually. |
+| `configVersion` | 2 | 1–999 | Internal config version for automatic migration. Do not modify manually. |
 | `windowWidth` | 1280 | 856–7680 | Default window width on launch |
 | `windowHeight` | 720 | 482–4320 | Default window height on launch |
 | `startupDelay` | 1.5 | 0.5–10.0 | Seconds to wait before applying window size on launch |
@@ -234,7 +234,7 @@ Detailed feature explanations, design decisions, and troubleshooting live in the
 - **Always-on-top**: three modes — off, normal (GLFW floating), and force (re-claims focus every frame, can override other always-on-top windows).
 - **Window state cycle button**: one click to cycle windowed → maximized → fullscreen.
 - **5 keybinds**: Open Settings, Center, Toggle Borderless, Cycle State, Toggle Always-on-Top (all unbound by default, with chat feedback).
-- **About page**: in-game info screen with mod purpose, usage, downloads, feedback, and author info (20 languages).
+- **About page**: in-game info screen with 9 sections (Purpose, About, Usage, Commands, Keybinds, Downloads, Feedback, Notes, Author), clickable links and email copy (20 languages).
 - **Settings entry moved** to **Accessibility Settings** (compatible with Embeddium and other mods that replace the video settings screen).
 - **15 commands** total: added `/aws borderless`, `/aws top`, `/aws debug`, `/aws gui`, `/aws status`, `/aws toggle`; `/aws help` now has pagination (2 pages, 8 commands per page).
 - **Resolution presets**: presets smaller than the configured minimum are now auto-disabled (in addition to larger-than-screen and matching-current).

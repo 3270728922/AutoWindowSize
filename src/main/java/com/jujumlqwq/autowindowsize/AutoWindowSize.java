@@ -18,6 +18,7 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -54,8 +55,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-@Mod("autowindowsize")
+@Mod(AutoWindowSize.MODID)
 public class AutoWindowSize {
+
+    public static final String MODID = "autowindowsize";
 
     private static final org.apache.logging.log4j.Logger LOGGER =
             org.apache.logging.log4j.LogManager.getLogger("AutoWindowSize");
@@ -733,6 +736,16 @@ public class AutoWindowSize {
      * 配置已通过 BooleanValue.set() 更新到内存；Forge 会在游戏正常退出时把
      * CLIENT 配置写回磁盘，这里无需手动保存（本版 registerConfig 返回 void）。
      */
+
+    /**
+     * 动态获取模组版本号，避免硬编码导致与 gradle.properties 不同步。
+     */
+    private static String getModVersion() {
+        return ModList.get().getModContainerById(MODID)
+                .map(container -> container.getModInfo().getVersion().toString())
+                .orElse("unknown");
+    }
+
     private static void saveConfig() {
         // no-op: rely on Forge's automatic config save on shutdown
     }
@@ -1504,7 +1517,7 @@ public class AutoWindowSize {
             if (player == null) return 0;
             player.displayClientMessage(Component.translatable("message.autowindowsize.version_title"), false);
             player.displayClientMessage(Component.translatable("message.autowindowsize.version_name"), false);
-            player.displayClientMessage(Component.translatable("message.autowindowsize.version_number", "1.1.2"), false);
+            player.displayClientMessage(Component.translatable("message.autowindowsize.version_number", getModVersion()), false);
             player.displayClientMessage(Component.translatable("message.autowindowsize.version_author"), false);
             player.displayClientMessage(Component.translatable("message.autowindowsize.version_license"), false);
             player.displayClientMessage(Component.translatable("message.autowindowsize.version_supported"), false);
