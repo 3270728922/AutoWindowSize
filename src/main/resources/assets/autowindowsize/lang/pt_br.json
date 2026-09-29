@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Largura",
   "gui.autowindowsize.custom_enter_hint": "Pressione Enter para aplicar rapidamente",
   "gui.autowindowsize.custom_lock_hint": "Dica: desative o bloqueio de tam mínimo para desbloquear mais botões de predefinição de resolução",
-  "gui.autowindowsize.custom_range": "Faixa válida: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Faixa válida: %s~%s × %s~%s, insira inteiros positivos",
   "gui.autowindowsize.debug.button.off": "Modo de depuração: Desligado",
   "gui.autowindowsize.debug.button.on": "Modo de depuração: Ligado",
   "gui.autowindowsize.debug.tooltip": "Quando ativado, mostra verificações de desativação de predefinições e outras informações nos logs para solução de problemas.",

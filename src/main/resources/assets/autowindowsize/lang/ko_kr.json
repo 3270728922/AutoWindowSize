@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "너비",
   "gui.autowindowsize.custom_enter_hint": "Enter 키로 빠르게 적용",
   "gui.autowindowsize.custom_lock_hint": "팁: 최소 크기 잠금을 끄면 더 많은 프리셋 해상도 버튼의 잠금이 해제됩니다",
-  "gui.autowindowsize.custom_range": "유효 범위: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "유효 범위: %s~%s × %s~%s, 양의 정수를 입력하세요",
   "gui.autowindowsize.debug.button.off": "디버그 모드: 끄기",
   "gui.autowindowsize.debug.button.on": "디버그 모드: 켜기",
   "gui.autowindowsize.debug.tooltip": "활성화하면 프리셋 비활성화 확인 및 기타 정보를 로그에 출력하여 문제 해결에 도움을 줍니다.",

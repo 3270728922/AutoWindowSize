@@ -480,6 +480,11 @@
 ### 配置项
 
 ```toml
+[meta]
+# 内部配置版本号，用于自动迁移，请勿手动修改。
+# 范围 1 ~ 999，迁移后为当前版本。
+configVersion = 2
+
 [window]
 # 启动窗口宽度，同时也是最小尺寸锁定开启后允许缩小到的最小宽度。
 # 范围 856 ~ 7680，默认 1280。
@@ -490,6 +495,15 @@ height = 720
 # 是否在退出时保存窗口位置与大小，并在下次启动时恢复。
 # 关闭时启动后始终强制居中。默认 false。
 rememberPosition = false
+# 窗口置顶模式：0=关闭，1=普通（GLFW 悬浮，多个悬浮窗按 Z 序），
+# 2=强制（失焦后自动重新抢焦点；仅保证同级置顶，不高于任务管理器等系统窗口）。
+# 范围 0 ~ 2，默认 0。
+alwaysOnTopMode = 0
+# 是否开启无边框（去除标题栏和边框）。全屏本就无边框，此项仅影响窗口化。
+# 默认 false。
+borderless = false
+# 是否在日志输出详细的预设可用性检查等诊断信息。默认 false。
+debug = false
 
 [startup]
 # 启动后延迟多少秒再应用窗口大小和位置。
@@ -512,6 +526,9 @@ autoFullscreen = false
 # 玩家持久化偏好：下次启动是否自动最大化（可在游戏内窗口管理与分辨率设置界面修改）。
 # 与 autoFullscreen 互斥。
 autoMaximized = false
+# 玩家持久化偏好：下次启动是否自动开启无边框（可在游戏内设置界面修改）。
+# 与 autoFullscreen / autoMaximized 相互独立。默认 false。
+autoBorderless = false
 ```
 
 当 `rememberPosition` 开启时，还会生成 `config/AutoWindowSize/window.json` 文件，用于保存窗口位置与大小。

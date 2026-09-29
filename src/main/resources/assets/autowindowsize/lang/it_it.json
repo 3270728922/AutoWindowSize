@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Larghezza",
   "gui.autowindowsize.custom_enter_hint": "Premi Invio per applicare rapidamente",
   "gui.autowindowsize.custom_lock_hint": "Suggerimento: disattiva il blocco dim min per sbloccare più pulsanti di preset risoluzione",
-  "gui.autowindowsize.custom_range": "Intervallo valido: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Intervallo valido: %s~%s × %s~%s, inserisci numeri interi positivi",
   "gui.autowindowsize.debug.button.off": "Modalità debug: Off",
   "gui.autowindowsize.debug.button.on": "Modalità debug: On",
   "gui.autowindowsize.debug.tooltip": "Quando attivata, mostra i controlli di disattivazione dei preset e altre informazioni nei log per la risoluzione dei problemi.",

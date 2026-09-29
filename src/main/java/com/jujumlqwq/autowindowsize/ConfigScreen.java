@@ -1071,7 +1071,7 @@ public class ConfigScreen extends Screen {
             if (this.textList != null) this.lastScroll = this.textList.getScrollAmount();
             this.renderBackground(guiGraphics);
             this.textList.render(guiGraphics, mouseX, mouseY, partialTick);
-            guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 12, 0xFFFFFF);
+            guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xFFFFFF);
             super.render(guiGraphics, mouseX, mouseY, partialTick);
         }
 

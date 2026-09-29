@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Genişlik",
   "gui.autowindowsize.custom_enter_hint": "Hızlı uygulama için Enter tuşuna basın",
   "gui.autowindowsize.custom_lock_hint": "İpucu: daha fazla çözünürlük ön ayarı düğmesinin kilidini açmak için minimum boyut kilidini kapatın",
-  "gui.autowindowsize.custom_range": "Geçerli aralık: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Geçerli aralık: %s~%s × %s~%s, pozitif tam sayılar girin",
   "gui.autowindowsize.debug.button.off": "Hata ayıklama modu: Kapalı",
   "gui.autowindowsize.debug.button.on": "Hata ayıklama modu: Açık",
   "gui.autowindowsize.debug.tooltip": "Etkinleştirildiğinde, ön ayar devre dışı bırakma kontrollerini ve diğer bilgileri günlüklere gösterir, sorun giderme için.",

@@ -34,6 +34,8 @@ Full release history for this mod. The latest version is expanded by default; ol
 - **/aws help page footer**: the page number hint line is now fully aqua-colored, matching the title line.
 - **/aws info output**: compressed from 11 lines to 6 lines by merging related info (window+screen resolution, window state+borderless, lock+fixed, top+remember+debug).
 - **mods.toml description**: updated feature list (8 ratios, 128 presets, 17 commands (18 including subcommand), 5 keybinds), added known issues section (Windows Snap workaround), version plan (1.21.1/26.2/26.3 ports planned), and contact email.
+- **mods.toml description de-duplication**: removed the trailing author block (Author/GitHub/Email/License) that duplicated the top info area, and removed the duplicate email in the feedback section; the contact email now sits once, near the top of the description.
+- **Custom ratio hint completed**: the custom resolution range hint now notes that positive integers are required.
 
 ### Fixed
 - **Preset button disable logic**: when minimum size lock is disabled, presets below the configured/hardcoded minimum are no longer incorrectly disabled — only presets larger than the screen or equal to the current window size are disabled.
@@ -41,11 +43,14 @@ Full release history for this mod. The latest version is expanded by default; ol
 - **Language file JSON parse error**: adding a new translation key after the last key without a comma caused the entire JSON file to fail parsing, making all translations show raw key names. Fixed in all 20 language files.
 - **Config migration false positive**: fresh installs were incorrectly triggering the "config updated" notice because the default configVersion was set to the latest version. Fixed by checking config file existence before registration to distinguish fresh installs from upgrades.
 - **Removed duplicate call**: `syncButtonStates()` was called twice in the fixed button callback, removed the redundant call.
+- **Configured config category names not localized**: the three config groups (meta/window/startup) had no translation keys bound, so config editors like Configured showed raw English path names (Meta/Window/Startup) and the category translations sitting in the language files never took effect. Translation keys are now bound to all three groups, so they correctly read `Meta / Window / Startup` and follow the game language.
+- **About page title offset**: the About page title sat too close to the top border; adjusted to the normal spacing.
 
 ### Notes
 - Windows Snap (split-screen) compatibility with minimum size lock remains a known limitation. Workaround: disable lock, arrange window with Snap, re-enable lock.
 - Windowed borderless mode has some edge-case bugs; maximized and fullscreen borderless work correctly.
 - Ports to 1.21.1, 26.2, and 26.3 are planned for future releases.
+- Added `.gitattributes` to unify source line endings (text forced to LF, Windows scripts kept at CRLF), preventing the Windows line-ending setting from rendering a `CR` glyph at the end of every About page line.
 
 </details>
 

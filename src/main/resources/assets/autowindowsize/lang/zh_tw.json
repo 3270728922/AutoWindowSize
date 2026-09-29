@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "宽",
   "gui.autowindowsize.custom_enter_hint": "按 Enter 快速應用",
   "gui.autowindowsize.custom_lock_hint": "提示：關閉最小尺寸鎖定後可解鎖更多預設解析度按鈕",
-  "gui.autowindowsize.custom_range": "合法范围：%s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "合法範圍：%s~%s × %s~%s，請輸入正整數",
   "gui.autowindowsize.debug.button.off": "除錯模式：關閉",
   "gui.autowindowsize.debug.button.on": "除錯模式：開啟",
   "gui.autowindowsize.debug.tooltip": "開啟後在日志中輸出預設禁用判断等详細信息，方便排查問題。",

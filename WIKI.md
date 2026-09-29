@@ -450,6 +450,11 @@ While dragging the window edge the numbers stay frozen; 0.2 s after release they
 ```
 
 ```toml
+[meta]
+# Internal config version used for automatic migration. Do not modify manually.
+# Range 1 ~ 999; set to the current version after migration.
+configVersion = 2
+
 [window]
 # Startup window width, also the lower bound when the minimum-size lock is on.
 # Range 856 ~ 7680, default 1280.
@@ -460,6 +465,16 @@ height = 720
 # Whether to remember and restore the window position and size across launches.
 # When false, the window is always centered on launch. Default false.
 rememberPosition = false
+# Always-on-top mode: 0=off, 1=normal (GLFW_FLOATING; floating windows follow Z-order),
+# 2=force (re-focuses the window when focus is lost; same-level only, never above
+# system-level windows like Task Manager). Range 0 ~ 2, default 0.
+alwaysOnTopMode = 0
+# Borderless mode (no title bar or border). Fullscreen is inherently borderless,
+# so this only affects windowed mode. Default false.
+borderless = false
+# Output detailed preset-availability checks and other diagnostics to the log.
+# Default false.
+debug = false
 
 [startup]
 # Delay in seconds before applying the window size and position on launch.
@@ -480,6 +495,9 @@ autoFullscreen = false
 # Player preference: start maximized on next launch (toggle in the in-game UI).
 # Mutually exclusive with autoFullscreen.
 autoMaximized = false
+# Player preference: auto-enable borderless on next launch (toggle in the in-game UI).
+# Independent of autoFullscreen / autoMaximized. Default false.
+autoBorderless = false
 ```
 
 A second file `config/AutoWindowSize/window.json` stores the saved window position and size when `rememberPosition` is enabled.

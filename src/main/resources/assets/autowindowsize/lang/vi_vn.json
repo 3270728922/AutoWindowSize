@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Chiều rộng",
   "gui.autowindowsize.custom_enter_hint": "Nhấn Enter để áp dụng nhanh",
   "gui.autowindowsize.custom_lock_hint": "Mẹo: tắt khóa kích thước tối thiểu để mở khóa thêm nút cài đặt trước độ phân giải",
-  "gui.autowindowsize.custom_range": "Phạm vi hợp lệ: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Phạm vi hợp lệ: %s~%s × %s~%s, hãy nhập số nguyên dương",
   "gui.autowindowsize.debug.button.off": "Chế độ gỡ lỗi: Tắt",
   "gui.autowindowsize.debug.button.on": "Chế độ gỡ lỗi: Bật",
   "gui.autowindowsize.debug.tooltip": "Khi bật, hiển thị kiểm tra tắt cài đặt trước và thông tin khác trong nhật ký để khắc phục sự cố.",

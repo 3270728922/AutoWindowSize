@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Szerokość",
   "gui.autowindowsize.custom_enter_hint": "Naciśnij Enter aby szybko zastosować",
   "gui.autowindowsize.custom_lock_hint": "Wskazówka: wyłącz blokadę min rozmiaru aby odblokować więcej przycisków presetów rozdzielczości",
-  "gui.autowindowsize.custom_range": "Prawidłowy zakres: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Prawidłowy zakres: %s~%s × %s~%s, wpisz dodatnie liczby całkowite",
   "gui.autowindowsize.debug.button.off": "Tryb debugowania: Wył",
   "gui.autowindowsize.debug.button.on": "Tryb debugowania: Wł",
   "gui.autowindowsize.debug.tooltip": "Gdy aktywowany, pokazuje sprawdzenia wyłączania presetów i inne informacje w logach do rozwiązywania problemów.",

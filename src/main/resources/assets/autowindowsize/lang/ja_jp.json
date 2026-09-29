@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "幅",
   "gui.autowindowsize.custom_enter_hint": "Enterキーですばやく適用",
   "gui.autowindowsize.custom_lock_hint": "ヒント：最小サイズロックをオフにすると、より多くのプリセット解像度ボタンのロックが解除されます",
-  "gui.autowindowsize.custom_range": "有効範囲：%s～%s × %s～%s",
+  "gui.autowindowsize.custom_range": "有効範囲：%s～%s × %s～%s、正の整数を入力してください",
   "gui.autowindowsize.debug.button.off": "デバッグモード：オフ",
   "gui.autowindowsize.debug.button.on": "デバッグモード：オン",
   "gui.autowindowsize.debug.tooltip": "有効にすると、プリセットの無効化チェックやその他の情報をログに出力し、トラブルシューティングに役立てます。",

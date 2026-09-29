@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Breedte",
   "gui.autowindowsize.custom_enter_hint": "Druk op Enter om snel toe te passen",
   "gui.autowindowsize.custom_lock_hint": "Tip: schakel min-groottevergrendeling uit om meer voorinstelknoppen voor resolutie vrij te schakelen",
-  "gui.autowindowsize.custom_range": "Geldig bereik: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Geldig bereik: %s~%s × %s~%s, voer positieve gehele getallen in",
   "gui.autowindowsize.debug.button.off": "Debug-modus: Uit",
   "gui.autowindowsize.debug.button.on": "Debug-modus: Aan",
   "gui.autowindowsize.debug.tooltip": "Wanneer geactiveerd, toont het uitschakelingscontroles van voorinstellingen en andere informatie in de logs voor probleemoplossing.",

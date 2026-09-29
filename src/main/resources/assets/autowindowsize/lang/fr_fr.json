@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Largeur",
   "gui.autowindowsize.custom_enter_hint": "Appuyez sur Entrée pour appliquer rapidement",
   "gui.autowindowsize.custom_lock_hint": "Astuce : désactivez le verrouillage de taille min pour débloquer plus de boutons de résolution préréglée",
-  "gui.autowindowsize.custom_range": "Plage valide : %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Plage valide : %s~%s × %s~%s, entrez des entiers positifs",
   "gui.autowindowsize.debug.button.off": "Mode débogage : Désactivé",
   "gui.autowindowsize.debug.button.on": "Mode débogage : Activé",
   "gui.autowindowsize.debug.tooltip": "Quand activé, affiche les vérifications de désactivation des préréglages et autres infos dans les journaux pour le dépannage.",

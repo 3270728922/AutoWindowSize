@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Ширина",
   "gui.autowindowsize.custom_enter_hint": "Нажмите Enter для быстрого применения",
   "gui.autowindowsize.custom_lock_hint": "Совет: отключите блокировку мин размера чтобы разблокировать больше кнопок пресетов разрешения",
-  "gui.autowindowsize.custom_range": "Допустимый диапазон: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Допустимый диапазон: %s~%s × %s~%s, введите положительные целые числа",
   "gui.autowindowsize.debug.button.off": "Режим отладки: Выкл",
   "gui.autowindowsize.debug.button.on": "Режим отладки: Вкл",
   "gui.autowindowsize.debug.tooltip": "Когда активирован, выводит проверки отключения пресетов и другую информацию в логи для устранения неполадок.",

@@ -53,7 +53,7 @@ public class Config {
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
-        builder.push("meta");
+        builder.translation("config.autowindowsize.meta").push("meta");
         CONFIG_VERSION = builder
                 .comment(
                         "=== Config Version (do not modify) ===",
@@ -66,7 +66,7 @@ public class Config {
                 .defineInRange("configVersion", 1, 1, 999);
         builder.pop();
 
-        builder.push("window");
+        builder.translation("config.autowindowsize.window").push("window");
 
         WINDOW_WIDTH = builder
                 .comment(
@@ -122,7 +122,7 @@ public class Config {
 
         builder.pop();
 
-        builder.push("startup");
+        builder.translation("config.autowindowsize.startup").push("startup");
 
         APPLY_STARTUP_GUIDE = builder
                 .comment(

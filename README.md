@@ -144,26 +144,39 @@ All config files live in **`.minecraft/config/AutoWindowSize/`**:
 | `config.toml` | Main configuration (window size, lock, auto-fullscreen, etc.) |
 | `window.json` | Saved window position/size (only used when "Remember position" is enabled) |
 
-### Main config options (`config.toml`)
+### The config is split into three groups: `[meta]`, `[window]`, `[startup]`
+
+**[meta] — Internal (usually no need to touch)**
 
 | Option | Default | Range | Description |
 |--------|---------|-------|-------------|
 | `configVersion` | 2 | 1–999 | Internal config version for automatic migration. Do not modify manually. |
-| `windowWidth` | 1280 | 856–7680 | Default window width on launch |
-| `windowHeight` | 720 | 482–4320 | Default window height on launch |
-| `startupDelay` | 1.5 | 0.5–10.0 | Seconds to wait before applying window size on launch |
-| `autoFullscreen` | false | — | Start in fullscreen on next launch |
-| `autoMaximize` | false | — | Start maximized on next launch |
-| `autoBorderless` | false | — | Start in borderless mode on next launch |
-| `lockEnabled` | false | — | Enable minimum size lock |
-| `fixedEnabled` | false | — | Enable fixed window size |
-| `rememberPosition` | false | — | Save/restore window position and size |
-| `alwaysOnTopMode` | 0 | 0–2 | Always-on-top mode (0=off, 1=normal, 2=force) |
-| `borderless` | false | — | Enable borderless mode |
-| `debug` | false | — | Enable debug logging |
 
-> 💡 You can also edit these in-game via a config-screen mod (e.g. Configured, Cloth Config). Config option names and tooltips follow the game language.
->
+**[window] — Window size & state**
+
+| Option | Default | Range | Description |
+|--------|---------|-------|-------------|
+| `width` | 1280 | 856–7680 | Startup window width; also the minimum width when locked |
+| `height` | 720 | 482–4320 | Startup window height; also the minimum height when locked |
+| `rememberPosition` | false | — | Save on exit and restore window position/size on next launch |
+| `alwaysOnTopMode` | 0 | 0–2 | Always-on-top mode (0=off, 1=normal, 2=force) |
+| `borderless` | false | — | Enable borderless mode (windowed only; fullscreen is inherently borderless) |
+| `debug` | false | — | Output detailed diagnostics to the log |
+
+**[startup] — Launch behavior**
+
+| Option | Default | Range | Description |
+|--------|---------|-------|-------------|
+| `startupDelay` | 1.5 | 0.5–10.0 | Seconds to wait before applying window size/position on launch |
+| `autoFullscreen` | false | — | Auto-fullscreen on next launch (mutually exclusive with autoMaximized) |
+| `autoMaximized` | false | — | Auto-maximize on next launch (mutually exclusive with autoFullscreen) |
+| `autoBorderless` | false | — | Auto-enable borderless on next launch |
+| `applyStartupGuide` | false | — | One-time onboarding flag (modpack authors), auto-resets after use |
+| `startFullscreen` | false | — | Onboarding target: whether the first launch starts fullscreen |
+| `startMaximized` | false | — | Onboarding target: whether the first launch starts maximized |
+
+> 💡 "Minimum size lock" and "Fixed window size" are **runtime states**, not config fields. Toggle them from the settings screen or via `/aws toggle` and `/aws fixed`.
+
 > 🔄 **Auto config migration**: Since v1.1.1, the mod automatically migrates old config files on first launch — no need to manually delete the config folder when upgrading. A chat notice confirms the migration when you enter a world.
 
 ---

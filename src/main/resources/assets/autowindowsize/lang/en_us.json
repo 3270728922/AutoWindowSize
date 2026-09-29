@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Width",
   "gui.autowindowsize.custom_enter_hint": "Press Enter to apply quickly",
   "gui.autowindowsize.custom_lock_hint": "Tip: Disable min size lock to unlock more preset resolution buttons",
-  "gui.autowindowsize.custom_range": "Valid range: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Valid range: %s~%s × %s~%s, enter positive integers",
   "gui.autowindowsize.debug.button.off": "Debug Mode: Off",
   "gui.autowindowsize.debug.button.on": "Debug Mode: On",
   "gui.autowindowsize.debug.tooltip": "When enabled, outputs detailed preset disable checks and other info to logs for troubleshooting.",

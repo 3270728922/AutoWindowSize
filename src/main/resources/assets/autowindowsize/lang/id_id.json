@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Lebar",
   "gui.autowindowsize.custom_enter_hint": "Tekan Enter untuk penerapan cepat",
   "gui.autowindowsize.custom_lock_hint": "Tips: matikan kunci ukuran minimum untuk membuka kunci lebih banyak tombol preset resolusi",
-  "gui.autowindowsize.custom_range": "Rentang valid: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Rentang valid: %s~%s × %s~%s, masukkan bilangan bulat positif",
   "gui.autowindowsize.debug.button.off": "Mode debug: Mati",
   "gui.autowindowsize.debug.button.on": "Mode debug: Nyala",
   "gui.autowindowsize.debug.tooltip": "Saat diaktifkan, menampilkan pemeriksaan penonaktifan preset dan informasi lainnya di log untuk pemecahan masalah.",

@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Breite",
   "gui.autowindowsize.custom_enter_hint": "Eingabetaste zum schnellen Anwenden",
   "gui.autowindowsize.custom_lock_hint": "Tipp: Deaktivieren Sie die Mindestgrößensperre, um mehr Voreinstellungs-Schaltflächen freizuschalten",
-  "gui.autowindowsize.custom_range": "Gültiger Bereich: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Gültiger Bereich: %s~%s × %s~%s, positive ganze Zahlen eingeben",
   "gui.autowindowsize.debug.button.off": "Debug-Modus: Aus",
   "gui.autowindowsize.debug.button.on": "Debug-Modus: An",
   "gui.autowindowsize.debug.tooltip": "Wenn aktiviert, werden Voreinstellungs-Deaktivierungsprüfungen und andere Infos in den Logs zur Fehlerbehebung ausgegeben.",

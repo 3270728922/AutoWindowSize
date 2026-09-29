@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "Šířka",
   "gui.autowindowsize.custom_enter_hint": "Stiskněte Enter pro rychlé použití",
   "gui.autowindowsize.custom_lock_hint": "Tip: vypněte záměr min velikosti pro odemčení více tlačítek předvoleb rozlišení",
-  "gui.autowindowsize.custom_range": "Platný rozsah: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "Platný rozsah: %s~%s × %s~%s, zadejte kladná celá čísla",
   "gui.autowindowsize.debug.button.off": "Režim ladění: Vyp",
   "gui.autowindowsize.debug.button.on": "Režim ladění: Zap",
   "gui.autowindowsize.debug.tooltip": "Když je aktivován, zobrazuje kontroly vypnutí předvoleb a další informace v logech pro řešení problémů.",

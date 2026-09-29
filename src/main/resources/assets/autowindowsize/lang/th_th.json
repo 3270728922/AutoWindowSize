@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "ความกว้าง",
   "gui.autowindowsize.custom_enter_hint": "กด Enter เพื่อใช้งานอย่างรวดเร็ว",
   "gui.autowindowsize.custom_lock_hint": "เคล็ดลับ: ปิดล็อกขนาดต่ำสุดเพื่อปลดล็อกปุ่มค่าล่วงหน้าความละเอียดเพิ่มเติม",
-  "gui.autowindowsize.custom_range": "ช่วงที่ถูกต้อง: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "ช่วงที่ถูกต้อง: %s~%s × %s~%s, กรุณากรอกจำนวนเต็มบวก",
   "gui.autowindowsize.debug.button.off": "โหมดแก้ไขข้อบกพร่อง: ปิด",
   "gui.autowindowsize.debug.button.on": "โหมดแก้ไขข้อบกพร่อง: เปิด",
   "gui.autowindowsize.debug.tooltip": "เมื่อเปิดใช้งาน จะแสดงการตรวจสอบการปิดใช้งานค่าล่วงหน้าและข้อมูลอื่นๆ ในบันทึก สำหรับแก้ไขปัญหา",

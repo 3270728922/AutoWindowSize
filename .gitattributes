@@ -1,5 +1,43 @@
-# Disable autocrlf on generated files, they always generate with LF
-# Add any extra files or paths here to make git stop saying they
-# are changed when only line endings change.
+# 默认：让 Git 自动识别文本文件
+* text=auto
+
+# ===== 强制使用 LF（Unix 换行）的文本文件 =====
+# Java 源码
+*.java         text eol=lf
+# JSON（语言文件等）
+*.json         text eol=lf
+# TOML（mods.toml、配置文件）
+*.toml         text eol=lf
+# TXT（about 关于页面、LICENSE、CREDITS 等）
+*.txt          text eol=lf
+# Markdown 文档
+*.md           text eol=lf
+# Gradle 构建脚本
+*.gradle       text eol=lf
+# properties 配置
+*.properties   text eol=lf
+# mcmeta
+*.mcmeta       text eol=lf
+# Git 自身文件
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+
+# ===== Windows 批处理脚本保持 CRLF =====
+*.bat          text eol=crlf
+*.cmd          text eol=crlf
+
+# ===== 二进制文件，不做换行处理 =====
+*.png          binary
+*.jpg          binary
+*.jpeg         binary
+*.gif          binary
+*.jar          binary
+*.zip          binary
+*.gz           binary
+*.ico          binary
+*.ogg          binary
+*.nbt          binary
+
+# ForgeGradle 生成文件
 src/generated/**/.cache/cache text eol=lf
-src/generated/**/*.json text eol=lf
+src/generated/**/*.json       text eol=lf

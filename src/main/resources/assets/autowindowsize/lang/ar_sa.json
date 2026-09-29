@@ -72,7 +72,7 @@
   "gui.autowindowsize.custom.width": "العرض",
   "gui.autowindowsize.custom_enter_hint": "اضغط Enter للتطبيق السريع",
   "gui.autowindowsize.custom_lock_hint": "نصيحة: أوقف قفل الحجم الأدنى لفتح المزيد من أزرار الإعدادات المسبقة للدقة",
-  "gui.autowindowsize.custom_range": "النطاق الصالح: %s~%s × %s~%s",
+  "gui.autowindowsize.custom_range": "النطاق الصالح: %s~%s × %s~%s، أدخل أعدادًا صحيحة موجبة",
   "gui.autowindowsize.debug.button.off": "وضع التصحيح: إيقاف",
   "gui.autowindowsize.debug.button.on": "وضع التصحيح: تشغيل",
   "gui.autowindowsize.debug.tooltip": "عند التفعيل، يعرض فحوصات تعطيل الإعدادات المسبقة ومعلومات أخرى في السجلات لاستكشاف الأخطاء وإصلاحها.",
